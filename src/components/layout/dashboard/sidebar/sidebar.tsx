@@ -4,8 +4,6 @@ import {
   LayoutDashboard,
   Home,
   MessageCircle,
-  FileText,
-  Settings,
   ChevronRight,
   type LucideIcon,
   LogOut,
@@ -65,64 +63,12 @@ const items: MenuItem[] = [
         label: "View Sales",
         href: "/admin/SalesList",
       },
-      {
-        label: "Cities",
-        href: "/admin/cities",
-      },
-      {
-        label: "States",
-        href: "/admin/states",
-      },
-      {
-        label: "Features",
-        href: "/admin/features",
-      },
     ],
   },
   {
     label: "Inquiries",
     icon: MessageCircle,
     href: "/admin/inquiries",
-  },
-  {
-    label: "Site Config",
-    icon: Settings,
-    items: [
-      {
-        label: "FAQs",
-        href: "/admin/faqs",
-      },
-      {
-        label: "Testimonials",
-        href: "/admin/testimonials",
-      },
-      {
-        label: "Team",
-        href: "/admin/team",
-      },
-    ],
-  },
-  {
-    label: "Blog",
-    icon: FileText,
-    items: [
-      {
-        label: "Blogs",
-        href: "/admin/blog/posts",
-      },
-      {
-        label: "Blog Categories",
-        href: "/admin/blog/categories",
-      },
-      {
-        label: "Blog Tags",
-        href: "/admin/blog/tags",
-      },
-      {
-        label: "Blog Authors",
-        href: "/admin/blog/authors",
-      },
-    ],
   },
 ];
 
