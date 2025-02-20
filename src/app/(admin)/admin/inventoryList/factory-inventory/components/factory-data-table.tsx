@@ -25,9 +25,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTablePagination } from "./states-data-table-pagination";
-import { DataTableToolbar } from "./states-data-table-toolbar";
-import { StateTableSkeleton } from "@/components/skeletons/state-table-skeleton";
+import { DataTablePagination } from "./factory-data-table-pagination";
+import { DataTableToolbar } from "./factory-data-table-toolbar";
+import { FactoryTableSkeleton } from "@/components/skeletons/factory-table-skeleton";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
@@ -133,7 +133,7 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <StateTableSkeleton />
+              <FactoryTableSkeleton />
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow

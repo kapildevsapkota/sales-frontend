@@ -1,36 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SalesResponse } from "@/types/sale";
+import { FactoryInventoryResponse } from "@/types/factory";
 import axios from "axios";
-import Link from "next/link";
 import { showError } from "@/lib/alerts";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { DataTable } from "./components/sales-data-table";
-import { EditStateDialog } from "./components/sales-edit-state-dialog";
-import { columns } from "./components/sales-columns";
+import { DataTable } from "./components/factory-data-table";
+import { EditStateDialog } from "./components/factory-edit-state-dialog";
+import { columns } from "./components/factory-columns";
 
-export default function SalesPage() {
-  const [sales, setSales] = useState<SalesResponse>();
+export default function FactoryInventoryPage() {
+  const [factoryInventory, setFactoryInventory] =
+    useState<FactoryInventoryResponse>();
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
 
-  const fetchSales = async (page: number = 1, size: number = pageSize) => {
+  const fetchFactoryInventory = async (
+    page: number = 1,
+    size: number = pageSize
+  ) => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("accessToken");
-      const response = await axios.get<SalesResponse>(
-        `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/?page=${page}&page_size=${size}`,
+      const response = await axios.get<FactoryInventoryResponse>(
+        `${process.env.NEXT_PUBLIC_API_URL}api/sales/factory-inventory/?page=${page}&page_size=${size}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setSales(response.data);
+      setFactoryInventory(response.data);
       setCurrentPage(page);
       setPageSize(size);
     } catch {
@@ -46,10 +47,10 @@ export default function SalesPage() {
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_URL
-        }api/sales/orders/?search=${encodeURIComponent(searchTerm)}`
+        }api/sales/factory-inventory/?search=${encodeURIComponent(searchTerm)}`
       );
       const data = await response.json();
-      setSales(data as SalesResponse);
+      setFactoryInventory(data as FactoryInventoryResponse);
       setCurrentPage(1);
     } catch (error) {
       console.error("Error searching sales:", error);
@@ -60,37 +61,31 @@ export default function SalesPage() {
   };
 
   useEffect(() => {
-    fetchSales();
+    fetchFactoryInventory();
   }, []);
 
   const handlePageChange = (page: number) => {
-    fetchSales(page, pageSize);
+    fetchFactoryInventory(page, pageSize);
   };
 
   const handlePageSizeChange = (newSize: number) => {
-    fetchSales(1, newSize);
+    fetchFactoryInventory(1, newSize);
   };
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Sales List</h1>
-        <Link href="/sales/orders/create">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Order
-          </Button>
-        </Link>
+        <h1 className="text-2xl font-bold">Factory Inventory</h1>
       </div>
 
       <DataTable
         columns={columns}
-        data={sales?.results || []}
-        onDataChange={fetchSales}
+        data={factoryInventory?.data || []}
+        onDataChange={fetchFactoryInventory}
         isLoading={isLoading}
         onGlobalSearch={handleGlobalSearch}
         pagination={{
-          pageCount: Math.ceil((sales?.count || 0) / pageSize),
+          pageCount: Math.ceil((factoryInventory?.count || 0) / pageSize),
           currentPage,
           pageSize,
           onPageChange: handlePageChange,
@@ -101,7 +96,7 @@ export default function SalesPage() {
       <EditStateDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSuccess={fetchSales}
+        onSuccess={fetchFactoryInventory}
       />
     </div>
   );

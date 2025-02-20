@@ -2,9 +2,9 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Sale } from "@/types/sale";
-import { DataTableColumnHeader } from "./states-data-table-column-header";
-import { DataTableRowActions } from "./states-data-table-row-actions";
-import { TableMeta } from "./states-data-table";
+import { DataTableColumnHeader } from "./sales-data-table-column-header";
+import { DataTableRowActions } from "./sales-data-table-row-actions";
+import { TableMeta } from "./sales-data-table";
 
 export const columns: ColumnDef<Sale>[] = [
   {
@@ -39,6 +39,34 @@ export const columns: ColumnDef<Sale>[] = [
     accessorKey: "order_status",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Order Status" />
+    ),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "sales_person.username",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Sales Person" />
+    ),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "phone_number",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Phone Number" />
+    ),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "payment_method",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Payment Method" />
+    ),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Date" />
     ),
     enableSorting: true,
   },

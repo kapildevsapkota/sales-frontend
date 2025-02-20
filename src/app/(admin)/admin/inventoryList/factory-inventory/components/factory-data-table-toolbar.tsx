@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DataTableViewOptions } from "./states-data-table-view-options";
+import { DataTableViewOptions } from "./factory-data-table-view-options";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -17,20 +17,33 @@ export function DataTableToolbar<TData>({
   onReset,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
-  const searchValue =
-    (table.getColumn("full_name")?.getFilterValue() as string) ?? "";
+  const searchValueFactory =
+    (table.getColumn("factory")?.getFilterValue() as string) ?? "";
+
+  const handleFilterChange = (columnId: string, value: string) => {
+    // Update the filter value for the specified column
+    table.getColumn(columnId)?.setFilterValue(value);
+
+    fetchDataWithFilters();
+  };
+
+  const fetchDataWithFilters = () => {
+    // Implement your data fetching logic here
+    // Use the current filter values to fetch data from the backend
+  };
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filter Orders..."
-          value={searchValue}
+          placeholder="Filter Factory..."
+          value={searchValueFactory}
           onChange={(event) =>
-            table.getColumn("full_name")?.setFilterValue(event.target.value)
+            handleFilterChange("factory", event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
+
         {isFiltered && (
           <Button
             variant="ghost"

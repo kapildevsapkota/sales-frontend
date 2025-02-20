@@ -66,6 +66,17 @@ const items: MenuItem[] = [
     ],
   },
   {
+    label: "Inventory",
+    icon: Home,
+    isActive: true,
+    items: [
+      {
+        label: "View Inventory",
+        href: "/admin/inventoryList",
+      },
+    ],
+  },
+  {
     label: "Inquiries",
     icon: MessageCircle,
     href: "/admin/inquiries",

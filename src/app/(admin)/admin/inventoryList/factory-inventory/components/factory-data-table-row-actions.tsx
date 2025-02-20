@@ -4,8 +4,8 @@ import { Row } from "@tanstack/react-table";
 import { Pen, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { DeleteStateDialog } from "./states-delete-state-dialog";
-import { EditStateDialog } from "./states-edit-state-dialog";
+import { DeleteStateDialog } from "./factory-delete-state-dialog";
+import { EditStateDialog } from "./factory-edit-state-dialog";
 import { State } from "@/types/states";
 
 interface DataTableRowActionsProps<TData> {
