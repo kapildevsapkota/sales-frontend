@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import CreateOrderForm from "@/components/forms/create-order-form";
 import { Product } from "@/types/product";
 import { ShoppingCart } from "lucide-react";
@@ -10,23 +13,49 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-async function getProducts(): Promise<Product[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/sales/products`,
-    {
-      cache: "no-store",
+export default function CreateOrderPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}api/sales/products`,
+          {
+            cache: "no-store",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch products"
+        );
+      }
     }
-  );
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch products");
+    fetchProducts();
+  }, []);
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
   }
-
-  return res.json();
-}
-
-export default async function CreateOrderPage() {
-  const products = await getProducts();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">

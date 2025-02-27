@@ -3,7 +3,7 @@
 import {
   LayoutDashboard,
   Home,
-  MessageCircle,
+  UserPlus,
   ChevronRight,
   type LucideIcon,
   LogOut,
@@ -77,9 +77,9 @@ const items: MenuItem[] = [
     ],
   },
   {
-    label: "Inquiries",
-    icon: MessageCircle,
-    href: "/admin/inquiries",
+    label: "Create User",
+    icon: UserPlus,
+    href: "/admin/createUser",
   },
 ];
 

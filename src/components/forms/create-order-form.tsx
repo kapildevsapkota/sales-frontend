@@ -64,7 +64,7 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
         z.object({
           product: z.number(),
           quantity: z.number().min(0),
-          discount: z.number().min(0),
+          discount: z.number().min(0).optional().default(0),
         })
       )
       .refine((data) => data.some((op) => op.quantity > 0), {
@@ -74,10 +74,9 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
       .refine(
         (data) => {
           return data.every((op) => {
-            const product = products.find((p) => p.id === op.product);
+            const product = products.find((p) => p.product_id === op.product);
             if (!product || op.quantity === 0) return true;
-            const subtotal = product.price * op.quantity;
-            return op.discount <= subtotal;
+            return true;
           });
         },
         {
@@ -103,7 +102,7 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
       payment_screenshot: undefined,
       remarks: "",
       order_products: products.map((product) => ({
-        product: product.id,
+        product: product.product_id,
         quantity: 0,
         discount: 0,
       })),
@@ -204,56 +203,55 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
   const prevStep = () => setStep((prev) => prev - 1);
 
   const incrementQuantity = (productId: number) => {
-    const orderProducts = watch("order_products");
+    const orderProducts = form.getValues("order_products");
     const productIndex = orderProducts.findIndex(
       (op) => op.product === productId
     );
     if (productIndex !== -1) {
-      setValue(
-        `order_products.${productIndex}.quantity`,
-        orderProducts[productIndex].quantity + 1
-      );
+      const currentQuantity = orderProducts[productIndex].quantity || 0;
+      const currentDiscount = orderProducts[productIndex].discount || 0;
+
+      form.setValue(`order_products.${productIndex}`, {
+        product: productId,
+        quantity: currentQuantity + 1,
+        discount: currentDiscount,
+      });
     }
   };
 
   const decrementQuantity = (productId: number) => {
-    const orderProducts = watch("order_products");
+    const orderProducts = form.getValues("order_products");
     const productIndex = orderProducts.findIndex(
       (op) => op.product === productId
     );
     if (productIndex !== -1 && orderProducts[productIndex].quantity > 0) {
-      setValue(
-        `order_products.${productIndex}.quantity`,
-        orderProducts[productIndex].quantity - 1
-      );
+      const currentQuantity = orderProducts[productIndex].quantity;
+      const currentDiscount = orderProducts[productIndex].discount || 0;
+
+      form.setValue(`order_products.${productIndex}`, {
+        product: productId,
+        quantity: currentQuantity - 1,
+        discount: currentDiscount,
+      });
     }
   };
 
-  const totalPrice = watch("order_products").reduce((acc, curr) => {
-    const product = products.find((p) => p.id === curr.product)!;
-    return acc + (product.price * curr.quantity - curr.discount);
-  }, 0);
-
   const renderProductCard = (product: Product) => {
     const orderProduct = watch("order_products").find(
-      (op) => op.product === product.id
+      (op) => op.product === product.product_id
     );
     const quantity = orderProduct?.quantity || 0;
-    const discount = orderProduct?.discount || 0;
-    const subtotal = product.price * quantity;
-    const totalPrice = subtotal - discount;
-
     return (
       <div
-        key={product.id}
+        key={product.product_id}
         className="bg-white rounded-xl shadow-md transition-all duration-200 hover:shadow-lg border border-gray-100 overflow-hidden"
       >
         {/* Product Header */}
         <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50">
           <h3 className="font-semibold text-lg text-gray-800 mb-1">
-            {product.name}
+            {product.product_name}
           </h3>
-          <p className="text-indigo-600 font-medium">Rs. {product.price}</p>
+          <p className="text-sm text-gray-500">{product.quantity}</p>
         </div>
 
         {/* Product Controls */}
@@ -262,7 +260,7 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
           <div className="flex items-center justify-center gap-3 bg-gray-50 rounded-full px-4 py-2">
             <button
               type="button"
-              onClick={() => decrementQuantity(product.id)}
+              onClick={() => decrementQuantity(product.product_id)}
               className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-200"
               disabled={quantity === 0}
             >
@@ -288,7 +286,7 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
 
             <button
               type="button"
-              onClick={() => incrementQuantity(product.id)}
+              onClick={() => incrementQuantity(product.product_id)}
               className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-200"
             >
               <span className="sr-only">Increase</span>
@@ -307,59 +305,6 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
               </svg>
             </button>
           </div>
-
-          {/* Discount Input */}
-          {quantity > 0 && (
-            <FormField
-              control={form.control}
-              name={`order_products.${form
-                .getValues("order_products")
-                .findIndex((op) => op.product === product.id)}.discount`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm text-gray-600">
-                    Discount Amount (Rs.)
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={subtotal}
-                      placeholder="Enter discount amount"
-                      {...field}
-                      onChange={(e) => {
-                        const value = Number(e.target.value);
-                        if (value >= 0 && value <= subtotal) {
-                          field.onChange(value);
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          {/* Price Summary */}
-          {quantity > 0 && (
-            <div className="space-y-1 pt-2 border-t">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Subtotal:</span>
-                <span>Rs. {subtotal}</span>
-              </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-sm text-red-600">
-                  <span>Discount:</span>
-                  <span>- Rs. {discount}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-semibold text-indigo-600">
-                <span>Total:</span>
-                <span>Rs. {totalPrice}</span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -488,9 +433,6 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
               </h2>
               <div className="text-right">
                 <p className="text-sm text-gray-500">Total Amount</p>
-                <p className="text-2xl font-bold text-indigo-600">
-                  Rs. {totalPrice}
-                </p>
               </div>
             </div>
 
@@ -771,7 +713,9 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
                 <div className="p-6">
                   <div className="space-y-4">
                     {form.getValues("order_products").map((op) => {
-                      const product = products.find((p) => p.id === op.product);
+                      const product = products.find(
+                        (p) => p.product_id === op.product
+                      );
                       if (!op.quantity || op.quantity === 0) return null;
 
                       return (
@@ -781,7 +725,7 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
                         >
                           <div className="space-y-1">
                             <p className="font-medium text-gray-900">
-                              {product?.name}
+                              {product?.product_name}
                             </p>
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
                               <span>Quantity: {op.quantity}</span>
@@ -793,13 +737,9 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-gray-900">
-                              Rs. {product!.price * op.quantity - op.discount}
-                            </p>
+                            <p className="font-medium text-gray-900"></p>
                             {op.discount > 0 && (
-                              <p className="text-sm text-gray-500 line-through">
-                                Rs. {product!.price * op.quantity}
-                              </p>
+                              <p className="text-sm text-gray-500 line-through"></p>
                             )}
                           </div>
                         </div>
@@ -821,7 +761,6 @@ export default function CreateOrderForm({ products }: CreateOrderFormProps) {
                       </p>
                       <p className="text-lg font-semibold text-indigo-600">
                         Rs.{" "}
-                        {totalPrice + Number(form.getValues("delivery_charge"))}
                       </p>
                     </div>
                   </div>

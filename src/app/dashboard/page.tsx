@@ -18,7 +18,7 @@ export default function DashboardPage() {
         } else if (user.role === Role.SuperAdmin) {
           router.push("/admin");
         } else {
-          router.push("/distributor/dashboard");
+          router.push("/admin");
         }
       }, 3000);
 
