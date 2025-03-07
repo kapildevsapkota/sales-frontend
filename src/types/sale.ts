@@ -1,48 +1,51 @@
-export interface Product {
-  id: number;
-  name: string;
-  price: string;
-  description: string;
+export interface SaleItem {
+  id: number
+  created_at: string
+  full_name: string
+  delivery_address: string
+  city: string
+  phone_number: string
+  remarks: string
+  order_products: OrderProduct[]
+  total_amount: string
+  sales_person: SalesPerson
+  payment_method: string
+  payment_screenshot: string
+  delivery_charge: string
+  order_status: string
 }
 
-export interface OrderProduct {
-  id: number;
-  product: Product;
-  quantity: number;
-  discount: string;
-  get_total_price: number;
+interface OrderProduct {
+  id: number
+  product: Product
+  quantity: number
 }
 
-export interface SalesPerson {
-  id: number;
-  username: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  role: string;
-  is_active: boolean;
+interface Product {
+  id: number
+  name: string
 }
 
-export interface Sale {
-  id: number;
-  full_name: string;
-  city: string;
-  delivery_address: string;
-  delivery_charge: string;
-  order_products: OrderProduct[];
-  order_status: string;
-  payment_method: string;
-  phone_number: string;
-  total_amount: string;
-  sales_person: SalesPerson;
-  created_at: string;
-  updated_at: string;
+interface SalesPerson {
+  id: number
+  first_name: string
+  last_name: string
 }
 
 export interface SalesResponse {
-  count: number;
-  next: null | string;
-  previous: null | string;
-  results: Sale[];
-} 
+  count: number
+  next: string | null
+  previous: string | null
+  results: SaleItem[]
+}
+
+export interface Column {
+  id: string
+  label: string
+  visible: boolean
+  width: number
+  sortable: boolean
+}
+
+export type SortDirection = "asc" | "desc" | null
+

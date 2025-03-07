@@ -4,14 +4,7 @@ import { useEffect, useState } from "react";
 import CreateOrderForm from "@/components/forms/create-order-form";
 import { Product } from "@/types/product";
 import { ShoppingCart } from "lucide-react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import TabBar from "@/components/layout/badgebar";
 
 export default function CreateOrderPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -59,17 +52,6 @@ export default function CreateOrderPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/sales/dashboard">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Create Details</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8 sm:mb-12">
           <div className="flex items-center justify-center mb-3 sm:mb-4">
@@ -82,10 +64,17 @@ export default function CreateOrderPage() {
             Complete the form below to create a new order
           </p>
         </div>
+        <div className="py-5">
+          <TabBar />
+        </div>
 
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden">
           <div className="p-4 sm:p-6">
-            <CreateOrderForm products={products} />
+            <CreateOrderForm
+              products={products}
+              oilTypes={["Mustard Oil", "Olive Oil", "Coconut Oil"]}
+              convincedByOptions={["Friend", "Advertisement", "Social Media"]}
+            />
           </div>
         </div>
       </div>

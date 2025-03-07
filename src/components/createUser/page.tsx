@@ -43,6 +43,12 @@ interface Franchise {
   distributor: number;
 }
 
+interface Factory {
+  id: number;
+  name: string;
+  short_form: string | null;
+}
+
 const formSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
@@ -59,6 +65,7 @@ const formSchema = z.object({
   franchise: z.number().nullable(),
   isActive: z.boolean(),
   password: z.string().min(1, "Password is required"),
+  factory: z.number().nullable(),
 });
 
 export default function CreateAccountForm() {
@@ -68,6 +75,7 @@ export default function CreateAccountForm() {
   const [loading, setLoading] = useState(false);
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [franchises, setFranchises] = useState<Franchise[]>([]);
+  const [factories, setFactories] = useState<Factory[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,6 +90,7 @@ export default function CreateAccountForm() {
       phone_number: "",
       address: "",
       password: "",
+      factory: null,
     },
   });
 
@@ -112,6 +121,21 @@ export default function CreateAccountForm() {
     }
   };
 
+  useEffect(() => {
+    const fetchFactories = async () => {
+      try {
+        const response = await fetch(
+          "https://sales.baliyoventures.com/api/account/factories/"
+        );
+        const data = await response.json();
+        setFactories(data);
+      } catch (error) {
+        console.error("Error fetching factories:", error);
+      }
+    };
+    fetchFactories();
+  }, []);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
@@ -136,6 +160,7 @@ export default function CreateAccountForm() {
         franchise: values.franchise,
         password: values.password,
         is_active: values.isActive,
+        factory: values.factory,
       };
 
       const response = await fetch(
@@ -200,206 +225,345 @@ export default function CreateAccountForm() {
     }
   };
 
+  const showFieldsByRole = (selectedRole: string | undefined) => {
+    if (!selectedRole)
+      return {
+        showFactory: false,
+        showDistributor: false,
+        showFranchise: false,
+      };
+
+    switch (selectedRole) {
+      case Role.SuperAdmin:
+        return {
+          showFactory: true,
+          showDistributor: false,
+          showFranchise: false,
+        };
+      case Role.Distributor:
+        return {
+          showFactory: false,
+          showDistributor: true,
+          showFranchise: false,
+        };
+      case Role.Franchise:
+      case Role.SalesPerson:
+        return {
+          showFactory: false,
+          showDistributor: true,
+          showFranchise: true,
+        };
+      default:
+        return {
+          showFactory: false,
+          showDistributor: false,
+          showFranchise: false,
+        };
+    }
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-2xl">
-          <UserPlus className="w-6 h-6" />
+    <Card className="w-full max-w-6xl mx-44 shadow-md">
+      <CardHeader className="bg-slate-50 border-b p-6">
+        <CardTitle className="flex items-center gap-2 text-2xl font-semibold">
+          <UserPlus className="w-6 h-6 text-primary" />
           Create Account
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-8">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="space-y-6">
+              <h3 className="text-xl font-medium text-gray-800">
+                Personal Information
+              </h3>
+              <div className="grid gap-8 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        First Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="First name"
+                          {...field}
+                          className="h-10"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Last Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Last name"
+                          {...field}
+                          className="h-10"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Email
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="email@example.com"
+                          {...field}
+                          className="h-10"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Phone Number
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          placeholder="Phone number"
+                          {...field}
+                          className="h-10"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
-                name="email"
+                name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-sm font-medium">
+                      Address
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="email@example.com"
+                      <Textarea
+                        placeholder="Enter address"
                         {...field}
+                        className="min-h-[80px] resize-none"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="First name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Last name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input type="tel" placeholder="Phone number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {getRoleOptions().map((role) => (
-                          <SelectItem key={role} value={role}>
-                            {role}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="distributor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Distributor</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        const numValue = Number(value);
-                        field.onChange(numValue);
-                        fetchFranchises(numValue);
-                        form.setValue("franchise", null);
-                      }}
-                      value={field.value?.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a distributor" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {distributors.map((distributor) => (
-                          <SelectItem
-                            key={distributor.id}
-                            value={distributor.id.toString()}
-                          >
-                            {distributor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="franchise"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Franchise</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(Number(value));
-                      }}
-                      value={field.value?.toString()}
-                      disabled={!form.watch("distributor")}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a franchise" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {franchises.map((franchise) => (
-                          <SelectItem
-                            key={franchise.id}
-                            value={franchise.id.toString()}
-                          >
-                            {franchise.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter address" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Account Settings Section */}
+            <div className="space-y-6 pt-4 border-t">
+              <h3 className="text-xl font-medium text-gray-800 pt-2">
+                Account Settings
+              </h3>
+              <div className="grid gap-8 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Role
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue("distributor", null);
+                          form.setValue("franchise", null);
+                          form.setValue("factory", null);
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {getRoleOptions().map((role) => (
+                            <SelectItem key={role} value={role}>
+                              {role}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Password
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter password"
+                          {...field}
+                          className="h-10"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {showFieldsByRole(form.watch("role")).showFactory && (
+                  <FormField
+                    control={form.control}
+                    name="factory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">
+                          Factory
+                        </FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(Number(value));
+                          }}
+                          value={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select a factory" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {factories.map((factory) => (
+                              <SelectItem
+                                key={factory.id}
+                                value={factory.id.toString()}
+                              >
+                                {factory.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {showFieldsByRole(form.watch("role")).showDistributor && (
+                  <FormField
+                    control={form.control}
+                    name="distributor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">
+                          Distributor
+                        </FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            const numValue = Number(value);
+                            field.onChange(numValue);
+                            fetchFranchises(numValue);
+                            form.setValue("franchise", null);
+                            form.setValue("factory", null);
+                          }}
+                          value={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select a distributor" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {distributors.map((distributor) => (
+                              <SelectItem
+                                key={distributor.id}
+                                value={distributor.id.toString()}
+                              >
+                                {distributor.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {showFieldsByRole(form.watch("role")).showFranchise && (
+                  <FormField
+                    control={form.control}
+                    name="franchise"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">
+                          Franchise
+                        </FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(Number(value));
+                          }}
+                          value={field.value?.toString()}
+                          disabled={!form.watch("distributor")}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select a franchise" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {franchises.map((franchise) => (
+                              <SelectItem
+                                key={franchise.id}
+                                value={franchise.id.toString()}
+                              >
+                                {franchise.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Enter password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating..." : "Create Account"}
-            </Button>
+            <div className="pt-6 border-t">
+              <Button
+                type="submit"
+                className="w-full md:w-auto px-8 h-12 font-medium bg-blue-500 hover:bg-blue-600 text-base"
+                disabled={loading}
+              >
+                {loading ? "Creating..." : "Create Account"}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

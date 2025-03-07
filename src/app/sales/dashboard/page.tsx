@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ShoppingBag, FileText } from "lucide-react";
+import { ShoppingBag, FileText, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stats } from "@/components/stats";
 
@@ -17,9 +17,23 @@ export default function SalesDashboard() {
     router.push("/sales/orders");
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-4xl font-bold">Sales Dashboard</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">Sales Dashboard</h1>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          Logout
+        </button>
+      </div>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <motion.div
           whileHover={{ scale: 1.05 }}

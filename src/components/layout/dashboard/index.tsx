@@ -1,9 +1,4 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { AppSidebar } from "./sidebar/sidebar";
+import { AppHeader } from "./sidebar/sidebar";
 
 export default async function DashboardLayout({
   children,
@@ -11,14 +6,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider defaultOpen={true}>
-      <AppSidebar />
-      <SidebarInset>
-        <main className="p-2 min-h-screen w-full">
-          <SidebarTrigger />
-          {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex flex-col min-h-screen">
+      <AppHeader />
+      <main className="p-2 flex-1 w-full">{children}</main>
+    </div>
   );
 }
