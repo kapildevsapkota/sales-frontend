@@ -626,13 +626,15 @@ export default function SalesTable() {
 
   return (
     <div className="container-fluid px-2 py-2">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative" ref={sortRef}>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full md:w-auto" ref={sortRef}>
             <Button
               variant="outline"
               size="sm"
-              className="flex items-center gap-1 whitespace-nowrap"
+              className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto"
               onClick={() => setShowSortDropdown(!showSortDropdown)}
             >
               <Filter className="h-4 w-4" />
@@ -735,9 +737,9 @@ export default function SalesTable() {
             )}
           </div>
 
-          <div className="relative flex-1 max-w-xl">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
+          <div className="relative w-full md:max-w-xl">
+            <div className="flex flex-col md:flex-row items-center gap-2 w-full">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <Input
                   type="text"
@@ -764,7 +766,7 @@ export default function SalesTable() {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-1 whitespace-nowrap"
+                className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto"
                 onClick={() => setShowFilterForm(!showFilterForm)}
               >
                 <Filter className="h-4 w-4" />
@@ -883,16 +885,16 @@ export default function SalesTable() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-xs text-gray-500">
+        {/* Column Visibility Toggle */}
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
+          <div className="text-xs text-gray-500 whitespace-nowrap">
             {sales?.results.length
               ? `${sales.results.length} of ${sales.count} entries`
               : ""}
           </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="w-full md:w-auto">
                 Columns <ChevronDown className="ml-1 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -936,6 +938,7 @@ export default function SalesTable() {
         </div>
       </div>
 
+      {/* Table Section */}
       <div className="overflow-x-auto border rounded-md h-[calc(100vh-180px)]">
         <table
           ref={tableRef}
@@ -1078,27 +1081,30 @@ export default function SalesTable() {
         </table>
       </div>
 
+      {/* Pagination Section */}
       {sales && (
-        <div className="mt-4 flex justify-end items-center gap-2">
-          <span className="text-sm text-gray-600">
+        <div className="mt-4 flex flex-col md:flex-row justify-end items-center gap-2">
+          <span className="text-sm text-gray-600 whitespace-nowrap">
             Page {currentPage} of {Math.ceil((sales.count || 0) / pageSize)}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => currentPage > 1 && fetchSales(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => sales.next && fetchSales(currentPage + 1)}
-            disabled={!sales.next}
-          >
-            Next
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => currentPage > 1 && fetchSales(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => sales.next && fetchSales(currentPage + 1)}
+              disabled={!sales.next}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>

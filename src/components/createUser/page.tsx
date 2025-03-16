@@ -263,21 +263,24 @@ export default function CreateAccountForm() {
   };
 
   return (
-    <Card className="w-full max-w-6xl mx-44 shadow-md">
-      <CardHeader className="bg-slate-50 border-b p-6">
+    <Card className="w-full max-w-6xl mx-4 md:mx-44 shadow-md mr-10">
+      <CardHeader className="bg-slate-50 border-b p-4 md:p-6">
         <CardTitle className="flex items-center gap-2 text-2xl font-semibold">
           <UserPlus className="w-6 h-6 text-primary" />
           Create Account
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-8">
+      <CardContent className="p-4 md:p-8">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 md:space-y-8"
+          >
+            <div className="space-y-4 md:space-y-6">
               <h3 className="text-xl font-medium text-gray-800">
                 Personal Information
               </h3>
-              <div className="grid gap-8 md:grid-cols-2">
+              <div className="grid gap-4 md:gap-8 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -380,11 +383,11 @@ export default function CreateAccountForm() {
             </div>
 
             {/* Account Settings Section */}
-            <div className="space-y-6 pt-4 border-t">
+            <div className="space-y-4 pt-4 border-t md:space-y-6">
               <h3 className="text-xl font-medium text-gray-800 pt-2">
                 Account Settings
               </h3>
-              <div className="grid gap-8 md:grid-cols-2">
+              <div className="grid gap-4 md:gap-8 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="role"
@@ -555,7 +558,7 @@ export default function CreateAccountForm() {
               </div>
             </div>
 
-            <div className="pt-6 border-t">
+            <div className="pt-4 border-t">
               <Button
                 type="submit"
                 className="w-full md:w-auto px-8 h-12 font-medium bg-blue-500 hover:bg-blue-600 text-base"
