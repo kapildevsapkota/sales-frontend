@@ -26,6 +26,8 @@ const InventoryDashboard = () => {
   const [activityLogs, setActivityLogs] = useState<InventoryLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nextPage, setNextPage] = useState<string | null>(null);
+  const [previousPage, setPreviousPage] = useState<string | null>(null);
 
   const tabs: Tab[] = [
     {
@@ -89,17 +91,14 @@ const InventoryDashboard = () => {
     }
   }, [userRole]);
 
-  const fetchActivityLogs = async (): Promise<void> => {
+  const fetchActivityLogs = async (url: string): Promise<void> => {
     if (!isActivityLogOpen) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // Get access token from local storage
       let accessToken = "";
-
-      // Only run localStorage access in browser environment
       if (typeof window !== "undefined") {
         accessToken = localStorage.getItem("accessToken") || "";
 
@@ -108,16 +107,13 @@ const InventoryDashboard = () => {
         }
       }
 
-      const response = await fetch(
-        "https://sales.baliyoventures.com/api/sales/user-inventory-logs/",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       if (response.status === 401) {
         throw new Error("Authentication failed. Please log in again.");
@@ -128,7 +124,9 @@ const InventoryDashboard = () => {
       }
 
       const data = await response.json();
-      setActivityLogs(data as InventoryLog[]);
+      setActivityLogs(data.results as InventoryLog[]);
+      setNextPage(data.next);
+      setPreviousPage(data.previous);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred"
@@ -141,7 +139,9 @@ const InventoryDashboard = () => {
 
   useEffect(() => {
     if (isActivityLogOpen) {
-      fetchActivityLogs();
+      fetchActivityLogs(
+        "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+      );
     }
   }, [isActivityLogOpen]);
 
@@ -187,6 +187,20 @@ const InventoryDashboard = () => {
 
       // Redirect to login page
       window.location.href = "/login";
+    }
+  };
+
+  // Function to fetch the next page
+  const fetchNextPage = () => {
+    if (nextPage) {
+      fetchActivityLogs(nextPage);
+    }
+  };
+
+  // Function to fetch the previous page
+  const fetchPreviousPage = () => {
+    if (previousPage) {
+      fetchActivityLogs(previousPage);
     }
   };
 
@@ -243,7 +257,11 @@ const InventoryDashboard = () => {
 
           {/* Refresh button */}
           <button
-            onClick={fetchActivityLogs}
+            onClick={() =>
+              fetchActivityLogs(
+                "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+              )
+            }
             className="mb-4 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md flex items-center"
           >
             <svg
@@ -278,7 +296,11 @@ const InventoryDashboard = () => {
                 </button>
               ) : (
                 <button
-                  onClick={fetchActivityLogs}
+                  onClick={() =>
+                    fetchActivityLogs(
+                      "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+                    )
+                  }
                   className="mt-2 text-sm underline"
                 >
                   Try again
@@ -332,6 +354,24 @@ const InventoryDashboard = () => {
               )}
             </div>
           )}
+
+          {/* Pagination buttons */}
+          <div className="flex justify-between mt-4">
+            <button
+              onClick={fetchPreviousPage}
+              disabled={!previousPage}
+              className="px-4 py-2 bg-gray-200 rounded-md disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={fetchNextPage}
+              disabled={!nextPage}
+              className="px-4 py-2 bg-gray-200 rounded-md disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 
