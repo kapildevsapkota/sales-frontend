@@ -45,7 +45,7 @@ const items: MenuItem[] = [
   {
     label: "Sales",
     icon: Home,
-    href: "/admin/demo",
+    href: "/admin/salesList",
   },
   {
     label: "Inventory",

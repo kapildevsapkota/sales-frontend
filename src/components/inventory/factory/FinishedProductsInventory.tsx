@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useSWR, { mutate } from "swr";
 import {
   Card,
   CardContent,
@@ -35,84 +36,40 @@ type FactoryInventory = {
   inventory: InventoryItem[];
 };
 
-// New type for adding a product
+const fetcher = (url: string) =>
+  fetch(url, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  }).then((res) => res.json());
 
 const FinishedProductsInventory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [products, setProducts] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<InventoryItem | null>(
     null
   );
-  const [updatedProduct, setUpdatedProduct] = useState<InventoryItem | null>(
-    null
+
+  const { data, error } = useSWR<FactoryInventory[]>(
+    "https://sales.baliyoventures.com/api/sales/factory-inventory/",
+    fetcher
   );
 
-  // Fetch data from the backend API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const accessToken = localStorage.getItem("accessToken");
-        const response = await fetch(
-          "https://sales.baliyoventures.com/api/sales/factory-inventory/",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch products");
-        }
-
-        const data: FactoryInventory[] = await response.json();
-
-        // Filter only ready_to_dispatch items as they are finished products
-        const finishedProducts = data.flatMap((factory) =>
+  const products = data
+    ? data
+        .flatMap((factory) =>
           factory.inventory.filter(
             (item) => item.status === "ready_to_dispatch"
           )
-        );
-
-        // Add allocated and available properties (these would come from API in real scenario)
-        const enhancedProducts = finishedProducts.map((product) => ({
-          ...product,
-          allocated: 0, // Default values since they're not in the API response
-          available: product.quantity, // Available = total for now
-          sku: `SKU-${product.product_id}`, // Generate a SKU based on product_id
-        }));
-
-        setProducts(enhancedProducts);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unknown error occurred"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  // useEffect to update products when updatedProduct changes
-  useEffect(() => {
-    if (updatedProduct) {
-      setProducts((prevProducts) =>
-        prevProducts.map((p) =>
-          p.id === updatedProduct.id
-            ? { ...p, quantity: updatedProduct.quantity }
-            : p
         )
-      );
-      setUpdatedProduct(null); // Reset updatedProduct after applying changes
-    }
-  }, [updatedProduct]);
+        .map((product) => ({
+          ...product,
+          allocated: 0,
+          available: product.quantity,
+          sku: `SKU-${product.product_id}`,
+        }))
+    : [];
 
   const determineStatus = (
     quantity: number
@@ -131,13 +88,21 @@ const FinishedProductsInventory = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Function to handle the addition of a new product
   const handleProductAdded = (newProduct: InventoryItem) => {
-    setProducts((prevProducts) => [...prevProducts, newProduct]);
-    setIsAddingProduct(false); // Close the modal after adding
+    mutate<FactoryInventory[]>(
+      "https://sales.baliyoventures.com/api/sales/factory-inventory/",
+      (currentData) => {
+        if (!currentData) return [];
+        return currentData.map((factory) => ({
+          ...factory,
+          inventory: [...factory.inventory, newProduct],
+        }));
+      },
+      false
+    );
+    setIsAddingProduct(false);
   };
 
-  // Function to handle saving edited product quantity
   const handleSaveEdit = async (product: InventoryItem) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
@@ -155,17 +120,11 @@ const FinishedProductsInventory = () => {
     );
 
     if (response.ok) {
-      // Update the products state immediately after a successful edit
-      setProducts((prevProducts) =>
-        prevProducts.map((p) =>
-          p.id === product.id ? { ...p, quantity: product.quantity } : p
-        )
-      );
-      setEditingProduct(null); // Close the editing modal
+      mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/");
+      setEditingProduct(null);
     }
   };
 
-  // Function to handle edit button click
   const handleEditClick = (product: InventoryItem) => {
     setEditingProduct(product);
   };
@@ -253,11 +212,7 @@ const FinishedProductsInventory = () => {
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="rounded-md bg-red-50 p-4 my-4">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -267,9 +222,15 @@ const FinishedProductsInventory = () => {
                   <h3 className="text-sm font-medium text-red-800">
                     Error loading data
                   </h3>
-                  <div className="mt-2 text-sm text-red-700">{error}</div>
+                  <div className="mt-2 text-sm text-red-700">
+                    {error.message}
+                  </div>
                 </div>
               </div>
+            </div>
+          ) : !data ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
             <div className="rounded-md border">

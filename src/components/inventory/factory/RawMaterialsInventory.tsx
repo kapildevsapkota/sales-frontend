@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useSWR, { mutate } from "swr";
 import {
   Card,
   CardContent,
@@ -15,6 +16,7 @@ import {
   Leaf,
   Plus,
   Search,
+  AlertCircle,
 } from "lucide-react";
 import AddProduct from "@/components/inventory/factory/addMaterial";
 
@@ -45,14 +47,19 @@ type ApiResponse = {
   results: RawMaterial[];
 };
 
+const fetcher = (url: string) =>
+  fetch(url, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  }).then((res) => res.json());
+
 const RawMaterialsInventory = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [editingMaterial, setEditingMaterial] = useState<RawMaterial | null>(
     null
   );
-  // New state for adding a material
   const [isAddingMaterial, setIsAddingMaterial] = useState<boolean>(false);
   const [newMaterial, setNewMaterial] = useState<NewMaterial>({
     product_name: "",
@@ -61,24 +68,13 @@ const RawMaterialsInventory = () => {
   });
   const [isAddingProduct, setIsAddingProduct] = useState<boolean>(false);
 
-  // Fetch data from the backend API
-  useEffect(() => {
-    const fetchMaterials = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const response = await fetch(
-        "https://sales.baliyoventures.com/api/sales/raw-materials/",
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      const data: ApiResponse = await response.json();
-      setMaterials(data.results);
-    };
+  // Use SWR to fetch data
+  const { data, error } = useSWR<ApiResponse>(
+    "https://sales.baliyoventures.com/api/sales/raw-materials/",
+    fetcher
+  );
 
-    fetchMaterials();
-  }, []);
+  const materials = data?.results || [];
 
   // Handle edit button click
   const handleEditClick = (material: RawMaterial) => {
@@ -103,11 +99,8 @@ const RawMaterialsInventory = () => {
     );
 
     if (response.ok) {
-      setMaterials(
-        materials.map((m) =>
-          m.id === updatedMaterial.id ? updatedMaterial : m
-        )
-      );
+      // Revalidate the data to reflect changes immediately
+      mutate("https://sales.baliyoventures.com/api/sales/raw-materials/");
       setEditingMaterial(null);
     }
   };
@@ -131,10 +124,8 @@ const RawMaterialsInventory = () => {
     );
 
     if (response.ok) {
-      const addedMaterial: RawMaterial = await response.json(); // Assuming the API returns the added material
-
-      // Update the materials state directly
-      setMaterials((prevMaterials) => [...prevMaterials, addedMaterial]);
+      // Revalidate the data to reflect changes immediately
+      mutate("https://sales.baliyoventures.com/api/sales/raw-materials/");
 
       // Reset the form and close it
       setNewMaterial({
@@ -238,56 +229,78 @@ const RawMaterialsInventory = () => {
             </div>
           </div>
 
-          <div className="rounded-md border">
-            <div className="grid grid-cols-8 bg-muted py-3 px-4 text-sm font-medium">
-              <div className="col-span-5 flex items-center">
-                <span>Material Name</span>
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </div>
-              <div className="col-span-2 text-center">Quantity</div>
-              <div className="col-span-1 text-right">Actions</div>
-            </div>
-
-            <div className="divide-y">
-              {filteredMaterials.map((material) => (
-                <div
-                  key={material.id}
-                  className="grid grid-cols-8 items-center py-3 px-4"
-                >
-                  <div className="col-span-5 flex items-center">
-                    <Leaf className="mr-2 h-4 w-4 text-green-600" />
-                    <div contentEditable={false}>{material.product.name}</div>
-                  </div>
-                  <div className="col-span-2 text-center">
-                    {material.quantity}
-                  </div>
-                  <div className="col-span-1 text-right">
-                    <button
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
-                      onClick={() => handleEditClick(material)}
-                    >
-                      <span className="sr-only">Edit</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-4 w-4"
-                      >
-                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                        <path d="m15 5 4 4"></path>
-                      </svg>
-                    </button>
+          {error ? (
+            <div className="rounded-md bg-red-50 p-4 my-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Error loading data
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    {error.message}
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          ) : !data ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <div className="grid grid-cols-8 bg-muted py-3 px-4 text-sm font-medium">
+                <div className="col-span-5 flex items-center">
+                  <span>Material Name</span>
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
+                <div className="col-span-2 text-center">Quantity</div>
+                <div className="col-span-1 text-right">Actions</div>
+              </div>
+
+              <div className="divide-y">
+                {filteredMaterials.map((material) => (
+                  <div
+                    key={material.id}
+                    className="grid grid-cols-8 items-center py-3 px-4"
+                  >
+                    <div className="col-span-5 flex items-center">
+                      <Leaf className="mr-2 h-4 w-4 text-green-600" />
+                      <div contentEditable={false}>{material.product.name}</div>
+                    </div>
+                    <div className="col-span-2 text-center">
+                      {material.quantity}
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <button
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+                        onClick={() => handleEditClick(material)}
+                      >
+                        <span className="sr-only">Edit</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4"
+                        >
+                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                          <path d="m15 5 4 4"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

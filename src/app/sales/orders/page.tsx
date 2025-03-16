@@ -1,4 +1,4 @@
-import SalesTable from "@/app/(admin)/admin/demo/components/sales-table";
+import SalesTable from "@/components/orderList/orderList";
 import TabBar from "@/components/layout/badgebar";
 
 export default function SalesOrdersTable() {

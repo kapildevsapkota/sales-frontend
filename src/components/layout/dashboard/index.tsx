@@ -1,4 +1,4 @@
-import { AppHeader } from "./sidebar/sidebar";
+import { AppHeader } from "./navbar/navbar";
 
 export default async function DashboardLayout({
   children,

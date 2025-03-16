@@ -30,6 +30,7 @@ export enum Role {
   SuperAdmin = "SuperAdmin",
   Other = "Other",
   Franchise = "Franchise",
+  Factory = "Factory",
 }
 
 interface User {

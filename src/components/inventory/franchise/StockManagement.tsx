@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useSWR, { mutate } from "swr";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import AddProduct from "@/components/inventory/franchise/addproduct";
 
+// Define the types for inventory items
 type InventoryItem = {
   id: number;
   product_id: number;
@@ -34,61 +36,27 @@ type InventoryData = {
   [key: string]: FranchiseInventory;
 };
 
+// SWR fetcher function
+const fetcher = (url: string) =>
+  fetch(url, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  }).then((res) => res.json());
+
 const StockManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [inventoryData, setInventoryData] = useState<InventoryData>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<InventoryItem | null>(
     null
   );
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchInventoryData = async () => {
-      try {
-        const accessToken = localStorage.getItem("accessToken");
-        if (!accessToken) {
-          throw new Error("Access token not found");
-        }
-
-        const response = await fetch(
-          "https://sales.baliyoventures.com/api/sales/franchise-inventory/",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch inventory data");
-        }
-
-        const data = await response.json();
-        setInventoryData(data);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInventoryData();
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  // Use SWR to fetch data
+  const { data, error } = useSWR<InventoryData>(
+    "https://sales.baliyoventures.com/api/sales/franchise-inventory/",
+    fetcher
+  );
 
   // Filter products based on search term
   const filterProducts = (products: InventoryItem[]) => {
@@ -115,24 +83,8 @@ const StockManagement = () => {
     );
 
     if (response.ok) {
-      // Update the products state immediately after a successful edit
-      setInventoryData((prevData) => {
-        const franchiseData = prevData[product.product_id];
-        if (!franchiseData) {
-          // Handle the case where the franchise data is not found
-          return prevData; // or return a modified state if needed
-        }
-        const updatedInventory = franchiseData.inventory.map((p) =>
-          p.id === product.id ? { ...p, quantity: product.quantity } : p
-        );
-        return {
-          ...prevData,
-          [product.product_id]: {
-            ...franchiseData,
-            inventory: updatedInventory,
-          },
-        };
-      });
+      // Revalidate the data to reflect changes immediately
+      mutate("https://sales.baliyoventures.com/api/sales/franchise-inventory/");
       setEditingProduct(null); // Close the editing modal
     }
   };
@@ -146,6 +98,14 @@ const StockManagement = () => {
   const handleAddProductClick = () => {
     setIsAddProductOpen(true);
   };
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (!data) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6 mt-6">
@@ -219,7 +179,7 @@ const StockManagement = () => {
             </div>
           </div>
 
-          {Object.entries(inventoryData).map(
+          {Object.entries(data).map(
             ([franchise, { distributor_name, inventory }]) => (
               <div key={franchise} className="mb-8">
                 <h2 className="text-lg font-semibold mb-4">

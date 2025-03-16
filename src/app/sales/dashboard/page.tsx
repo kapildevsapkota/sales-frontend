@@ -5,21 +5,18 @@ import { motion } from "framer-motion";
 import { ShoppingBag, FileText, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stats } from "@/components/stats";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SalesDashboard() {
   const router = useRouter();
+  const { logout } = useAuth();
 
   const handleCreateOrder = () => {
-    router.push("/sales/orders/create");
+    router.push("/sales/create");
   };
 
   const handleViewOrders = () => {
     router.push("/sales/orders");
-  };
-
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/");
   };
 
   return (
@@ -27,7 +24,7 @@ export default function SalesDashboard() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Sales Dashboard</h1>
         <button
-          onClick={handleLogout}
+          onClick={() => logout()}
           className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
         >
           <LogOut className="h-5 w-5" />

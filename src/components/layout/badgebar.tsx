@@ -31,7 +31,7 @@ const TabBar: React.FC<TabBarProps> = ({
     {
       label: "Create Order",
       icon: <PlusCircleIcon size={16} />,
-      path: "/sales/orders/create",
+      path: "/sales/create",
     },
     {
       label: "View Orders",

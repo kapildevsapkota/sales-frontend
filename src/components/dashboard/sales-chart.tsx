@@ -8,52 +8,47 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useEffect, useState } from "react";
 
-const weekData = [
-  { name: "Mon", sales: 2400 },
-  { name: "Tue", sales: 1398 },
-  { name: "Wed", sales: 9800 },
-  { name: "Thu", sales: 3908 },
-  { name: "Fri", sales: 4800 },
-  { name: "Sat", sales: 3800 },
-  { name: "Sun", sales: 4300 },
-];
+// Define the type for revenue data
+interface RevenueData {
+  period: string;
+  total_revenue: number;
+  order_count: number;
+}
 
-const monthData = [
-  { name: "Week 1", sales: 4000 },
-  { name: "Week 2", sales: 3000 },
-  { name: "Week 3", sales: 5000 },
-  { name: "Week 4", sales: 2780 },
-];
+export function SalesChart({}: { timeframe: string }) {
+  const [data, setData] = useState<RevenueData[]>([]); // State to hold revenue data
 
-const yearData = [
-  { name: "Jan", sales: 4000 },
-  { name: "Feb", sales: 3000 },
-  { name: "Mar", sales: 5000 },
-  { name: "Apr", sales: 2780 },
-  { name: "May", sales: 1890 },
-  { name: "Jun", sales: 2390 },
-  { name: "Jul", sales: 3490 },
-  { name: "Aug", sales: 2000 },
-  { name: "Sep", sales: 2500 },
-  { name: "Oct", sales: 3000 },
-  { name: "Nov", sales: 3500 },
-  { name: "Dec", sales: 4000 },
-];
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+      const token = localStorage.getItem("accessToken"); // Get the access token from local storage
+      const response = await fetch(
+        "https://sales.baliyoventures.com/api/sales/revenue/",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Set the authorization header
+          },
+        }
+      );
+      const result = await response.json();
+      setData(result.data); // Update state with fetched revenue data
+    };
 
-export function SalesChart({ timeframe }: { timeframe: string }) {
-  const data =
-    timeframe === "week"
-      ? weekData
-      : timeframe === "month"
-      ? monthData
-      : yearData;
+    fetchRevenueData();
+  }, []);
+
+  // Transform data for the chart based on the timeframe
+  const chartData = data.map((item) => ({
+    name: item.period,
+    sales: item.total_revenue,
+  }));
 
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
-          data={data}
+          data={chartData}
           margin={{
             top: 5,
             right: 10,
@@ -88,7 +83,7 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => `$${value}`}
+            tickFormatter={(value) => `Rs.${value}`}
             width={60}
           />
           <Tooltip
@@ -102,17 +97,16 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
                           {payload[0].name}
                         </span>
                         <span className="font-bold text-muted-foreground">
-                          {
-                            data.find((d) => d.name === payload[0].payload.name)
-                              ?.name
-                          }
+                          {payload[0].payload.name}
                         </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[0.70rem] uppercase text-muted-foreground">
-                          Sales
+                          Revenue
                         </span>
-                        <span className="font-bold">${payload[0].value}</span>
+                        <span className="font-bold">
+                          Rs. {payload[0].value}
+                        </span>
                       </div>
                     </div>
                   </div>

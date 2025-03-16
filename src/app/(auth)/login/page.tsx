@@ -145,13 +145,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Gradient Background with Animation */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-purple-100/30 to-blue-100/30 animate-gradient" />
       </div>
-
-      {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-4 -left-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
         <div className="absolute -bottom-8 -right-4 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
@@ -243,16 +240,6 @@ export default function LoginPage() {
                   "Sign in"
                 )}
               </Button>
-
-              <p className="text-sm text-center text-gray-600">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href="/signup"
-                  className="text-blue-800 hover:text-purple-600 hover:underline font-medium transition-colors"
-                >
-                  Create account
-                </Link>
-              </p>
             </CardFooter>
           </form>
         </Form>
