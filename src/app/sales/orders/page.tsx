@@ -5,7 +5,7 @@ export default function SalesOrdersTable() {
   return (
     <main className="min-h-screen bg-white">
       <div className="">
-        <div className="py-10">
+        <div className="pt-5 pb-10">
           <TabBar />
         </div>
         <SalesTable />

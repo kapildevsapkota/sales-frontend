@@ -70,15 +70,15 @@ const TabBar: React.FC<TabBarProps> = ({
   };
 
   return (
-    <div className="flex  p-1 max-w-md mx-auto">
+    <div className="flex max-w-md mx-auto">
       {tabItems.map((tab, index) => (
         <button
           key={index}
           onClick={() => handleTabClick(index, tab.path)}
-          className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${
+          className={` py-3 px-2 rounded-md text-sm font-semibold transition-colors ${
             activeTab === index
               ? "bg-black text-white"
-              : "text-gray-800 hover:bg-blue-100"
+              : "bg-white text-gray-800 border border-gray-300 hover:bg-gray-100"
           } flex-1 mx-1 flex items-center justify-center`}
         >
           {tab.icon && <span className="mr-1.5">{tab.icon}</span>}

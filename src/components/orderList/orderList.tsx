@@ -1,6 +1,8 @@
 "use client";
 
 import type React from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import {
@@ -23,7 +25,6 @@ import type {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -39,8 +40,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-export default function OrderTable() {
+export default function SalesTable() {
   const [sales, setSales] = useState<SalesResponse | null>(null);
   const [displayData, setDisplayData] = useState<SaleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +62,7 @@ export default function OrderTable() {
   const [startWidth, setStartWidth] = useState(0);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [, setShowSortDropdown] = useState(false);
   const tableRef = useRef<HTMLTableElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
   const [showFilterForm, setShowFilterForm] = useState(false);
@@ -62,8 +71,11 @@ export default function OrderTable() {
   const [dateRange, setDateRange] = useState<
     [Date | undefined, Date | undefined]
   >([undefined, undefined]);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportDateRange, setExportDateRange] = useState<
+    [Date | undefined, Date | undefined]
+  >([undefined, undefined]);
 
-  // Define columns with visibility state
   const [columns, setColumns] = useState<Column[]>([
     { id: "index", label: "#", visible: true, width: 50, sortable: true },
     {
@@ -175,13 +187,21 @@ export default function OrderTable() {
   // Function to apply filters to the data
   const applyFilters = useCallback(
     (data: SaleItem[]) => {
-      if (Object.keys(filters).length === 0) return data;
+      if (Object.keys(filters).length === 0 && !dateRange[0] && !dateRange[1])
+        return data;
 
       return data.filter((item) => {
+        // Apply date range filter
+        if (dateRange[0] && dateRange[1]) {
+          const saleDate = new Date(item.created_at);
+          if (saleDate < dateRange[0] || saleDate > dateRange[1]) {
+            return false;
+          }
+        }
+
+        // Apply other filters
         return Object.entries(filters).every(([key, value]) => {
           if (!value) return true;
-
-          const itemValue = String(getValueByColumnId(item, key)).toLowerCase();
 
           // Handle total amount range filtering
           if (key === "total_amount_min") {
@@ -191,22 +211,31 @@ export default function OrderTable() {
             return Number(item.total_amount) <= Number(value);
           }
 
-          // Ensure both min and max filters are applied correctly
-          if (filters["total_amount_min"] && filters["total_amount_max"]) {
-            return (
-              Number(item.total_amount) >=
-                Number(filters["total_amount_min"]) &&
-              Number(item.total_amount) <= Number(filters["total_amount_max"])
-            );
+          // Handle oil type filtering
+          if (key === "oil_type") {
+            const oilType = item.order_products[0]?.product.name || "";
+            return oilType.toLowerCase().includes(value.toLowerCase());
           }
 
+          // Handle quantity filtering
+          if (key === "quantity") {
+            const quantity = item.order_products[0]?.quantity || 0;
+            return quantity === Number(value);
+          }
+
+          // Handle status filtering
+          if (key === "order_status") {
+            return item.order_status === value;
+          }
+
+          // Handle other filters
+          const itemValue = String(getValueByColumnId(item, key)).toLowerCase();
           return itemValue.includes(value.toLowerCase());
         });
       });
     },
-    [filters]
+    [filters, dateRange]
   );
-
   // Sort data function
   const sortData = useCallback(
     (data: SaleItem[], field: string | null, direction: SortDirection) => {
@@ -259,11 +288,14 @@ export default function OrderTable() {
         });
       }
 
+      // Apply filters
+      const filtered = applyFilters(dataToSort);
+
       // Apply sorting
-      const sorted = sortData(dataToSort, sortField, sortDirection);
+      const sorted = sortData(filtered, sortField, sortDirection);
       setDisplayData(sorted);
     }
-  }, [sales, sortField, sortDirection, sortData, searchInput]);
+  }, [sales, sortField, sortDirection, sortData, searchInput, applyFilters]);
 
   // Handle sort change
   const handleSort = (columnId: string) => {
@@ -540,11 +572,6 @@ export default function OrderTable() {
     return <ArrowUpDown className="h-4 w-4 ml-1 text-gray-400" />;
   };
 
-  const getColumnLabelById = (columnId: string) => {
-    const column = columns.find((col) => col.id === columnId);
-    return column ? column.label : "";
-  };
-
   const handleAdvancedFilter = async () => {
     try {
       setIsLoading(true);
@@ -565,9 +592,14 @@ export default function OrderTable() {
         );
       }
 
+      // Add status filter if selected
+      if (filters["order_status"]) {
+        queryParams.append("order_status", filters["order_status"]);
+      }
+
       // Add other filters
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
+        if (value && key !== "order_status") {
           queryParams.append(key, value);
         }
       });
@@ -584,7 +616,7 @@ export default function OrderTable() {
 
       setSales(response.data);
       setCurrentPage(1);
-      setDisplayData(response.data.results || []);
+      setDisplayData(response.data.results || []); // Update displayData with filtered results
     } catch (error) {
       console.error("Error applying filters:", error);
       showError("Failed to apply filters");
@@ -617,120 +649,111 @@ export default function OrderTable() {
     }
   };
 
+  // Function to handle CSV export
+  const handleExportCSV = async () => {
+    try {
+      if (!exportDateRange[0]) {
+        alert("Please select a start date.");
+        return;
+      }
+
+      const token = localStorage.getItem("accessToken");
+      const startDate = exportDateRange[0].toISOString().split("T")[0];
+      const endDate = exportDateRange[1]
+        ? exportDateRange[1].toISOString().split("T")[0]
+        : "";
+
+      const url = `https://sales.baliyoventures.com/api/sales/export-csv/?start_date=${startDate}${
+        endDate ? `&end_date=${endDate}` : ""
+      }`;
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob", // Important for downloading files
+      });
+
+      // Create a link element to trigger the download
+      const urlObject = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = urlObject;
+      link.setAttribute("download", `sales_${startDate}_${endDate || ""}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setShowExportModal(false);
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      alert("Failed to export CSV. Please try again.");
+    }
+  };
+
   return (
     <div className="container-fluid px-2 py-2">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative" ref={sortRef}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1 whitespace-nowrap"
-              onClick={() => setShowSortDropdown(!showSortDropdown)}
-            >
-              <Filter className="h-4 w-4" />
-              <span>Sort</span>
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-
-            {sortField && sortDirection && (
-              <Badge
-                variant="secondary"
-                className="absolute -bottom-6 left-0 right-0 text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
-              >
-                {getColumnLabelById(sortField)} (
-                {sortDirection === "asc" ? "A-Z" : "Z-A"})
-              </Badge>
-            )}
-
-            {showSortDropdown && (
-              <div className="absolute z-10 mt-1 bg-white rounded-md shadow-lg border p-2 w-[280px]">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Sort by</span>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full md:w-auto"
+                >
+                  Columns <ChevronDown className="ml-1 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="max-h-[400px] overflow-y-auto">
+                  {columns.map((column) => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      checked={column.visible}
+                      onCheckedChange={() => toggleColumnVisibility(column.id)}
+                    >
+                      {column.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </div>
+                <DropdownMenuSeparator />
+                <div className="flex justify-between p-2">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => setShowSortDropdown(false)}
+                    onClick={showAllColumns}
+                    className="w-[48%]"
                   >
-                    <X className="h-4 w-4" />
+                    <Eye className="mr-1 h-4 w-4" />
+                    All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={hideAllColumns}
+                    className="w-[48%]"
+                  >
+                    <EyeOff className="mr-1 h-4 w-4" />
+                    None
                   </Button>
                 </div>
-
-                <div className="space-y-2">
-                  <Select
-                    value={sortField || "none"}
-                    onValueChange={(value) => {
-                      if (value === "none") {
-                        setSortField(null);
-                        setSortDirection(null);
-                      } else {
-                        setSortField(value);
-                        setSortDirection(sortDirection || "asc");
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-8">
-                      <SelectValue placeholder="Select column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {columns
-                        .filter((col) => col.sortable && col.visible)
-                        .map((column) => (
-                          <SelectItem key={column.id} value={column.id}>
-                            {column.label}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-
-                  {sortField && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant={
-                          sortDirection === "asc" ? "default" : "outline"
-                        }
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setSortDirection("asc")}
-                      >
-                        <ArrowUp className="h-4 w-4 mr-1" /> Ascending
-                      </Button>
-                      <Button
-                        variant={
-                          sortDirection === "desc" ? "default" : "outline"
-                        }
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setSortDirection("desc")}
-                      >
-                        <ArrowDown className="h-4 w-4 mr-1" /> Descending
-                      </Button>
-                    </div>
-                  )}
-
-                  {sortField && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        setSortField(null);
-                        setSortDirection(null);
-                      }}
-                    >
-                      Clear Sort
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="text-xs text-gray-500 whitespace-nowrap">
+              {sales?.results.length
+                ? `${sales.results.length} of ${sales.count} entries`
+                : ""}
+            </div>
           </div>
 
-          <div className="relative flex-1 max-w-xl">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
+          <div className="relative w-full md:max-w-xl">
+            <div className="flex flex-col md:flex-row items-center gap-2 w-full">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <Input
                   type="text"
@@ -757,7 +780,7 @@ export default function OrderTable() {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-1 whitespace-nowrap"
+                className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto"
                 onClick={() => setShowFilterForm(!showFilterForm)}
               >
                 <Filter className="h-4 w-4" />
@@ -780,7 +803,58 @@ export default function OrderTable() {
                 </div>
 
                 <div className="grid gap-4">
-                  <div className="grid grid-cols-[120px_1fr] gap-2 items-center"></div>
+                  <div className="grid grid-cols-[120px_1fr] gap-2 items-center">
+                    <label className="text-sm font-medium">Date Range</label>
+                    <div className="flex gap-2">
+                      <DatePicker
+                        selected={dateRange[0]}
+                        onChange={(date) =>
+                          setDateRange([date || undefined, dateRange[1]])
+                        }
+                        selectsStart
+                        startDate={dateRange[0]}
+                        endDate={dateRange[1]}
+                        placeholderText="Start Date"
+                        className="w-full p-2 border rounded-md"
+                      />
+                      <DatePicker
+                        selected={dateRange[1]}
+                        onChange={(date) =>
+                          setDateRange([dateRange[0], date || undefined])
+                        }
+                        selectsEnd
+                        startDate={dateRange[0]}
+                        endDate={dateRange[1]}
+                        minDate={dateRange[0]}
+                        placeholderText="End Date"
+                        className="w-full p-2 border rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Add Status Filter */}
+                  <div className="grid grid-cols-[120px_1fr] gap-2 items-center">
+                    <label className="text-sm font-medium">Order Status</label>
+                    <Select
+                      value={filters["order_status"] || ""}
+                      onValueChange={(value) => {
+                        setFilters((prev) => ({
+                          ...prev,
+                          order_status: value,
+                        }));
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Delivered">Delivered</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {columns
                     .filter(
                       (col) =>
@@ -791,7 +865,9 @@ export default function OrderTable() {
                         col.id !== "phone_number" &&
                         col.id !== "delivery_location" &&
                         col.id !== "total_amount" &&
-                        col.id !== "payment_method"
+                        col.id !== "payment_method" &&
+                        col.id !== "order_status" &&
+                        col.id !== "quantity"
                     )
                     .map((column) => (
                       <div
@@ -876,73 +952,99 @@ export default function OrderTable() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-xs text-gray-500">
-            {sales?.results.length
-              ? `${sales.results.length} of ${sales.count} entries`
-              : ""}
-          </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Columns <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-[400px] overflow-y-auto">
-                {columns.map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.visible}
-                    onCheckedChange={() => toggleColumnVisibility(column.id)}
-                  >
-                    {column.label}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <div className="flex justify-between p-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={showAllColumns}
-                  className="w-[48%]"
-                >
-                  <Eye className="mr-1 h-4 w-4" />
-                  All
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={hideAllColumns}
-                  className="w-[48%]"
-                >
-                  <EyeOff className="mr-1 h-4 w-4" />
-                  None
-                </Button>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Export CSV Button */}
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 whitespace-nowrap"
+            onClick={() => setShowExportModal(true)}
+          >
+            Export CSV
+          </Button>
         </div>
       </div>
 
+      {/* Export CSV Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-[400px]">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Export CSV</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setShowExportModal(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="grid grid-cols-[120px_1fr] gap-2 items-center">
+                <label className="text-sm font-medium">Date Range</label>
+                <div className="flex gap-2">
+                  <DatePicker
+                    selected={exportDateRange[0]}
+                    onChange={(date) =>
+                      setExportDateRange([
+                        date || undefined,
+                        exportDateRange[1],
+                      ])
+                    }
+                    selectsStart
+                    startDate={exportDateRange[0]}
+                    endDate={exportDateRange[1]}
+                    placeholderText="Start Date"
+                    className="w-full p-2 border rounded-md"
+                  />
+                  <DatePicker
+                    selected={exportDateRange[1]}
+                    onChange={(date) =>
+                      setExportDateRange([
+                        exportDateRange[0],
+                        date || undefined,
+                      ])
+                    }
+                    selectsEnd
+                    startDate={exportDateRange[0]}
+                    endDate={exportDateRange[1]}
+                    minDate={exportDateRange[0]}
+                    placeholderText="End Date"
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowExportModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleExportCSV}>Export</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Table Section */}
       <div className="overflow-x-auto border rounded-md h-[calc(100vh-180px)]">
-        <table
+        <Table
           ref={tableRef}
-          className="w-full border-collapse whitespace-nowrap text-sm"
-          style={{ minWidth: "100%" }}
+          className="border-collapse whitespace-nowrap text-sm"
         >
-          <thead>
+          <TableHeader>
             <tr className="bg-gray-50">
               {columns
                 .filter((col) => col.visible)
                 .map((column) => (
-                  <th
+                  <TableHead
                     key={column.id}
-                    className={`border p-2 text-left relative ${
+                    className={`border p-2 text-left relative  top-0 bg-white z-10 ${
                       column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
                     }`}
                     style={{
@@ -968,18 +1070,18 @@ export default function OrderTable() {
                         <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-gray-400"></div>
                       </div>
                     </div>
-                  </th>
+                  </TableHead>
                 ))}
             </tr>
-          </thead>
-          <tbody>
+          </TableHeader>
+          <TableBody>
             {isLoading ? (
               Array.from({ length: 10 }).map((_, index) => (
-                <tr key={`skeleton-${index}`}>
+                <TableRow key={`skeleton-${index}`}>
                   {columns
                     .filter((col) => col.visible)
                     .map((column) => (
-                      <td
+                      <TableCell
                         key={`skeleton-cell-${index}-${column.id}`}
                         className="border p-2"
                         style={{
@@ -988,17 +1090,20 @@ export default function OrderTable() {
                         }}
                       >
                         <Skeleton className="h-4 w-full" />
-                      </td>
+                      </TableCell>
                     ))}
-                </tr>
+                </TableRow>
               ))
             ) : sales && displayData.length > 0 ? (
               displayData.map((sale, index) => (
-                <tr key={index} className={index % 2 === 0 ? "" : "bg-gray-50"}>
+                <TableRow
+                  key={index}
+                  className={index % 2 === 0 ? "" : "bg-gray-50"}
+                >
                   {columns
                     .filter((col) => col.visible)
                     .map((column) => (
-                      <td
+                      <TableCell
                         key={`${index}-${column.id}`}
                         className="border p-2"
                         style={{
@@ -1053,45 +1158,48 @@ export default function OrderTable() {
                         ) : (
                           getValueByColumnId(sale, column.id)
                         )}
-                      </td>
+                      </TableCell>
                     ))}
-                </tr>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={columns.filter((col) => col.visible).length}
                   className="border p-2 text-center"
                 >
                   No sales data found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
+      {/* Pagination Section */}
       {sales && (
-        <div className="mt-4 flex justify-end items-center gap-2">
-          <span className="text-sm text-gray-600">
+        <div className="mt-4 flex flex-col md:flex-row justify-end items-center gap-2">
+          <span className="text-sm text-gray-600 whitespace-nowrap">
             Page {currentPage} of {Math.ceil((sales.count || 0) / pageSize)}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => currentPage > 1 && fetchSales(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => sales.next && fetchSales(currentPage + 1)}
-            disabled={!sales.next}
-          >
-            Next
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => currentPage > 1 && fetchSales(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => sales.next && fetchSales(currentPage + 1)}
+              disabled={!sales.next}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>

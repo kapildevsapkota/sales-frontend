@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -145,7 +146,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
       });
       setUploadedFile(fileWithPreview);
       setPreviewImage(fileWithPreview.preview);
-      setValue("payment_screenshot", file);
+      setValue("payment_screenshot", fileWithPreview);
     }
   };
 
@@ -199,12 +200,26 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
           (product) => product.product_id !== null && product.quantity > 0
         );
 
-      // Debug: Log the order_products array
-      console.log("Order Products:", orderProducts);
-
       if (orderProducts.length === 0) {
         throw new Error(
           "At least one product with a valid quantity is required."
+        );
+      }
+
+      // Convert the file to base64 if it exists
+      let paymentScreenshotBase64 = null;
+      if (uploadedFile) {
+        paymentScreenshotBase64 = await new Promise<string>(
+          (resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              // Prefix the base64 string with the correct MIME type
+              const base64String = reader.result as string;
+              resolve(base64String); // This will be in the format "data:image/jpeg;base64,..."
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(uploadedFile);
+          }
         );
       }
 
@@ -221,11 +236,8 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         total_amount: data.total_amount,
         remarks: data.remarks,
         order_products: orderProducts, // Include the order_products array
-        payment_screenshot: uploadedFile,
+        payment_screenshot: paymentScreenshotBase64, // Include the base64 string
       };
-
-      // Debug: Log the final payload
-      console.log("Request Payload:", requestData);
 
       // Send the request to the backend
       await api.post(
@@ -234,6 +246,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json", // Set content type for JSON
           },
         }
       );
@@ -616,8 +629,10 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
                               </div>
                             ) : (
                               <div className="relative">
-                                <img
+                                <Image
                                   src={previewImage}
+                                  width={100}
+                                  height={100}
                                   alt="Payment Screenshot"
                                   className="h-32 rounded border object-contain"
                                 />
