@@ -46,6 +46,8 @@ interface FileWithPreview extends File {
 }
 
 interface ProductInfo {
+  inventory_id: number;
+  product_id: number;
   name: string;
   quantity: number;
 }
@@ -111,11 +113,21 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
           }
         );
         const data = await response.json();
+        console.log("Fetched Oil Types:", data); // Debug: Log fetched data
         setOilTypes(
-          data.map((product: { product_name: string; quantity: number }) => ({
-            name: product.product_name,
-            quantity: product.quantity,
-          }))
+          data.map(
+            (product: {
+              inventory_id: number;
+              product_id: number;
+              product_name: string;
+              quantity: number;
+            }) => ({
+              inventory_id: product.inventory_id,
+              product_id: product.product_id, // Ensure product_id is included
+              name: product.product_name,
+              quantity: product.quantity,
+            })
+          )
         );
       } catch (error) {
         console.error("Error fetching oil types:", error);
@@ -170,17 +182,25 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
       setLoading(true);
       const authToken = localStorage.getItem("authToken");
 
-      // Map selected oil types and their quantities to order_products
+      // Construct the order_products array
       const orderProducts = selectedOilTypes
         .map((type) => {
           const quantity = quantities[type] || "0";
+          const product = oilTypes.find((product) => product.name === type);
+          if (!product) {
+            throw new Error(`Product not found: ${type}`);
+          }
           return {
-            product_id:
-              oilTypes.findIndex((product) => product.name === type) + 1, // Assuming product_id is based on index
-            quantity: parseInt(quantity, 10), // Convert quantity to a number
+            product_id: product.inventory_id, // Use inventory_id as product_id
+            quantity: parseInt(quantity, 10),
           };
         })
-        .filter((product) => product.quantity > 0); // Filter out products with zero quantity
+        .filter(
+          (product) => product.product_id !== null && product.quantity > 0
+        );
+
+      // Debug: Log the order_products array
+      console.log("Order Products:", orderProducts);
 
       if (orderProducts.length === 0) {
         throw new Error(
@@ -195,14 +215,17 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         delivery_address: data.delivery_location,
         landmark: data.landmark,
         phone_number: data.phone_number,
-        alternate_phone_number: "0987654321", // Hardcoded for now, you can make this dynamic if needed
-        delivery_charge: "50.00", // Hardcoded for now, you can make this dynamic if needed
+        alternate_phone_number: "0987654321", // Hardcoded for now
+        delivery_charge: "50.00", // Hardcoded for now
         payment_method: data.payment_method,
         total_amount: data.total_amount,
         remarks: data.remarks,
-        order_products: orderProducts,
+        order_products: orderProducts, // Include the order_products array
         payment_screenshot: uploadedFile,
       };
+
+      // Debug: Log the final payload
+      console.log("Request Payload:", requestData);
 
       // Send the request to the backend
       await api.post(
