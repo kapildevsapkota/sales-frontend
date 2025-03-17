@@ -50,9 +50,7 @@ interface ProductInfo {
   quantity: number;
 }
 
-export default function CreateOrderForm({
-  convincedByOptions = ["Friend", "Advertisement", "Social Media"],
-}: CreateOrderFormProps) {
+export default function CreateOrderForm({}: CreateOrderFormProps) {
   const [oilTypes, setOilTypes] = useState<ProductInfo[]>([]);
   const [selectedOilTypes, setSelectedOilTypes] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: string }>({});
@@ -68,13 +66,13 @@ export default function CreateOrderForm({
 
   const orderSchema = z.object({
     full_name: z.string().min(2, "Name is required"),
-    email: z.string().email("Invalid email address"),
     delivery_location: z.string().min(2, "Delivery location is required"),
     phone_number: z.string().min(10, "Phone number must be at least 10 digits"),
+    city: z.string().optional(),
+    landmark: z.string().optional(),
     remarks: z.string().optional(),
     oil_type: z.array(z.string()).min(1, "Please select at least one oil type"),
     total_amount: z.string().min(1, "Total amount is required"),
-    convinced_by: z.array(z.string()).min(1, "This field is required"),
     payment_method: z.nativeEnum(PaymentMethod),
     payment_screenshot: z.instanceof(File).optional(),
   });
@@ -85,13 +83,13 @@ export default function CreateOrderForm({
     resolver: zodResolver(orderSchema),
     defaultValues: {
       full_name: "",
-      email: "",
       delivery_location: "",
       phone_number: "",
+      city: "",
+      landmark: "",
       remarks: "",
       oil_type: [],
       total_amount: "",
-      convinced_by: [],
       payment_method: PaymentMethod.CashOnDelivery,
       payment_screenshot: undefined,
     },
@@ -193,16 +191,17 @@ export default function CreateOrderForm({
       // Prepare the request data
       const requestData = {
         full_name: data.full_name,
-        city: "New York", // Hardcoded for now, you can make this dynamic if needed
+        city: data.city,
         delivery_address: data.delivery_location,
-        landmark: "Near Central Park", // Hardcoded for now, you can make this dynamic if needed
+        landmark: data.landmark,
         phone_number: data.phone_number,
         alternate_phone_number: "0987654321", // Hardcoded for now, you can make this dynamic if needed
         delivery_charge: "50.00", // Hardcoded for now, you can make this dynamic if needed
         payment_method: data.payment_method,
         total_amount: data.total_amount,
         remarks: data.remarks,
-        order_products: orderProducts, // Include the order_products array
+        order_products: orderProducts,
+        payment_screenshot: uploadedFile,
       };
 
       // Send the request to the backend
@@ -315,27 +314,6 @@ export default function CreateOrderForm({
 
                   <FormField
                     control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem className="form-floating">
-                        <FormLabel className="text-sm font-medium">
-                          Email
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter email address"
-                            type="email"
-                            className="h-[60px] px-3 py-6 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-500 text-xs mt-1" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
                     name="delivery_location"
                     render={({ field }) => (
                       <FormItem className="form-floating">
@@ -357,6 +335,46 @@ export default function CreateOrderForm({
                           </div>
                         </FormControl>
                         <FormMessage className="text-red-500 text-xs mt-1" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem className="form-floating">
+                        <FormLabel className="text-sm font-medium">
+                          City
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter city"
+                            className="h-[60px] px-3 py-6 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="landmark"
+                    render={({ field }) => (
+                      <FormItem className="form-floating">
+                        <FormLabel className="text-sm font-medium">
+                          Landmark
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter landmark"
+                            className="h-[60px] px-3 py-6 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
@@ -416,6 +434,22 @@ export default function CreateOrderForm({
                   )}
                 />
 
+                {/* Clear Selection Button */}
+                <div className="flex justify-end mb-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                    onClick={() => {
+                      setSelectedOilTypes([]); // Clear selected oil types
+                      setQuantities({}); // Clear quantities
+                      form.setValue("oil_type", []); // Reset form value
+                    }}
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
+
                 <FormField
                   control={form.control}
                   name="total_amount"
@@ -452,52 +486,6 @@ export default function CreateOrderForm({
                 <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold text-green-700">
                   Additional Information
                 </h2>
-
-                <FormField
-                  control={form.control}
-                  name="convinced_by"
-                  render={({ field }) => (
-                    <FormItem className="mb-6">
-                      <FormLabel className="text-sm font-medium flex items-center">
-                        How did they hear about us?{" "}
-                        <span className="text-red-500 ml-1">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-1">
-                          {convincedByOptions.map((option) => (
-                            <label
-                              key={option}
-                              className={`flex items-center p-3 rounded-md cursor-pointer transition-colors
-                                ${
-                                  field.value.includes(option)
-                                    ? "bg-green-50 border border-green-200"
-                                    : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                                }`}
-                            >
-                              <input
-                                type="checkbox"
-                                value={option}
-                                checked={field.value.includes(option)}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  const newValue = e.target.checked
-                                    ? [...field.value, value]
-                                    : field.value.filter(
-                                        (item) => item !== value
-                                      );
-                                  field.onChange(newValue);
-                                }}
-                                className="mr-3 h-4 w-4 text-green-600 focus:ring-green-500"
-                              />
-                              <span className="text-sm">{option}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-red-500 text-xs mt-1" />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
