@@ -57,7 +57,7 @@ export function RecentSales() {
             </p>
           </div>
           <div className="ml-auto font-medium shrink-0">
-            ${sale.total_sales.toFixed(2)}
+            Rs.{sale.total_sales.toFixed(2)}
           </div>
         </div>
       ))}
