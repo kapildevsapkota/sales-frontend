@@ -82,7 +82,7 @@
     "react-medium-image-zoom": "^5.2.13",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.0",
-    "sonner": "^1.7.2",
+    "sonner": "^1.7.4",
     "sweetalert2": "^11.15.10",
     "swr": "^2.3.3",
     "tailwind-merge": "^2.6.0",

@@ -35,6 +35,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 interface CreateOrderFormProps {
   products: Product[];
@@ -231,7 +233,6 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         landmark: data.landmark,
         phone_number: data.phone_number,
         alternate_phone_number: "0987654321", // Hardcoded for now
-        delivery_charge: "50.00", // Hardcoded for now
         payment_method: data.payment_method,
         total_amount: data.total_amount,
         remarks: data.remarks,
@@ -240,7 +241,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
       };
 
       // Send the request to the backend
-      await api.post(
+      const response = await api.post(
         `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/`,
         requestData,
         {
@@ -251,11 +252,27 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         }
       );
 
-      // Reset the form and redirect
-      form.reset();
-      router.push("/sales/dashboard");
+      if (response.status === 201) {
+        toast.success("Order submitted successfully!");
+        form.reset();
+        router.push("/sales/dashboard");
+      } else {
+        throw new Error("Failed to submit order");
+      }
     } catch (error) {
-      console.error(error);
+      const err = error as AxiosError; // Cast error to AxiosError
+
+      if (err.response) {
+        // Check if the response data is an array and extract the first error message
+        const errorResponse = err.response.data;
+        if (Array.isArray(errorResponse) && errorResponse.length > 0) {
+          toast.error(errorResponse[0]); // Display the first error message from the array
+        } else {
+          toast.error("An error occurred while submitting the order."); // Fallback error message
+        }
+      } else {
+        toast.error("An unexpected error occurred. Please try again."); // Fallback for network errors
+      }
     } finally {
       setLoading(false);
     }

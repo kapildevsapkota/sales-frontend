@@ -40,6 +40,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { login, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
 
   const form = useForm<LoginFormData>({
@@ -62,6 +63,8 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    setErrorMessage(null);
+
     try {
       const loginData: LoginCredentials = {
         phone_number: data.phone_number,
@@ -69,8 +72,12 @@ export default function LoginPage() {
       };
       await login(loginData);
       toast.success("Login successful!");
-    } catch {
-      toast.error("Invalid credentials. Please try again.");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || "An unexpected error occurred.";
+      setErrorMessage(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -240,6 +247,11 @@ export default function LoginPage() {
                   "Sign in"
                 )}
               </Button>
+              {errorMessage && (
+                <div className="text-red-600 text-sm text-center mt-2">
+                  {errorMessage}
+                </div>
+              )}
             </CardFooter>
           </form>
         </Form>

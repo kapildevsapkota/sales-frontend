@@ -5,6 +5,7 @@ import CreateOrderForm from "@/components/forms/create-order-form";
 import { Product } from "@/types/product";
 import { ShoppingCart } from "lucide-react";
 import TabBar from "@/components/layout/badgebar";
+import { Toaster } from "sonner";
 
 export default function CreateOrderPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -78,6 +79,7 @@ export default function CreateOrderPage() {
           </div>
         </div>
       </div>
+      <Toaster richColors closeButton />
     </div>
   );
 }
