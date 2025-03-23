@@ -73,11 +73,14 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
     full_name: z.string().min(2, "Name is required"),
     delivery_location: z.string().min(2, "Delivery location is required"),
     phone_number: z.string().min(10, "Phone number must be at least 10 digits"),
+    alternate_phone_number: z.string().nullable().optional(),
     city: z.string().optional(),
     landmark: z.string().optional(),
+    amount: z.number().min(0, "Amount must be at least 0"),
+    delivery_charge: z.number().min(0, "Delivery charge must be at least 0"),
     remarks: z.string().optional(),
     oil_type: z.array(z.string()).min(1, "Please select at least one oil type"),
-    total_amount: z.string().min(1, "Total amount is required"),
+    total_amount: z.number().min(0, "Total amount must be at least 0"),
     payment_method: z.nativeEnum(PaymentMethod),
     payment_screenshot: z.instanceof(File).optional(),
   });
@@ -90,11 +93,14 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
       full_name: "",
       delivery_location: "",
       phone_number: "",
+      delivery_charge: 0,
+      alternate_phone_number: "",
       city: "",
       landmark: "",
       remarks: "",
       oil_type: [],
-      total_amount: "",
+      total_amount: 0,
+      amount: 0,
       payment_method: PaymentMethod.CashOnDelivery,
       payment_screenshot: undefined,
     },
@@ -102,6 +108,8 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
 
   const { setValue, watch } = form;
   const paymentMethod = watch("payment_method");
+  const amount = watch("amount");
+  const deliveryCharge = watch("delivery_charge");
 
   useEffect(() => {
     const fetchOilTypes = async () => {
@@ -161,24 +169,13 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
     setValue("payment_screenshot", undefined);
   };
 
-  const calculateTotal = () => {
-    // This is a placeholder for calculating the total based on quantities
-    let total = 0;
-    Object.entries(quantities).forEach(([, quantity]) => {
-      // In a real app, you would use actual prices from your products
-      const price = 100; // Example fixed price
-      total += parseInt(quantity || "0") * price;
-    });
-
-    // Add delivery charge (hardcoded as 50.00 in your API call)
-    total += 50;
-
-    setValue("total_amount", total.toString());
-  };
-
+  // Update total amount whenever amount or delivery charge changes
   useEffect(() => {
-    calculateTotal();
-  }, [quantities]);
+    const numAmount = parseFloat(amount?.toString() || "0");
+    const numDeliveryCharge = parseFloat(deliveryCharge?.toString() || "0");
+    const total = numAmount + numDeliveryCharge;
+    setValue("total_amount", total);
+  }, [amount, deliveryCharge, setValue]);
 
   const onSubmit = async (data: OrderFormValues) => {
     try {
@@ -194,7 +191,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
             throw new Error(`Product not found: ${type}`);
           }
           return {
-            product_id: product.inventory_id, // Use inventory_id as product_id
+            product_id: product.inventory_id,
             quantity: parseInt(quantity, 10),
           };
         })
@@ -208,46 +205,38 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         );
       }
 
-      // Convert the file to base64 if it exists
-      let paymentScreenshotBase64 = null;
+      // Create FormData instance
+      const formData = new FormData();
+
+      // Add all the fields to FormData
+      formData.append("full_name", data.full_name);
+      formData.append("city", data.city || "");
+      formData.append("delivery_address", data.delivery_location);
+      formData.append("landmark", data.landmark || "");
+      formData.append("phone_number", data.phone_number);
+      formData.append(
+        "alternate_phone_number",
+        data.alternate_phone_number || ""
+      );
+      formData.append("payment_method", data.payment_method);
+      formData.append("total_amount", data.total_amount.toString());
+      formData.append("remarks", data.remarks || "");
+      formData.append("order_products", JSON.stringify(orderProducts));
+      formData.append("delivery_charge", data.delivery_charge.toString());
+
+      // Append payment screenshot if it exists
       if (uploadedFile) {
-        paymentScreenshotBase64 = await new Promise<string>(
-          (resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              // Prefix the base64 string with the correct MIME type
-              const base64String = reader.result as string;
-              resolve(base64String); // This will be in the format "data:image/jpeg;base64,..."
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(uploadedFile);
-          }
-        );
+        formData.append("payment_screenshot", uploadedFile);
       }
 
-      // Prepare the request data
-      const requestData = {
-        full_name: data.full_name,
-        city: data.city,
-        delivery_address: data.delivery_location,
-        landmark: data.landmark,
-        phone_number: data.phone_number,
-        alternate_phone_number: "0987654321", // Hardcoded for now
-        payment_method: data.payment_method,
-        total_amount: data.total_amount,
-        remarks: data.remarks,
-        order_products: orderProducts, // Include the order_products array
-        payment_screenshot: paymentScreenshotBase64, // Include the base64 string
-      };
-
-      // Send the request to the backend
+      // Send the request to the backend with FormData
       const response = await api.post(
         `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/`,
-        requestData,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
-            "Content-Type": "application/json", // Set content type for JSON
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -260,18 +249,23 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         throw new Error("Failed to submit order");
       }
     } catch (error) {
-      const err = error as AxiosError; // Cast error to AxiosError
+      const err = error as AxiosError;
 
-      if (err.response) {
-        // Check if the response data is an array and extract the first error message
+      if (err.response?.data) {
         const errorResponse = err.response.data;
         if (Array.isArray(errorResponse) && errorResponse.length > 0) {
-          toast.error(errorResponse[0]); // Display the first error message from the array
+          toast.error(errorResponse[0]);
+        } else if (
+          typeof errorResponse === "object" &&
+          errorResponse !== null &&
+          "error" in errorResponse
+        ) {
+          toast.error(errorResponse.error as string);
         } else {
-          toast.error("An error occurred while submitting the order."); // Fallback error message
+          toast.error("An error occurred while submitting the order.");
         }
       } else {
-        toast.error("An unexpected error occurred. Please try again."); // Fallback for network errors
+        toast.error("An unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -357,6 +351,33 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
                               placeholder="Enter phone number"
                               className="h-[60px] pl-10 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
                               {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-red-500 text-xs mt-1" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="alternate_phone_number"
+                    render={({ field }) => (
+                      <FormItem className="form-floating">
+                        <FormLabel className="text-sm font-medium">
+                          Alternate Phone Number{" "}
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <PhoneIcon
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                              size={16}
+                            />
+                            <Input
+                              placeholder="Enter alternate phone number"
+                              className="h-[60px] pl-10 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
+                              {...field}
+                              value={field.value || ""}
                             />
                           </div>
                         </FormControl>
@@ -503,6 +524,61 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
                   </Button>
                 </div>
 
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">
+                          Amount
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                            {...field}
+                            onChange={(e) => {
+                              const value = e.target.value
+                                ? parseFloat(e.target.value)
+                                : 0;
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-500 text-xs mt-1" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="delivery_charge"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">
+                          Delivery Charge
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                            {...field}
+                            onChange={(e) => {
+                              const value = e.target.value
+                                ? parseFloat(e.target.value)
+                                : 0;
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-500 text-xs mt-1" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="total_amount"
@@ -518,15 +594,17 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
                             $
                           </div>
                           <Input
-                            type="text"
+                            type="number"
                             placeholder="0.00"
                             className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
+                            disabled
+                            value={field.value || 0}
                           />
                         </div>
                       </FormControl>
                       <p className="text-xs text-gray-500 mt-1">
-                        Includes delivery charge of $50.00
+                        Total = Amount + Delivery Charge
                       </p>
                       <FormMessage className="text-red-500 text-xs mt-1" />
                     </FormItem>
