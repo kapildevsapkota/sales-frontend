@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define the interface for the product data
 interface Product {
@@ -13,85 +15,121 @@ interface Product {
 
 export function RevenueChart() {
   const [data, setData] = useState<Product[]>([]); // State to hold revenue data
+  const [timeRange, setTimeRange] = useState<"weekly" | "monthly">("weekly");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchRevenueData = async () => {
-      const token = localStorage.getItem("accessToken"); // Get the access token from local storage
-      const response = await fetch(
-        "https://sales.baliyoventures.com/api/sales/revenue-by-product/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Set the authorization header
-          },
-        }
-      );
-      const result = await response.json();
-      const chartData = result.products.map((product: Product) => ({
-        name: product.product_name,
-        value: product.revenue,
-        color: `hsl(${Math.random() * 360}, 70%, 50%)`, // Generate a random color for each product
-      }));
-      setData(chartData); // Update state with fetched revenue data
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("accessToken"); // Get the access token from local storage
+        const response = await fetch(
+          `https://sales.baliyoventures.com/api/sales/revenue-by-product/?filter=${timeRange}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Set the authorization header
+            },
+          }
+        );
+        const result = await response.json();
+        const chartData = result.products.map((product: Product) => ({
+          name: product.product_name,
+          value: product.revenue,
+          color: `hsl(${Math.random() * 360}, 70%, 50%)`, // Generate a random color for each product
+        }));
+        setData(chartData); // Update state with fetched revenue data
+      } catch (error) {
+        console.error("Error fetching revenue data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchRevenueData();
-  }, []);
+  }, [timeRange]);
 
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={60}
-            outerRadius={80}
-            paddingAngle={5}
-            dataKey="value"
-            label={({ name, percent }) =>
-              `${name} ${(percent * 100).toFixed(0)}%`
-            }
-            labelLine={false}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip
-            content={({ active, payload }) => {
-              if (active && payload && payload.length) {
-                return (
-                  <div className="rounded-lg border bg-background p-2 shadow-sm">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col">
-                        <span className="text-[0.70rem] uppercase text-muted-foreground">
-                          Product
-                        </span>
-                        <span className="font-bold text-muted-foreground">
-                          {payload[0].name}
-                        </span>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Tabs
+          defaultValue="weekly"
+          onValueChange={(value) => setTimeRange(value as "weekly" | "monthly")}
+        >
+          <TabsList>
+            <TabsTrigger value="weekly">Weekly</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      <div className="h-[300px] w-full">
+        {isLoading ? (
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="space-y-4">
+              <Skeleton className="h-[200px] w-[200px] rounded-full" />
+              <div className="flex justify-center space-x-4">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={5}
+                dataKey="value"
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(2)}%`
+                }
+                labelLine={false}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="rounded-lg border bg-background p-2 shadow-sm">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex flex-col">
+                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                              Product
+                            </span>
+                            <span className="font-bold text-muted-foreground">
+                              {payload[0].name}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                              Revenue
+                            </span>
+                            <span className="font-bold">
+                              Rs.{" "}
+                              {typeof payload[0].value === "number"
+                                ? payload[0].value.toFixed(3)
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-[0.70rem] uppercase text-muted-foreground">
-                          Revenue
-                        </span>
-                        <span className="font-bold">
-                          $
-                          {typeof payload[0].value === "number"
-                            ? payload[0].value.toFixed(2)
-                            : "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+                    );
+                  }
+                  return null;
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+      </div>
     </div>
   );
 }
