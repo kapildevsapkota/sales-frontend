@@ -135,6 +135,13 @@ export default function SalesTable() {
       sortable: true,
     },
     {
+      id: "send_order",
+      label: "Send Order",
+      visible: true,
+      width: 120,
+      sortable: false,
+    },
+    {
       id: "remarks",
       label: "Remarks [If Any]",
       visible: false,
@@ -514,7 +521,47 @@ export default function SalesTable() {
     }
   };
 
-  // Update the getValueByColumnId function to return the order_status with color
+  // Add this function to handle sending order to WhatsApp
+  const handleSendOrder = (sale: SaleItem) => {
+    // Format the order details
+    const orderDetails = `
+*New Order Alert!* 🚀
+
+*Customer Details:*
+👤 Name: ${sale.full_name}
+📱 Phone: ${sale.phone_number}
+📍 Location: ${sale.delivery_address}, ${sale.city}
+
+*Order Details:*
+🛒 Products: ${sale.order_products
+      .map((p) => `${p.product.name} - ${p.quantity}`)
+      .join(", ")}
+💰 Total Amount: Rs. ${sale.total_amount}
+💳 Payment Method: ${sale.payment_method}
+📝 Remarks: ${sale.remarks || "None"}
+
+*Sales Person:*
+👨‍💼 ${sale.sales_person.first_name} ${sale.sales_person.last_name}
+
+Please process this order promptly! 🚀
+    `.trim();
+
+    // Copy to clipboard
+    navigator.clipboard
+      .writeText(orderDetails)
+      .then(() => {
+        // Show success message
+        alert(
+          "Order details copied to clipboard! Please paste it in your WhatsApp group."
+        );
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+        alert("Failed to copy order details. Please try again.");
+      });
+  };
+
+  // Update the getValueByColumnId function to include the send_order case
   const getValueByColumnId = (sale: SaleItem, columnId: string) => {
     switch (columnId) {
       case "index":
@@ -530,9 +577,15 @@ export default function SalesTable() {
       case "remarks":
         return sale.remarks;
       case "oil_type":
-        return sale.order_products[0]?.product.name || "";
+        return sale.order_products
+          .map((product) => `${product.product.name} - ${product.quantity}`)
+          .join(", ");
       case "quantity":
-        return sale.order_products[0]?.quantity || 0;
+        let quantity = 0;
+        sale.order_products.forEach((product) => {
+          quantity += product.quantity;
+        });
+        return quantity;
       case "total_amount":
         return Number.parseFloat(sale.total_amount);
       case "convinced_by":
@@ -557,6 +610,31 @@ export default function SalesTable() {
           >
             {/* Color indicator */}
           </span>
+        );
+      case "send_order":
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleSendOrder(sale)}
+            className="flex items-center gap-1"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-1"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Send Order
+          </Button>
         );
       default:
         return "";
