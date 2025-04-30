@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import type { JSX } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -101,17 +102,10 @@ export default function SalesTable() {
       sortable: true,
     },
     {
-      id: "oil_type",
-      label: "Oil Type",
+      id: "product_sold",
+      label: "Product Sold",
       visible: true,
-      width: 120,
-      sortable: true,
-    },
-    {
-      id: "quantity",
-      label: "Quantity",
-      visible: true,
-      width: 80,
+      width: 200,
       sortable: true,
     },
     {
@@ -138,7 +132,7 @@ export default function SalesTable() {
     {
       id: "convinced_by",
       label: "Convinced by",
-      visible: false,
+      visible: true,
       width: 120,
       sortable: true,
     },
@@ -205,16 +199,18 @@ export default function SalesTable() {
             return Number(item.total_amount) <= Number(value);
           }
 
-          // Handle oil type filtering
+          // Handle oil type filtering - now checks all products
           if (key === "oil_type") {
-            const oilType = item.order_products[0]?.product.name || "";
-            return oilType.toLowerCase().includes(value.toLowerCase());
+            return item.order_products.some((product) =>
+              product.product.name.toLowerCase().includes(value.toLowerCase())
+            );
           }
 
-          // Handle quantity filtering
+          // Handle quantity filtering - now checks all products
           if (key === "quantity") {
-            const quantity = item.order_products[0]?.quantity || 0;
-            return quantity === Number(value);
+            return item.order_products.some(
+              (product) => product.quantity === Number(value)
+            );
           }
 
           // Handle status filtering
@@ -509,7 +505,10 @@ export default function SalesTable() {
   };
 
   // Update the getValueByColumnId function to handle payment method with eye icon
-  const getValueByColumnId = (sale: SaleItem, columnId: string) => {
+  const getValueByColumnId = (
+    sale: SaleItem,
+    columnId: string
+  ): string | number | JSX.Element => {
     switch (columnId) {
       case "index":
         return "";
@@ -523,10 +522,10 @@ export default function SalesTable() {
         return sale.phone_number;
       case "remarks":
         return sale.remarks;
-      case "oil_type":
-        return sale.order_products[0]?.product.name || "";
-      case "quantity":
-        return sale.order_products[0]?.quantity || 0;
+      case "product_sold":
+        return sale.order_products
+          .map((product) => `${product.product.name} - ${product.quantity}`)
+          .join(", ");
       case "total_amount":
         return Number.parseFloat(sale.total_amount);
       case "convinced_by":
