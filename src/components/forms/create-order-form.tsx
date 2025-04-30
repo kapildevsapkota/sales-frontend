@@ -71,7 +71,6 @@ export default function CreateOrderForm({
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
-  const [existingOrder, setExistingOrder] = useState<any>(null);
 
   const router = useRouter();
 
@@ -178,7 +177,6 @@ export default function CreateOrderForm({
             }
           );
           const data = await response.json();
-          setExistingOrder(data);
 
           // Set form values from existing order with proper type conversion
           form.setValue("full_name", data.full_name);
@@ -202,15 +200,18 @@ export default function CreateOrderForm({
 
           // Set selected oil types and quantities
           const selectedTypes = data.order_products.map(
-            (product: any) => product.product.name
+            (product: { product: { name: string } }) => product.product.name
           );
           setSelectedOilTypes(selectedTypes);
           form.setValue("oil_type", selectedTypes);
 
           const quantitiesMap: { [key: string]: string } = {};
-          data.order_products.forEach((product: any) => {
-            quantitiesMap[product.product.name] = product.quantity.toString();
-          });
+          data.order_products.forEach(
+            (product: { product: { name: string; quantity: number } }) => {
+              quantitiesMap[product.product.name] =
+                product.product.quantity.toString();
+            }
+          );
           setQuantities(quantitiesMap);
 
           // Set payment screenshot if exists
