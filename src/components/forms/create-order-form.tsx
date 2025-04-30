@@ -89,6 +89,10 @@ export default function CreateOrderForm({
     total_amount: z.number().min(0, "Total amount must be at least 0"),
     payment_method: z.nativeEnum(PaymentMethod),
     payment_screenshot: z.instanceof(File).optional(),
+    prepaid_amount: z
+      .number()
+      .min(0, "Prepaid amount must be at least 0")
+      .optional(),
   });
 
   type OrderFormValues = z.infer<typeof orderSchema>;
@@ -109,6 +113,7 @@ export default function CreateOrderForm({
       amount: 0,
       payment_method: PaymentMethod.CashOnDelivery,
       payment_screenshot: undefined,
+      prepaid_amount: 0,
     },
   });
 
@@ -116,6 +121,11 @@ export default function CreateOrderForm({
   const paymentMethod = watch("payment_method");
   const amount = watch("amount");
   const deliveryCharge = watch("delivery_charge");
+  const prepaidAmount = watch("prepaid_amount");
+  const totalAmount = watch("total_amount");
+
+  // Calculate remaining amount
+  const remainingAmount = totalAmount - (prepaidAmount || 0);
 
   useEffect(() => {
     const fetchOilTypes = async () => {
@@ -184,6 +194,7 @@ export default function CreateOrderForm({
             "amount",
             parseFloat(data.total_amount) - parseFloat(data.delivery_charge)
           );
+          form.setValue("prepaid_amount", parseFloat(data.prepaid_amount));
           form.setValue("delivery_charge", parseFloat(data.delivery_charge));
           form.setValue("remarks", data.remarks || "");
           form.setValue("payment_method", data.payment_method);
@@ -291,6 +302,7 @@ export default function CreateOrderForm({
       formData.append("remarks", data.remarks || "");
       formData.append("order_products", JSON.stringify(orderProducts));
       formData.append("delivery_charge", data.delivery_charge.toString());
+      formData.append("prepaid_amount", data.prepaid_amount?.toString() || "0");
 
       // Append payment screenshot if it exists
       if (uploadedFile) {
@@ -790,6 +802,67 @@ export default function CreateOrderForm({
                     </FormItem>
                   )}
                 />
+
+                {paymentMethod === PaymentMethod.Prepaid && (
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="prepaid_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            Prepaid Amount{" "}
+                            <span className="text-red-500 ml-1">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                                $
+                              </div>
+                              <Input
+                                type="number"
+                                placeholder="0.00"
+                                className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                                {...field}
+                                onWheel={preventScroll}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                    ? parseFloat(e.target.value)
+                                    : 0;
+                                  field.onChange(value);
+                                }}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-red-500 text-xs mt-1" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Remaining Amount
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                            $
+                          </div>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                            disabled
+                            value={remainingAmount}
+                          />
+                        </div>
+                      </FormControl>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Remaining = Total Amount - Prepaid Amount
+                      </p>
+                    </FormItem>
+                  </div>
+                )}
 
                 {/* Payment Screenshot Upload */}
                 {paymentMethod !== PaymentMethod.CashOnDelivery && (

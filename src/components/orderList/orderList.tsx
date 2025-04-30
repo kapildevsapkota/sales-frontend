@@ -76,6 +76,8 @@ export default function SalesTable() {
   const [exportDateRange, setExportDateRange] = useState<
     [Date | undefined, Date | undefined]
   >([undefined, undefined]);
+  const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
+  const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
   const router = useRouter();
 
   const [columns, setColumns] = useState<Column[]>([
@@ -130,6 +132,13 @@ export default function SalesTable() {
       sortable: true,
     },
     {
+      id: "remaining_amount",
+      label: "Remaining Amount",
+      visible: true,
+      width: 120,
+      sortable: true,
+    },
+    {
       id: "payment_method",
       label: "Payment method",
       visible: true,
@@ -169,13 +178,6 @@ export default function SalesTable() {
       label: "Amount Paid",
       visible: false,
       width: 120,
-      sortable: true,
-    },
-    {
-      id: "payment_screen",
-      label: "Payment Screen",
-      visible: false,
-      width: 150,
       sortable: true,
     },
     {
@@ -602,18 +604,37 @@ Please process this order promptly! 🚀
         return quantity;
       case "total_amount":
         return Number.parseFloat(sale.total_amount);
+      case "remaining_amount":
+        const total = Number.parseFloat(sale.total_amount);
+        const prepaid = sale.prepaid_amount ?? 0;
+        return total - prepaid;
       case "convinced_by":
         return `${sale.sales_person.first_name} ${sale.sales_person.last_name}`;
       case "payment_method":
-        return sale.payment_method;
-      case "payment_screen":
-        return sale.payment_screenshot || "";
+        return (
+          <div className="flex items-center gap-2">
+            <span>
+              {sale.payment_method}
+              {sale.payment_method === "Prepaid" && sale.prepaid_amount && (
+                <span className="ml-1 text-sm text-gray-500">
+                  (Rs. {sale.prepaid_amount})
+                </span>
+              )}
+            </span>
+            {sale.payment_method === "Prepaid" && sale.payment_screenshot && (
+              <Eye
+                className="h-4 w-4 cursor-pointer text-gray-500 hover:text-gray-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPaymentImage(sale.payment_screenshot);
+                  setShowPaymentImageModal(true);
+                }}
+              />
+            )}
+          </div>
+        );
       case "delivery_charge":
         return Number.parseFloat(sale.delivery_charge);
-      case "remaining":
-        return sale.order_status === "Completed"
-          ? 0
-          : Number.parseFloat(sale.total_amount);
       case "order_status":
         return (
           <span
@@ -1144,6 +1165,32 @@ Please process this order promptly! 🚀
                 Cancel
               </Button>
               <Button onClick={handleExportCSV}>Export</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Image Modal */}
+      {showPaymentImageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Payment Screenshot</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setShowPaymentImageModal(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="max-h-[80vh] overflow-auto">
+              <img
+                src={selectedPaymentImage}
+                alt="Payment Screenshot"
+                className="w-full h-auto"
+              />
             </div>
           </div>
         </div>
