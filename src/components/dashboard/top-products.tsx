@@ -24,6 +24,7 @@ export function TopProducts() {
         }
       );
       const result = await response.json();
+      console.log("top products", result);
       setProducts(result.data); // Update state with fetched product data
     };
 

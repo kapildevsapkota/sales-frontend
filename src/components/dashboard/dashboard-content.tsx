@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsList } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SalesChart } from "@/components/dashboard/sales-chart";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { RecentSales } from "@/components/dashboard/recent-sales";
@@ -37,7 +37,9 @@ interface DashboardContentProps {
 export const DashboardContent: React.FC<DashboardContentProps> = ({
   className,
 }) => {
-  const [timeframe, setTimeframe] = useState("week");
+  const [timeframe, setTimeframe] = useState<
+    "monthly" | "weekly" | "yearly" | "daily"
+  >("daily");
   const [statistics, setStatistics] = useState<Statistics | null>(null);
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
         }
       );
       const result = await response.json();
+      console.log(result);
       setStatistics(result);
     };
 
@@ -176,10 +179,19 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
               </div>
               <Tabs
                 defaultValue={timeframe}
-                onValueChange={setTimeframe}
+                onValueChange={(value) =>
+                  setTimeframe(
+                    value as "monthly" | "weekly" | "yearly" | "daily"
+                  )
+                }
                 className="w-full sm:w-auto"
               >
-                <TabsList className="w-full sm:w-auto"></TabsList>
+                <TabsList className="w-full sm:w-auto">
+                  <TabsTrigger value="daily">Daily</TabsTrigger>
+                  <TabsTrigger value="weekly">Weekly</TabsTrigger>
+                  <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                  <TabsTrigger value="yearly">Yearly</TabsTrigger>
+                </TabsList>
               </Tabs>
             </CardHeader>
             <CardContent>

@@ -17,14 +17,14 @@ interface RevenueData {
   order_count: number;
 }
 
-export function SalesChart({}: { timeframe: string }) {
+export function SalesChart({ timeframe }: { timeframe: string }) {
   const [data, setData] = useState<RevenueData[]>([]); // State to hold revenue data
 
   useEffect(() => {
     const fetchRevenueData = async () => {
       const token = localStorage.getItem("accessToken"); // Get the access token from local storage
       const response = await fetch(
-        "https://sales.baliyoventures.com/api/sales/revenue/",
+        `https://sales.baliyoventures.com/api/sales/revenue/?filter=${timeframe}`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Set the authorization header
@@ -32,16 +32,18 @@ export function SalesChart({}: { timeframe: string }) {
         }
       );
       const result = await response.json();
+      console.log("sales chart", result);
       setData(result.data); // Update state with fetched revenue data
     };
 
     fetchRevenueData();
-  }, []);
+  }, [timeframe]);
 
   // Transform data for the chart based on the timeframe
   const chartData = data.map((item) => ({
     name: item.period,
     sales: item.total_revenue,
+    orders: item.order_count,
   }));
 
   return (
@@ -94,7 +96,7 @@ export function SalesChart({}: { timeframe: string }) {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex flex-col">
                         <span className="text-[0.70rem] uppercase text-muted-foreground">
-                          {payload[0].name}
+                          Date
                         </span>
                         <span className="font-bold text-muted-foreground">
                           {payload[0].payload.name}
@@ -107,6 +109,12 @@ export function SalesChart({}: { timeframe: string }) {
                         <span className="font-bold">
                           Rs. {payload[0].value}
                         </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          Orders
+                        </span>
+                        <span className="font-bold">{payload[1].value}</span>
                       </div>
                     </div>
                   </div>
@@ -122,6 +130,14 @@ export function SalesChart({}: { timeframe: string }) {
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 6, style: { fill: "hsl(var(--primary))" } }}
+          />
+          <Line
+            type="monotone"
+            dataKey="orders"
+            stroke="hsl(var(--secondary))"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 6, style: { fill: "hsl(var(--secondary))" } }}
           />
         </LineChart>
       </ResponsiveContainer>
