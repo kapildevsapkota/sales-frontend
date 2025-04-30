@@ -25,7 +25,9 @@ import { TopProducts } from "@/components/dashboard/top-products";
 interface Statistics {
   date: string;
   total_orders: number;
+  total_orders_yesterday: number;
   total_sales: number;
+  total_sales_yesterday: number;
   all_time_orders: number;
   all_time_sales: number;
 }
@@ -59,7 +61,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
     };
 
     fetchStatistics();
-  }, []);
+  }, [timeframe]);
 
   return (
     <main className={`flex-1 overflow-auto ${className || ""}`}>
@@ -74,7 +76,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Revenue
+                Total Revenue Today
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -83,46 +85,106 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                 Rs.{" "}
                 {statistics ? statistics.total_sales.toFixed(2) : "Loading..."}
               </div>
-              <div className="flex items-center text-xs text-green-500">
-                <ArrowUp className="mr-1 h-3 w-3" />
-                <span>
-                  {statistics
-                    ? `+${(
-                        (statistics.total_sales /
-                          (statistics.total_sales - 1)) *
+              {statistics && (
+                <div className={`flex flex-col space-y-1`}>
+                  <div
+                    className={`flex items-center text-xs ${
+                      statistics.total_sales >= statistics.total_sales_yesterday
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {statistics.total_sales >=
+                    statistics.total_sales_yesterday ? (
+                      <ArrowUp className="mr-1 h-3 w-3" />
+                    ) : (
+                      <ArrowDown className="mr-1 h-3 w-3" />
+                    )}
+                    <span>
+                      Rs.{" "}
+                      {Math.abs(
+                        statistics.total_sales -
+                          statistics.total_sales_yesterday
+                      ).toFixed(2)}{" "}
+                      (
+                      {statistics.total_sales >=
+                      statistics.total_sales_yesterday
+                        ? "+"
+                        : ""}
+                      {(
+                        ((statistics.total_sales -
+                          statistics.total_sales_yesterday) /
+                          statistics.total_sales_yesterday) *
                         100
-                      ).toFixed(1)}% from last month`
-                    : "Loading..."}
-                </span>
-              </div>
+                      ).toFixed(1)}
+                      %) from yesterday
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Yesterday: Rs. {statistics.total_sales_yesterday.toFixed(2)}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Orders</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Orders Today
+              </CardTitle>
               <ShoppingCart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {statistics ? statistics.total_orders : "Loading..."}
               </div>
-              <div className="flex items-center text-xs text-green-500">
-                <ArrowUp className="mr-1 h-3 w-3" />
-                <span>
-                  {statistics
-                    ? `+${(
-                        (statistics.total_orders /
-                          (statistics.total_orders - 1)) *
+              {statistics && (
+                <div className={`flex flex-col space-y-1`}>
+                  <div
+                    className={`flex items-center text-xs ${
+                      statistics.total_orders >=
+                      statistics.total_orders_yesterday
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {statistics.total_orders >=
+                    statistics.total_orders_yesterday ? (
+                      <ArrowUp className="mr-1 h-3 w-3" />
+                    ) : (
+                      <ArrowDown className="mr-1 h-3 w-3" />
+                    )}
+                    <span>
+                      {Math.abs(
+                        statistics.total_orders -
+                          statistics.total_orders_yesterday
+                      )}{" "}
+                      (
+                      {statistics.total_orders >=
+                      statistics.total_orders_yesterday
+                        ? "+"
+                        : ""}
+                      {(
+                        ((statistics.total_orders -
+                          statistics.total_orders_yesterday) /
+                          statistics.total_orders_yesterday) *
                         100
-                      ).toFixed(1)}% from last month`
-                    : "Loading..."}
-                </span>
-              </div>
+                      ).toFixed(1)}
+                      %) from yesterday
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Yesterday: {statistics.total_orders_yesterday}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Customers</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                All Time Orders
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -201,7 +263,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
           <Card className="col-span-full lg:col-span-3">
             <CardHeader>
               <CardTitle>Top Sales Persons</CardTitle>
-              <CardDescription>You made 265 sales this month</CardDescription>
+              <CardDescription>Sales by persons</CardDescription>
             </CardHeader>
             <CardContent>
               <RecentSales />
