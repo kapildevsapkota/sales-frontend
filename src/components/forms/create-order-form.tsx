@@ -42,6 +42,8 @@ interface CreateOrderFormProps {
   products: Product[];
   oilTypes: string[];
   convincedByOptions: string[];
+  orderId?: string;
+  isEditMode?: boolean;
 }
 
 interface FileWithPreview extends File {
@@ -55,7 +57,10 @@ interface ProductInfo {
   quantity: number;
 }
 
-export default function CreateOrderForm({}: CreateOrderFormProps) {
+export default function CreateOrderForm({
+  orderId,
+  isEditMode = false,
+}: CreateOrderFormProps) {
   const [oilTypes, setOilTypes] = useState<ProductInfo[]>([]);
   const [selectedOilTypes, setSelectedOilTypes] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: string }>({});
@@ -66,6 +71,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
+  const [existingOrder, setExistingOrder] = useState<any>(null);
 
   const router = useRouter();
 
@@ -148,6 +154,68 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
     fetchOilTypes();
   }, []);
 
+  useEffect(() => {
+    const fetchOrderData = async () => {
+      if (isEditMode && orderId) {
+        try {
+          const authToken = localStorage.getItem("accessToken");
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${orderId}/update`,
+            {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
+          const data = await response.json();
+          setExistingOrder(data);
+
+          // Set form values from existing order with proper type conversion
+          form.setValue("full_name", data.full_name);
+          form.setValue("delivery_location", data.delivery_address);
+          form.setValue("phone_number", data.phone_number);
+          form.setValue(
+            "alternate_phone_number",
+            data.alternate_phone_number || ""
+          );
+          form.setValue("city", data.city || "");
+          form.setValue("landmark", data.landmark || "");
+          form.setValue(
+            "amount",
+            parseFloat(data.total_amount) - parseFloat(data.delivery_charge)
+          );
+          form.setValue("delivery_charge", parseFloat(data.delivery_charge));
+          form.setValue("remarks", data.remarks || "");
+          form.setValue("payment_method", data.payment_method);
+          form.setValue("total_amount", parseFloat(data.total_amount));
+
+          // Set selected oil types and quantities
+          const selectedTypes = data.order_products.map(
+            (product: any) => product.product.name
+          );
+          setSelectedOilTypes(selectedTypes);
+          form.setValue("oil_type", selectedTypes);
+
+          const quantitiesMap: { [key: string]: string } = {};
+          data.order_products.forEach((product: any) => {
+            quantitiesMap[product.product.name] = product.quantity.toString();
+          });
+          setQuantities(quantitiesMap);
+
+          // Set payment screenshot if exists
+          if (data.payment_screenshot) {
+            setPreviewImage(data.payment_screenshot);
+          }
+        } catch (error) {
+          console.error("Error fetching order data:", error);
+          toast.error("Failed to load order data");
+        }
+      }
+    };
+
+    fetchOrderData();
+  }, [isEditMode, orderId, form]);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -180,7 +248,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
   const onSubmit = async (data: OrderFormValues) => {
     try {
       setLoading(true);
-      const authToken = localStorage.getItem("authToken");
+      const authToken = localStorage.getItem("accessToken");
 
       // Construct the order_products array
       const orderProducts = selectedOilTypes
@@ -229,24 +297,41 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         formData.append("payment_screenshot", uploadedFile);
       }
 
-      // Send the request to the backend with FormData
-      const response = await api.post(
-        `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      let response;
+      if (isEditMode && orderId) {
+        // Send PATCH request for edit mode
+        response = await api.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${orderId}/update/`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      } else {
+        // Send POST request for create mode
+        response = await api.post(
+          `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      }
 
-      if (response.status === 201) {
-        toast.success("Order submitted successfully!");
+      if (response.status === 200 || response.status === 201) {
+        toast.success(
+          `Order ${isEditMode ? "updated" : "submitted"} successfully!`
+        );
         form.reset();
         router.push("/sales/dashboard");
       } else {
-        throw new Error("Failed to submit order");
+        throw new Error(`Failed to ${isEditMode ? "update" : "submit"} order`);
       }
     } catch (error) {
       const err = error as AxiosError;
@@ -262,7 +347,11 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
         ) {
           toast.error(errorResponse.error as string);
         } else {
-          toast.error("An error occurred while submitting the order.");
+          toast.error(
+            `An error occurred while ${
+              isEditMode ? "updating" : "submitting"
+            } the order.`
+          );
         }
       } else {
         toast.error("An unexpected error occurred. Please try again.");
@@ -270,6 +359,12 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Update the preventScroll function with correct type
+  const preventScroll = (e: React.WheelEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   const handleOilTypeClick = (productName: string) => {
@@ -299,7 +394,9 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
       {/* Header */}
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-green-800">Yachu Hair Oil</h1>
-        <p className="text-lg text-gray-600">Sales Order Form</p>
+        <p className="text-lg text-gray-600">
+          {isEditMode ? "Edit Order" : "Sales Order Form"}
+        </p>
       </div>
 
       <Card className="shadow-lg">
@@ -539,6 +636,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
                             placeholder="0.00"
                             className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
+                            onWheel={preventScroll}
                             onChange={(e) => {
                               const value = e.target.value
                                 ? parseFloat(e.target.value)
@@ -566,6 +664,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
                             placeholder="0.00"
                             className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
+                            onWheel={preventScroll}
                             onChange={(e) => {
                               const value = e.target.value
                                 ? parseFloat(e.target.value)
@@ -598,6 +697,7 @@ export default function CreateOrderForm({}: CreateOrderFormProps) {
                             placeholder="0.00"
                             className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
+                            onWheel={preventScroll}
                             disabled
                             value={field.value || 0}
                           />
