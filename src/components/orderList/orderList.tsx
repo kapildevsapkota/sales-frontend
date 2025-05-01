@@ -548,6 +548,15 @@ export default function SalesTable() {
       .map((p) => `${p.product.name} - ${p.quantity}`)
       .join(", ")}
 💰 Total Amount: Rs. ${sale.total_amount}
+${
+  sale.payment_method === "Prepaid"
+    ? `💳 Prepaid Amount: Rs. ${sale.prepaid_amount || 0}
+💰 Remaining Amount: Rs. ${
+        Number(sale.total_amount) - (sale.prepaid_amount || 0)
+      }`
+    : ""
+}
+
 💳 Payment Method: ${sale.payment_method}
 📝 Remarks: ${sale.remarks || "None"}
 
