@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
 
 export default function SalesTable() {
   const [sales, setSales] = useState<SalesResponse | null>(null);
@@ -70,6 +71,7 @@ export default function SalesTable() {
   >([undefined, undefined]);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
+  const router = useRouter();
 
   const [columns, setColumns] = useState<Column[]>([
     { id: "index", label: "#", visible: true, width: 50, sortable: true },
@@ -116,6 +118,13 @@ export default function SalesTable() {
       sortable: true,
     },
     {
+      id: "remaining_amount",
+      label: "Remaining Amount",
+      visible: true,
+      width: 120,
+      sortable: true,
+    },
+    {
       id: "payment_method",
       label: "Payment method",
       visible: true,
@@ -151,18 +160,18 @@ export default function SalesTable() {
       sortable: true,
     },
     {
-      id: "remaining",
-      label: "Remaining",
-      visible: false,
-      width: 120,
-      sortable: true,
-    },
-    {
       id: "order_status",
       label: "Order Status",
       visible: true,
       width: 150,
       sortable: true,
+    },
+    {
+      id: "edit",
+      label: "Edit",
+      visible: true,
+      width: 100,
+      sortable: false,
     },
   ]);
 
@@ -504,7 +513,12 @@ export default function SalesTable() {
     }
   };
 
-  // Update the getValueByColumnId function to handle payment method with eye icon
+  // Add this function to handle edit
+  const handleEdit = (sale: SaleItem) => {
+    router.push(`/sales/orders/edit/${sale.id}`);
+  };
+
+  // Update the getValueByColumnId function
   const getValueByColumnId = (
     sale: SaleItem,
     columnId: string
@@ -527,13 +541,24 @@ export default function SalesTable() {
           .map((product) => `${product.product.name} - ${product.quantity}`)
           .join(", ");
       case "total_amount":
-        return Number.parseFloat(sale.total_amount);
+        return `Rs. ${Number.parseFloat(sale.total_amount).toLocaleString()}`;
+      case "remaining_amount":
+        const total = Number.parseFloat(sale.total_amount);
+        const prepaid = sale.prepaid_amount ?? 0;
+        return `Rs. ${(total - prepaid).toLocaleString()}`;
       case "convinced_by":
         return `${sale.sales_person.first_name} ${sale.sales_person.last_name}`;
       case "payment_method":
         return (
           <div className="flex items-center gap-2">
-            <span>{sale.payment_method}</span>
+            <span>
+              {sale.payment_method}
+              {sale.payment_method === "Prepaid" && sale.prepaid_amount && (
+                <span className="ml-1 text-sm text-gray-500">
+                  (Rs. {sale.prepaid_amount.toLocaleString()})
+                </span>
+              )}
+            </span>
             {sale.payment_method === "Prepaid" && sale.payment_screenshot && (
               <Eye
                 className="h-4 w-4 cursor-pointer text-gray-500 hover:text-gray-700"
@@ -547,11 +572,9 @@ export default function SalesTable() {
           </div>
         );
       case "delivery_charge":
-        return Number.parseFloat(sale.delivery_charge);
-      case "remaining":
-        return sale.order_status === "Completed"
-          ? 0
-          : Number.parseFloat(sale.total_amount);
+        return `Rs. ${Number.parseFloat(
+          sale.delivery_charge
+        ).toLocaleString()}`;
       case "order_status":
         return (
           <span
@@ -562,6 +585,32 @@ export default function SalesTable() {
           >
             {/* Color indicator */}
           </span>
+        );
+      case "edit":
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(sale)}
+            className="flex items-center gap-1"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-1"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Edit
+          </Button>
         );
       default:
         return "";
