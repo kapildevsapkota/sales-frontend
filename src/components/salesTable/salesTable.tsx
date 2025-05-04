@@ -538,7 +538,7 @@ export default function SalesTable() {
         return sale.remarks;
       case "product_sold":
         return sale.order_products
-          .map((product) => `${product.product.name} - ${product.quantity}`)
+          .map((item) => `${item.product.name} - ${item.quantity}`)
           .join(", ");
       case "total_amount":
         return `Rs. ${Number.parseFloat(sale.total_amount).toLocaleString()}`;

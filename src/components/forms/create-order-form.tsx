@@ -200,16 +200,15 @@ export default function CreateOrderForm({
 
           // Set selected oil types and quantities
           const selectedTypes = data.order_products.map(
-            (product: { product: { name: string } }) => product.product.name
+            (item: { product: { name: string } }) => item.product.name
           );
           setSelectedOilTypes(selectedTypes);
           form.setValue("oil_type", selectedTypes);
 
           const quantitiesMap: { [key: string]: string } = {};
           data.order_products.forEach(
-            (product: { product: { name: string; quantity: number } }) => {
-              quantitiesMap[product.product.name] =
-                product.product.quantity.toString();
+            (item: { product: { name: string }; quantity: number }) => {
+              quantitiesMap[item.product.name] = item.quantity.toString();
             }
           );
           setQuantities(quantitiesMap);
