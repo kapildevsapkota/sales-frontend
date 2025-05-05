@@ -34,6 +34,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
@@ -71,6 +73,10 @@ export default function CreateOrderForm({
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
+  const [forceOrderDialogOpen, setForceOrderDialogOpen] = useState(false);
+  const [forceOrderErrorMsg, setForceOrderErrorMsg] = useState("");
+  const [pendingForceOrderData, setPendingForceOrderData] =
+    useState<OrderFormValues | null>(null);
 
   const router = useRouter();
 
@@ -256,7 +262,7 @@ export default function CreateOrderForm({
     setValue("total_amount", total);
   }, [amount, deliveryCharge, setValue]);
 
-  const onSubmit = async (data: OrderFormValues) => {
+  const onSubmit = async (data: OrderFormValues, forceOrder = false) => {
     try {
       setLoading(true);
       const authToken = localStorage.getItem("accessToken");
@@ -309,6 +315,11 @@ export default function CreateOrderForm({
         formData.append("payment_screenshot", uploadedFile);
       }
 
+      // Append force_order if needed
+      if (forceOrder) {
+        formData.append("force_order", "true");
+      }
+
       let response;
       if (isEditMode && orderId) {
         // Send PATCH request for edit mode
@@ -347,7 +358,28 @@ export default function CreateOrderForm({
       }
     } catch (error) {
       const err = error as AxiosError;
-
+      if (err.response?.status === 403) {
+        // Show force order dialog
+        let errorMsg = "Order could not be placed.";
+        if (err.response.data) {
+          if (
+            Array.isArray(err.response.data) &&
+            err.response.data.length > 0
+          ) {
+            errorMsg = err.response.data[0];
+          } else if (
+            typeof err.response.data === "object" &&
+            err.response.data !== null &&
+            "error" in err.response.data
+          ) {
+            errorMsg = err.response.data.error as string;
+          }
+        }
+        setForceOrderErrorMsg(errorMsg);
+        setPendingForceOrderData(data);
+        setForceOrderDialogOpen(true);
+        return;
+      }
       if (err.response?.data) {
         const errorResponse = err.response.data;
         if (Array.isArray(errorResponse) && errorResponse.length > 0) {
@@ -401,6 +433,9 @@ export default function CreateOrderForm({
     setQuantityDialogOpen(false);
   };
 
+  // Add this wrapper for react-hook-form
+  const handleFormSubmit = (data: OrderFormValues) => onSubmit(data);
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
@@ -414,7 +449,10 @@ export default function CreateOrderForm({
       <Card className="shadow-lg">
         <CardContent className="p-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form
+              onSubmit={form.handleSubmit(handleFormSubmit)}
+              className="space-y-8"
+            >
               {/* Customer Information Section */}
               <div className="mb-8">
                 <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold text-green-700">
@@ -990,6 +1028,39 @@ export default function CreateOrderForm({
               />
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={forceOrderDialogOpen}
+        onOpenChange={setForceOrderDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Duplicate Order Detected</DialogTitle>
+            <DialogDescription>{forceOrderErrorMsg}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setForceOrderDialogOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setForceOrderDialogOpen(false);
+                if (pendingForceOrderData) {
+                  await onSubmit(pendingForceOrderData, true);
+                  setPendingForceOrderData(null);
+                }
+              }}
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold"
+            >
+              Force Order
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -902,9 +902,28 @@ export default function SalesTable() {
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
+                        {/* ('Pending', 'Pending'), ('Processing', 'Processing'),
+                        ('Sent to Dash', 'Sent to Dash'), ('Delivered',
+                        'Delivered'), ('Cancelled', 'Cancelled'), ('Returned By
+                        Customer', 'Returned By Customer'), ('Returned By Dash',
+                        'Returned By Dash'), ('Return Pending', 'Return
+                        Pending'), */}
                         <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Processing">Processing</SelectItem>
+                        <SelectItem value="Sent to Dash">
+                          Sent to Dash
+                        </SelectItem>
                         <SelectItem value="Delivered">Delivered</SelectItem>
                         <SelectItem value="Cancelled">Cancelled</SelectItem>
+                        <SelectItem value="Returned By Customer">
+                          Returned By Customer
+                        </SelectItem>
+                        <SelectItem value="Returned By Dash">
+                          Returned By Dash
+                        </SelectItem>
+                        <SelectItem value="Return Pending">
+                          Return Pending
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
