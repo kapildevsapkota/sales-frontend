@@ -508,6 +508,12 @@ export default function SalesTable() {
         return "bg-yellow-500"; // Yellow for pending
       case "Cancelled":
         return "bg-red-500"; // Red for cancelled
+      case "Returned By Customer":
+        return "bg-blue-500"; // Blue for returned by customer
+      case "Returned By Dash":
+        return "bg-purple-500"; // Purple for returned by dash
+      case "Return Pending":
+        return "bg-orange-500"; // Orange for return pending
       default:
         return "bg-gray-500"; // Default color
     }
@@ -1221,6 +1227,12 @@ export default function SalesTable() {
                               <SelectTrigger className="w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
                                 <SelectValue placeholder="Change Status" />
                               </SelectTrigger>
+                              {/* ('Pending', 'Pending'), ('Processing',
+                              'Processing'), ('Sent to Dash', 'Sent to Dash'),
+                              ('Delivered', 'Delivered'), ('Cancelled',
+                              'Cancelled'), ('Returned By Customer', 'Returned
+                              By Customer'), ('Returned By Dash', 'Returned By
+                              Dash'), ('Return Pending', 'Return Pending'), */}
                               <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
                                 <SelectItem value="Pending">
                                   <span
@@ -1230,6 +1242,24 @@ export default function SalesTable() {
                                     }
                                   ></span>
                                   Pending
+                                </SelectItem>
+                                <SelectItem value="Processing">
+                                  <span
+                                    className={
+                                      getOrderStatusColor("Processing") +
+                                      " rounded-full w-4 h-4 inline-block mr-2"
+                                    }
+                                  ></span>
+                                  Processing
+                                </SelectItem>
+                                <SelectItem value="Sent to Dash">
+                                  <span
+                                    className={
+                                      getOrderStatusColor("Sent to Dash") +
+                                      " rounded-full w-4 h-4 inline-block mr-2"
+                                    }
+                                  ></span>
+                                  Sent to Dash
                                 </SelectItem>
                                 <SelectItem value="Delivered">
                                   <span
@@ -1248,6 +1278,35 @@ export default function SalesTable() {
                                     }
                                   ></span>
                                   Cancelled
+                                </SelectItem>
+                                <SelectItem value="Returned By Customer">
+                                  <span
+                                    className={
+                                      getOrderStatusColor(
+                                        "Return By Customer"
+                                      ) +
+                                      " rounded-full w-4 h-4 inline-block mr-2"
+                                    }
+                                  ></span>
+                                  Return By Customer
+                                </SelectItem>
+                                <SelectItem value="Returned By Dash">
+                                  <span
+                                    className={
+                                      getOrderStatusColor("Returned By Dash") +
+                                      " rounded-full w-4 h-4 inline-block mr-2"
+                                    }
+                                  ></span>
+                                  Returned By Dash
+                                </SelectItem>
+                                <SelectItem value="Return Pending">
+                                  <span
+                                    className={
+                                      getOrderStatusColor("Return Pending") +
+                                      " rounded-full w-4 h-4 inline-block mr-2"
+                                    }
+                                  ></span>
+                                  Return Pending
                                 </SelectItem>
                               </SelectContent>
                             </Select>
