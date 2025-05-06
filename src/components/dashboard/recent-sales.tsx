@@ -1,13 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   BarChart,
   Bar,
@@ -91,7 +84,9 @@ export function RecentSales() {
 
   // Build chart data: one entry per salesperson, with each product's quantity as a key
   const chartData = salespersons.map((sp) => {
-    const entry: any = { salesperson: `${sp.first_name} ${sp.last_name}` };
+    const entry: Record<string, string | number> = {
+      salesperson: `${sp.first_name} ${sp.last_name}`,
+    };
     allProductNames.forEach((product) => {
       const found = sp.product_sales.find((ps) => ps.product_name === product);
       entry[product] = found ? found.quantity_sold : 0;
