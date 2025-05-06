@@ -7,6 +7,8 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
+  Area,
 } from "recharts";
 import { useEffect, useState } from "react";
 
@@ -58,6 +60,16 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
             bottom: 0,
           }}
         >
+          <defs>
+            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#F59E42" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#F59E42" stopOpacity={0} />
+            </linearGradient>
+          </defs>
           <XAxis
             dataKey="name"
             stroke="#888888"
@@ -88,6 +100,17 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
             axisLine={false}
             tickFormatter={(value) => `Rs.${value}`}
             width={48}
+            yAxisId="left"
+          />
+          <YAxis
+            orientation="right"
+            stroke="#F59E42"
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(value) => `${value}`}
+            width={48}
+            yAxisId="right"
           />
           <Tooltip
             content={({ active, payload }) => {
@@ -105,17 +128,25 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[0.70rem] uppercase text-muted-foreground">
-                          Revenue
+                          <span style={{ color: "#4F46E5" }}>Revenue</span>
                         </span>
-                        <span className="font-bold">
+                        <span
+                          className="font-bold"
+                          style={{ color: "#4F46E5" }}
+                        >
                           Rs. {payload[0].value}
                         </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[0.70rem] uppercase text-muted-foreground">
-                          Orders
+                          <span style={{ color: "#F59E42" }}>Orders</span>
                         </span>
-                        <span className="font-bold">{payload[1].value}</span>
+                        <span
+                          className="font-bold"
+                          style={{ color: "#F59E42" }}
+                        >
+                          {payload[1].value}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -124,21 +155,44 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
               return null;
             }}
           />
+          <Legend verticalAlign="top" height={36} iconType="circle" />
+          <Area
+            type="monotone"
+            dataKey="sales"
+            stroke="#4F46E5"
+            fillOpacity={0.2}
+            fill="url(#colorSales)"
+            isAnimationActive={false}
+            yAxisId="left"
+          />
+          <Area
+            type="monotone"
+            dataKey="orders"
+            stroke="#F59E42"
+            fillOpacity={0.2}
+            fill="url(#colorOrders)"
+            isAnimationActive={false}
+            yAxisId="right"
+          />
           <Line
             type="monotone"
             dataKey="sales"
-            stroke="hsl(var(--primary))"
+            stroke="#4F46E5"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 6, style: { fill: "hsl(var(--primary))" } }}
+            activeDot={{ r: 6, style: { fill: "#4F46E5" } }}
+            name="Sales"
+            yAxisId="left"
           />
           <Line
             type="monotone"
             dataKey="orders"
-            stroke="hsl(var(--secondary))"
+            stroke="#F59E42"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 6, style: { fill: "hsl(var(--secondary))" } }}
+            activeDot={{ r: 6, style: { fill: "#F59E42" } }}
+            name="Orders"
+            yAxisId="right"
           />
         </LineChart>
       </ResponsiveContainer>

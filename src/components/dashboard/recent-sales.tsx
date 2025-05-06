@@ -106,6 +106,38 @@ export function RecentSales() {
     "#3B82F6",
   ];
 
+  // Custom Tooltip for BarChart
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      // Find the salesperson by label (name)
+      const salesperson = salespersons.find(
+        (sp) => `${sp.first_name} ${sp.last_name}` === label
+      );
+      return (
+        <div className="bg-white p-3 rounded-lg shadow text-xs min-w-[160px]">
+          <div className="font-semibold mb-1">
+            {label}
+            {salesperson && (
+              <span className="ml-2 text-gray-500">
+                (Total Sales: {salesperson.total_sales}, Orders:{" "}
+                {salesperson.sales_count})
+              </span>
+            )}
+          </div>
+          {payload.map((entry: any) => (
+            <div key={entry.dataKey} className="flex justify-between">
+              <span className="mr-2" style={{ color: entry.color }}>
+                {entry.name}:
+              </span>
+              <span>{entry.value}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row gap-2 mb-4 w-full">
@@ -138,7 +170,7 @@ export function RecentSales() {
               height={60}
             />
             <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-            <Tooltip />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             {allProductNames.map((product, idx) => (
               <Bar
