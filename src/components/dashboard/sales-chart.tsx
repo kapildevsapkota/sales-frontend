@@ -47,8 +47,8 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
   }));
 
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-[250px] sm:h-[300px] w-full min-w-0 overflow-x-auto">
+      <ResponsiveContainer width="100%" height="100%" minWidth={320}>
         <LineChart
           data={chartData}
           margin={{
@@ -61,7 +61,7 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
           <XAxis
             dataKey="name"
             stroke="#888888"
-            fontSize={12}
+            fontSize={10}
             tickLine={false}
             axisLine={false}
             interval="preserveStartEnd"
@@ -70,10 +70,11 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
                 <text
                   x={0}
                   y={0}
-                  dy={16}
+                  dy={14}
                   textAnchor="middle"
                   fill="#888888"
-                  fontSize={12}
+                  fontSize={10}
+                  className="sm:text-[12px]"
                 >
                   {payload.value}
                 </text>
@@ -82,11 +83,11 @@ export function SalesChart({ timeframe }: { timeframe: string }) {
           />
           <YAxis
             stroke="#888888"
-            fontSize={12}
+            fontSize={10}
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `Rs.${value}`}
-            width={60}
+            width={48}
           />
           <Tooltip
             content={({ active, payload }) => {

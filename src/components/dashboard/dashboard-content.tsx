@@ -65,179 +65,172 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
 
   return (
     <main className={`flex-1 overflow-auto ${className || ""}`}>
-      <div className="container mx-auto space-y-6 p-4 md:p-6 2xl:p-10">
+      <div className="container mx-auto space-y-6  sm:p-4 md:p-6 2xl:p-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight md:text-3xl">
             Sales Dashboard
           </h1>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+        {/* Modern Stat Panels */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Total Revenue Today */}
+          <div className="rounded-2xl p-5 bg-gradient-to-br from-green-50 to-green-100 shadow-sm flex flex-col gap-2 min-h-[140px]">
+            <div className="flex items-center justify-between">
+              <span className="text-base font-medium text-gray-700">
                 Total Revenue Today
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                Rs.{" "}
-                {statistics ? statistics.total_sales.toFixed(2) : "Loading..."}
+              </span>
+              <DollarSign className="h-6 w-6 text-green-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              Rs. {statistics ? statistics.total_sales.toFixed(2) : "--"}
+            </div>
+            {statistics && (
+              <div className="flex items-center text-sm">
+                {statistics.total_sales >= statistics.total_sales_yesterday ? (
+                  <ArrowUp className="mr-1 h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDown className="mr-1 h-4 w-4 text-red-500" />
+                )}
+                <span
+                  className={
+                    statistics.total_sales >= statistics.total_sales_yesterday
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }
+                >
+                  Rs.{" "}
+                  {Math.abs(
+                    statistics.total_sales - statistics.total_sales_yesterday
+                  ).toFixed(2)}{" "}
+                  (
+                  {statistics.total_sales >= statistics.total_sales_yesterday
+                    ? "+"
+                    : ""}
+                  {(
+                    ((statistics.total_sales -
+                      statistics.total_sales_yesterday) /
+                      (statistics.total_sales_yesterday || 1)) *
+                    100
+                  ).toFixed(1)}
+                  % ) from yesterday
+                </span>
               </div>
-              {statistics && (
-                <div className={`flex flex-col space-y-1`}>
-                  <div
-                    className={`flex items-center text-xs ${
-                      statistics.total_sales >= statistics.total_sales_yesterday
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {statistics.total_sales >=
-                    statistics.total_sales_yesterday ? (
-                      <ArrowUp className="mr-1 h-3 w-3" />
-                    ) : (
-                      <ArrowDown className="mr-1 h-3 w-3" />
-                    )}
-                    <span>
-                      Rs.{" "}
-                      {Math.abs(
-                        statistics.total_sales -
-                          statistics.total_sales_yesterday
-                      ).toFixed(2)}{" "}
-                      (
-                      {statistics.total_sales >=
-                      statistics.total_sales_yesterday
-                        ? "+"
-                        : ""}
-                      {(
-                        ((statistics.total_sales -
-                          statistics.total_sales_yesterday) /
-                          statistics.total_sales_yesterday) *
-                        100
-                      ).toFixed(1)}
-                      %) from yesterday
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Yesterday: Rs. {statistics.total_sales_yesterday.toFixed(2)}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            )}
+            <div className="text-xs text-gray-500 mt-1">
+              Yesterday: Rs.{" "}
+              {statistics ? statistics.total_sales_yesterday.toFixed(2) : "--"}
+            </div>
+          </div>
+
+          {/* Orders Today */}
+          <div className="rounded-2xl p-5 bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm flex flex-col gap-2 min-h-[140px]">
+            <div className="flex items-center justify-between">
+              <span className="text-base font-medium text-gray-700">
                 Orders Today
-              </CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statistics ? statistics.total_orders : "Loading..."}
+              </span>
+              <ShoppingCart className="h-6 w-6 text-blue-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              {statistics ? statistics.total_orders : "--"}
+            </div>
+            {statistics && (
+              <div className="flex items-center text-sm">
+                {statistics.total_orders >=
+                statistics.total_orders_yesterday ? (
+                  <ArrowUp className="mr-1 h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDown className="mr-1 h-4 w-4 text-red-500" />
+                )}
+                <span
+                  className={
+                    statistics.total_orders >= statistics.total_orders_yesterday
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }
+                >
+                  {Math.abs(
+                    statistics.total_orders - statistics.total_orders_yesterday
+                  )}{" "}
+                  (
+                  {statistics.total_orders >= statistics.total_orders_yesterday
+                    ? "+"
+                    : ""}
+                  {(
+                    ((statistics.total_orders -
+                      statistics.total_orders_yesterday) /
+                      (statistics.total_orders_yesterday || 1)) *
+                    100
+                  ).toFixed(1)}
+                  % ) from yesterday
+                </span>
               </div>
-              {statistics && (
-                <div className={`flex flex-col space-y-1`}>
-                  <div
-                    className={`flex items-center text-xs ${
-                      statistics.total_orders >=
-                      statistics.total_orders_yesterday
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {statistics.total_orders >=
-                    statistics.total_orders_yesterday ? (
-                      <ArrowUp className="mr-1 h-3 w-3" />
-                    ) : (
-                      <ArrowDown className="mr-1 h-3 w-3" />
-                    )}
-                    <span>
-                      {Math.abs(
-                        statistics.total_orders -
-                          statistics.total_orders_yesterday
-                      )}{" "}
-                      (
-                      {statistics.total_orders >=
-                      statistics.total_orders_yesterday
-                        ? "+"
-                        : ""}
-                      {(
-                        ((statistics.total_orders -
-                          statistics.total_orders_yesterday) /
-                          statistics.total_orders_yesterday) *
-                        100
-                      ).toFixed(1)}
-                      %) from yesterday
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Yesterday: {statistics.total_orders_yesterday}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            )}
+            <div className="text-xs text-gray-500 mt-1">
+              Yesterday: {statistics ? statistics.total_orders_yesterday : "--"}
+            </div>
+          </div>
+
+          {/* All Time Orders */}
+          <div className="rounded-2xl p-5 bg-gradient-to-br from-purple-50 to-purple-100 shadow-sm flex flex-col gap-2 min-h-[140px]">
+            <div className="flex items-center justify-between">
+              <span className="text-base font-medium text-gray-700">
                 All Time Orders
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statistics ? statistics.all_time_orders : "Loading..."}
-              </div>
-              <div className="flex items-center text-xs text-green-500">
-                <ArrowUp className="mr-1 h-3 w-3" />
-                <span>
-                  {statistics
-                    ? `+${(
-                        (statistics.all_time_orders /
-                          (statistics.all_time_orders - 1)) *
-                        100
-                      ).toFixed(1)}% from last month`
-                    : "Loading..."}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              </span>
+              <Users className="h-6 w-6 text-purple-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              {statistics ? statistics.all_time_orders : "--"}
+            </div>
+            <div className="flex items-center text-sm text-green-600">
+              <ArrowUp className="mr-1 h-4 w-4" />+
+              {statistics
+                ? (
+                    (statistics.all_time_orders /
+                      (statistics.all_time_orders - 1 || 1)) *
+                    100
+                  ).toFixed(1)
+                : "--"}
+              % from last month
+            </div>
+          </div>
+
+          {/* All Time Sales */}
+          <div className="rounded-2xl p-5 bg-gradient-to-br from-yellow-50 to-yellow-100 shadow-sm flex flex-col gap-2 min-h-[140px]">
+            <div className="flex items-center justify-between">
+              <span className="text-base font-medium text-gray-700">
                 All Time Sales
-              </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                Rs. {statistics ? statistics.all_time_sales : "Loading..."}
-              </div>
-              <div className="flex items-center text-xs text-red-500">
-                <ArrowDown className="mr-1 h-3 w-3" />
-                <span>
-                  {statistics
-                    ? `-${(
-                        (statistics.all_time_sales /
-                          (statistics.all_time_sales + 1)) *
-                        10
-                      ).toFixed(1)}% from last month`
-                    : "Loading..."}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+              </span>
+              <Package className="h-6 w-6 text-yellow-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              Rs. {statistics ? statistics.all_time_sales : "--"}
+            </div>
+            <div className="flex items-center text-sm text-red-600">
+              <ArrowDown className="mr-1 h-4 w-4" />-
+              {statistics
+                ? (
+                    (statistics.all_time_sales /
+                      (statistics.all_time_sales + 1 || 1)) *
+                    10
+                  ).toFixed(1)
+                : "--"}
+              % from last month
+            </div>
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-full lg:col-span-4">
-            <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        {/* Sales Overview and Top Sales Persons */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
+          <div className="col-span-full lg:col-span-4 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0 overflow-x-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4">
               <div>
-                <CardTitle>Sales Overview</CardTitle>
-                <CardDescription>Monthly sales performance</CardDescription>
+                <div className="text-lg font-semibold text-gray-900">
+                  Sales Overview
+                </div>
+                <div className="text-sm text-gray-500">
+                  Monthly sales performance
+                </div>
               </div>
               <Tabs
                 defaultValue={timeframe}
@@ -246,7 +239,7 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                     value as "monthly" | "weekly" | "yearly" | "daily"
                   )
                 }
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto mt-4 sm:mt-0"
               >
                 <TabsList className="w-full sm:w-auto">
                   <TabsTrigger value="daily">Daily</TabsTrigger>
@@ -255,45 +248,48 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                   <TabsTrigger value="yearly">Yearly</TabsTrigger>
                 </TabsList>
               </Tabs>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className="overflow-x-auto w-full min-w-[320px]">
               <SalesChart timeframe={timeframe} />
-            </CardContent>
-          </Card>
-          <Card className="col-span-full lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Top Sales Persons</CardTitle>
-              <CardDescription>Sales by persons</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RecentSales />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+          <div className="col-span-full lg:col-span-3 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0">
+            <div className="mb-4">
+              <div className="text-lg font-semibold text-gray-900">
+                Top Sales Persons
+              </div>
+              <div className="text-sm text-gray-500">Sales by persons</div>
+            </div>
+            <RecentSales />
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-full lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Top Products</CardTitle>
-              <CardDescription>
+        {/* Top Products and Revenue by Category */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
+          <div className="col-span-full lg:col-span-3 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0">
+            <div className="mb-4">
+              <div className="text-lg font-semibold text-gray-900">
+                Top Products
+              </div>
+              <div className="text-sm text-gray-500">
                 Your best selling products this month
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TopProducts />
-            </CardContent>
-          </Card>
-          <Card className="col-span-full lg:col-span-4">
-            <CardHeader>
-              <CardTitle>Revenue by Category</CardTitle>
-              <CardDescription>
+              </div>
+            </div>
+            <TopProducts />
+          </div>
+          <div className="col-span-full lg:col-span-4 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0">
+            <div className="mb-4">
+              <div className="text-lg font-semibold text-gray-900">
+                Revenue by Category
+              </div>
+              <div className="text-sm text-gray-500">
                 Revenue distribution across product categories
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="px-0 sm:px-6">
+              </div>
+            </div>
+            <div className="px-0 sm:px-6 overflow-x-auto w-full min-w-[320px]">
               <RevenueChart />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </main>

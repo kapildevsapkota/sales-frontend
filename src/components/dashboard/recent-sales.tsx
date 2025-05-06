@@ -64,18 +64,20 @@ export function RecentSales() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">Loading...</div>
+      <div className="flex justify-center items-center h-48 sm:h-64 text-base sm:text-lg">
+        Loading...
+      </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4 w-full">
         {(["all", "daily", "weekly", "monthly"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
               filter === f
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted hover:bg-muted/80"
@@ -91,10 +93,10 @@ export function RecentSales() {
           <AccordionItem
             key={index}
             value={`item-${index}`}
-            className="border rounded-lg px-4"
+            className="border rounded-2xl bg-white shadow-sm px-4 py-4 w-full"
           >
-            <div className="flex items-center py-4">
-              <Avatar className="h-9 w-9">
+            <div className="flex flex-col items-center py-2 gap-2 w-full">
+              <Avatar className="h-12 w-12 min-w-12 min-h-12 mb-2">
                 <AvatarImage
                   src="/placeholder.svg?height=36&width=36"
                   alt={`${sale.first_name} ${sale.last_name}'s Avatar`}
@@ -104,27 +106,29 @@ export function RecentSales() {
                   {sale.last_name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <div className="ml-4 space-y-1 min-w-0 flex-1">
-                <p className="text-sm font-medium leading-none truncate">
+              <div className="space-y-1 min-w-0 flex-1 text-center">
+                <p className="text-base font-semibold leading-none truncate">
                   {sale.first_name} {sale.last_name}
                 </p>
-              </div>
-              <div className="ml-auto font-medium shrink-0 flex flex-col items-end">
-                <div>Rs.{sale.total_sales.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-lg font-bold text-gray-900">
+                  Rs.{sale.total_sales.toFixed(2)}
+                </div>
+                <div className="text-sm text-gray-500">
                   {sale.sales_count} sales
                 </div>
               </div>
-              <AccordionTrigger className="ml-4" />
+              <AccordionTrigger className="mt-2" />
             </div>
             <AccordionContent>
-              <div className="grid grid-cols-2 gap-2 text-sm pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm pb-4">
                 {sale.product_sales.map((product, idx) => (
                   <div
                     key={idx}
                     className="flex justify-between items-center p-2 bg-muted/50 rounded"
                   >
-                    <span className="truncate">{product.product_name}</span>
+                    <span className="truncate max-w-[120px] sm:max-w-none">
+                      {product.product_name}
+                    </span>
                     <span className="font-medium ml-2">
                       {product.quantity_sold}
                     </span>

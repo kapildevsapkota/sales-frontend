@@ -50,24 +50,25 @@ export function RevenueChart() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <Tabs
           defaultValue="weekly"
           onValueChange={(value) => setTimeRange(value as "weekly" | "monthly")}
+          className="w-full sm:w-auto"
         >
-          <TabsList>
+          <TabsList className="w-full sm:w-auto">
             <TabsTrigger value="weekly">Weekly</TabsTrigger>
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      <div className="h-[300px] w-full">
+      <div className="h-[250px] sm:h-[300px] w-full min-w-0 flex items-center justify-center overflow-x-auto">
         {isLoading ? (
           <div className="flex h-full w-full items-center justify-center">
             <div className="space-y-4">
-              <Skeleton className="h-[200px] w-[200px] rounded-full" />
-              <div className="flex justify-center space-x-4">
+              <Skeleton className="h-[160px] sm:h-[200px] w-[160px] sm:w-[200px] rounded-full" />
+              <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <Skeleton className="h-4 w-16" />
                 <Skeleton className="h-4 w-16" />
                 <Skeleton className="h-4 w-16" />
@@ -75,14 +76,14 @@ export function RevenueChart() {
             </div>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={220}>
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
+                innerRadius={40}
+                outerRadius={70}
                 paddingAngle={5}
                 dataKey="value"
                 label={({ name, percent }) =>
