@@ -9,13 +9,7 @@ import {
   ShoppingCart,
   Users,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SalesChart } from "@/components/dashboard/sales-chart";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";

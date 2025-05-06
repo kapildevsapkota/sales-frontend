@@ -8,6 +8,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 // Define the type for a product sale
 interface ProductSale {
@@ -70,6 +79,38 @@ export function RecentSales() {
     );
   }
 
+  // Prepare data for grouped bar chart (group by salesperson)
+  // Get all unique product names
+  const allProductNames = Array.from(
+    new Set(
+      salespersons.flatMap((sp) =>
+        sp.product_sales.map((ps) => ps.product_name)
+      )
+    )
+  );
+
+  // Build chart data: one entry per salesperson, with each product's quantity as a key
+  const chartData = salespersons.map((sp) => {
+    const entry: any = { salesperson: `${sp.first_name} ${sp.last_name}` };
+    allProductNames.forEach((product) => {
+      const found = sp.product_sales.find((ps) => ps.product_name === product);
+      entry[product] = found ? found.quantity_sold : 0;
+    });
+    return entry;
+  });
+
+  // Generate colors for bars (products)
+  const barColors = [
+    "#4F46E5",
+    "#F59E42",
+    "#10B981",
+    "#EF4444",
+    "#6366F1",
+    "#F472B6",
+    "#FBBF24",
+    "#3B82F6",
+  ];
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row gap-2 mb-4 w-full">
@@ -87,58 +128,36 @@ export function RecentSales() {
           </button>
         ))}
       </div>
-
-      <Accordion type="single" collapsible className="space-y-4">
-        {salespersons.map((sale, index) => (
-          <AccordionItem
-            key={index}
-            value={`item-${index}`}
-            className="border rounded-2xl bg-white shadow-sm px-4 py-4 w-full"
+      <div className="w-full h-[400px] bg-white rounded-2xl shadow-sm p-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 10, bottom: 40 }}
           >
-            <div className="flex flex-col items-center py-2 gap-2 w-full">
-              <Avatar className="h-12 w-12 min-w-12 min-h-12 mb-2">
-                <AvatarImage
-                  src="/placeholder.svg?height=36&width=36"
-                  alt={`${sale.first_name} ${sale.last_name}'s Avatar`}
-                />
-                <AvatarFallback>
-                  {sale.first_name.charAt(0)}
-                  {sale.last_name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-1 min-w-0 flex-1 text-center">
-                <p className="text-base font-semibold leading-none truncate">
-                  {sale.first_name} {sale.last_name}
-                </p>
-                <div className="text-lg font-bold text-gray-900">
-                  Rs.{sale.total_sales.toFixed(2)}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {sale.sales_count} sales
-                </div>
-              </div>
-              <AccordionTrigger className="mt-2" />
-            </div>
-            <AccordionContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm pb-4">
-                {sale.product_sales.map((product, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between items-center p-2 bg-muted/50 rounded"
-                  >
-                    <span className="truncate max-w-[120px] sm:max-w-none">
-                      {product.product_name}
-                    </span>
-                    <span className="font-medium ml-2">
-                      {product.quantity_sold}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+            <XAxis
+              dataKey="salesperson"
+              tick={{ fontSize: 12 }}
+              interval={0}
+              angle={-20}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+            <Tooltip />
+            <Legend />
+            {allProductNames.map((product, idx) => (
+              <Bar
+                key={product}
+                dataKey={product}
+                fill={barColors[idx % barColors.length]}
+                radius={[4, 4, 0, 0]}
+                name={product}
+                maxBarSize={40}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
