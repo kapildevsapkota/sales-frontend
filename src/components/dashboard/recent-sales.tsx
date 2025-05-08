@@ -107,7 +107,15 @@ export function RecentSales() {
   ];
 
   // Custom Tooltip for BarChart
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active: boolean;
+    payload: { dataKey: string; name: string; value: number; color: string }[];
+    label: string;
+  }) => {
     if (active && payload && payload.length) {
       // Find the salesperson by label (name)
       const salesperson = salespersons.find(
@@ -124,14 +132,21 @@ export function RecentSales() {
               </span>
             )}
           </div>
-          {payload.map((entry: any) => (
-            <div key={entry.dataKey} className="flex justify-between">
-              <span className="mr-2" style={{ color: entry.color }}>
-                {entry.name}:
-              </span>
-              <span>{entry.value}</span>
-            </div>
-          ))}
+          {payload.map(
+            (entry: {
+              dataKey: string;
+              name: string;
+              value: number;
+              color: string;
+            }) => (
+              <div key={entry.dataKey} className="flex justify-between">
+                <span className="mr-2" style={{ color: entry.color }}>
+                  {entry.name}:
+                </span>
+                <span>{entry.value}</span>
+              </div>
+            )
+          )}
         </div>
       );
     }
@@ -170,7 +185,9 @@ export function RecentSales() {
               height={60}
             />
             <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={<CustomTooltip active={false} payload={[]} label={""} />}
+            />
             <Legend />
             {allProductNames.map((product, idx) => (
               <Bar
