@@ -2,14 +2,11 @@
 
 import { useEffect, useState } from "react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 
 // Define the type for a product sale
 interface ProductSale {
@@ -72,87 +69,6 @@ export function RecentSales() {
     );
   }
 
-  // Prepare data for grouped bar chart (group by salesperson)
-  // Get all unique product names
-  const allProductNames = Array.from(
-    new Set(
-      salespersons.flatMap((sp) =>
-        sp.product_sales.map((ps) => ps.product_name)
-      )
-    )
-  );
-
-  // Build chart data: one entry per salesperson, with each product's quantity as a key
-  const chartData = salespersons.map((sp) => {
-    const entry: Record<string, string | number> = {
-      salesperson: `${sp.first_name} ${sp.last_name}`,
-    };
-    allProductNames.forEach((product) => {
-      const found = sp.product_sales.find((ps) => ps.product_name === product);
-      entry[product] = found ? found.quantity_sold : 0;
-    });
-    return entry;
-  });
-
-  // Generate colors for bars (products)
-  const barColors = [
-    "#4F46E5",
-    "#F59E42",
-    "#10B981",
-    "#EF4444",
-    "#6366F1",
-    "#F472B6",
-    "#FBBF24",
-    "#3B82F6",
-  ];
-
-  // Custom Tooltip for BarChart
-  const CustomTooltip = ({
-    active,
-    payload,
-    label,
-  }: {
-    active: boolean;
-    payload: { dataKey: string; name: string; value: number; color: string }[];
-    label: string;
-  }) => {
-    if (active && payload && payload.length) {
-      // Find the salesperson by label (name)
-      const salesperson = salespersons.find(
-        (sp) => `${sp.first_name} ${sp.last_name}` === label
-      );
-      return (
-        <div className="bg-white p-3 rounded-lg shadow text-xs min-w-[160px]">
-          <div className="font-semibold mb-1">
-            {label}
-            {salesperson && (
-              <span className="ml-2 text-gray-500">
-                (Total Sales: {salesperson.total_sales}, Orders:{" "}
-                {salesperson.sales_count})
-              </span>
-            )}
-          </div>
-          {payload.map(
-            (entry: {
-              dataKey: string;
-              name: string;
-              value: number;
-              color: string;
-            }) => (
-              <div key={entry.dataKey} className="flex justify-between">
-                <span className="mr-2" style={{ color: entry.color }}>
-                  {entry.name}:
-                </span>
-                <span>{entry.value}</span>
-              </div>
-            )
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row gap-2 mb-4 w-full">
@@ -170,37 +86,63 @@ export function RecentSales() {
           </button>
         ))}
       </div>
-      <div className="w-full h-[400px] bg-white rounded-2xl shadow-sm p-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 10, bottom: 40 }}
-          >
-            <XAxis
-              dataKey="salesperson"
-              tick={{ fontSize: 12 }}
-              interval={0}
-              angle={-20}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-            <Tooltip
-              content={<CustomTooltip active={false} payload={[]} label={""} />}
-            />
-            <Legend />
-            {allProductNames.map((product, idx) => (
-              <Bar
-                key={product}
-                dataKey={product}
-                fill={barColors[idx % barColors.length]}
-                radius={[4, 4, 0, 0]}
-                name={product}
-                maxBarSize={40}
-              />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="w-full bg-white rounded-2xl shadow-sm p-4">
+        <Accordion type="single" collapsible className="w-full">
+          {salespersons.length === 0 && (
+            <div className="text-center text-gray-500 py-8">
+              No sales data found.
+            </div>
+          )}
+          {salespersons.map((sp, idx) => (
+            <AccordionItem key={idx} value={sp.first_name + sp.last_name + idx}>
+              <AccordionTrigger>
+                <div className="flex flex-col sm:flex-row sm:items-center w-full justify-between gap-2">
+                  <span className="font-medium text-base">
+                    {sp.first_name} {sp.last_name}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    Total Sales:{" "}
+                    <span className="font-semibold text-primary">
+                      {sp.total_sales}
+                    </span>
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    Orders:{" "}
+                    <span className="font-semibold">{sp.sales_count}</span>
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-2">Product</th>
+                        <th className="text-left py-2 px-2">Quantity Sold</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sp.product_sales.length === 0 ? (
+                        <tr>
+                          <td colSpan={2} className="py-2 px-2 text-gray-400">
+                            No product sales
+                          </td>
+                        </tr>
+                      ) : (
+                        sp.product_sales.map((ps, i) => (
+                          <tr key={i} className="border-b last:border-0">
+                            <td className="py-2 px-2">{ps.product_name}</td>
+                            <td className="py-2 px-2">{ps.quantity_sold}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
     </div>
   );

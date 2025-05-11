@@ -11,19 +11,6 @@ import { LoginCredentials } from "@/types/auth";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-// {
-//     "id": 1,
-//     "username": "vishaldhakal",
-//     "first_name": "",
-//     "last_name": "",
-//     "email": "vishaldhakal96@gmail.com",
-//     "phone_number": "9866316114",
-//     "address": "Vishal Dhakal",
-//     "role": "SalesPerson",
-//     "is_active": true,
-//     "distributor": "Baliyo Ventures"
-// }
-
 export enum Role {
   SalesPerson = "SalesPerson",
   Distributor = "Distributor",
