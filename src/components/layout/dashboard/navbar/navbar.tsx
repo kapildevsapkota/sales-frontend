@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/providers/auth-provider";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MenuItem {
   label: string;

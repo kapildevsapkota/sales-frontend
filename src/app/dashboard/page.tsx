@@ -86,12 +86,10 @@ export default function DashboardPage() {
             className="text-center space-y-2"
           >
             <h1 className="text-2xl font-bold text-gray-800">
-              Welcome, {user?.username}!
+              Welcome, {user?.first_name} {user?.last_name}!
             </h1>
             <p className="text-gray-600">
-              Redirecting you to your{" "}
-              {user?.role === Role.SalesPerson ? "Sales Person" : "Distributor"}{" "}
-              dashboard
+              Redirecting you to your {user?.role} dashboard
             </p>
           </motion.div>
 
