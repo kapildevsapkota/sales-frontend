@@ -120,7 +120,7 @@ const StockManagement = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
                 onClick={handleAddProductClick}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -143,7 +143,7 @@ const StockManagement = () => {
             </div>
             <div className="relative">
               <button
-                className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[180px]"
+                className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full"
                 onClick={() => setStatusFilter(statusFilter ? null : "low")}
               >
                 <span>Filter by Status</span>
@@ -186,7 +186,8 @@ const StockManagement = () => {
                   {distributor_name} ({franchise})
                 </h2>
                 <div className="rounded-md border">
-                  <div className="grid grid-cols-12 bg-muted py-3 px-4 text-sm font-medium">
+                  {/* Header for desktop only */}
+                  <div className="hidden sm:grid grid-cols-12 bg-muted py-3 px-4 text-sm font-medium">
                     <div className="col-span-4 flex items-center">
                       <span>Product Name</span>
                       <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -197,41 +198,106 @@ const StockManagement = () => {
                     <div className="col-span-2 text-right">Actions</div>
                   </div>
 
+                  {/* Product list */}
                   <div className="divide-y">
                     {filterProducts(inventory).map((item) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-12 items-center py-3 px-4"
+                        className="py-4 px-4 sm:grid sm:grid-cols-12 sm:items-center text-sm"
                       >
-                        <div className="col-span-4 flex items-center">
-                          <Package className="mr-2 h-4 w-4 text-purple-600" />
-                          <span>{item.product}</span>
-                        </div>
-                        <div className="col-span-2">{item.product_id}</div>
-                        <div className="col-span-2 text-center">
-                          {item.quantity}
-                        </div>
-                        <div className="col-span-2 text-center">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                              item.quantity > 50
-                                ? "bg-green-100 text-green-800"
+                        {/* Mobile layout */}
+                        <div className="block sm:hidden space-y-2">
+                          <div className="flex items-center">
+                            <Package className="mr-2 h-4 w-4 text-purple-600" />
+                            <span className="font-medium">{item.product}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">
+                              Product ID:{" "}
+                            </span>
+                            {item.product_id}
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">
+                              Quantity:{" "}
+                            </span>
+                            {item.quantity}
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">
+                              Status:{" "}
+                            </span>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                item.quantity > 50
+                                  ? "bg-green-100 text-green-800"
+                                  : item.quantity > 20
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {item.quantity > 50
+                                ? "Optimal"
                                 : item.quantity > 20
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {item.quantity > 50
-                              ? "Optimal"
-                              : item.quantity > 20
-                              ? "Low Stock"
-                              : "Critical"}
-                          </span>
-                        </div>
-                        <div className="col-span-2 text-right">
-                          <div className="flex justify-end gap-2">
+                                ? "Low Stock"
+                                : "Critical"}
+                            </span>
+                          </div>
+                          <div className="flex justify-end">
                             <button
-                              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+                              onClick={() => handleEditClick(item)}
+                            >
+                              <span className="sr-only">Edit</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="h-4 w-4"
+                              >
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                                <path d="m15 5 4 4"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Desktop layout */}
+                        <div className="hidden sm:contents">
+                          <div className="col-span-4 flex items-center">
+                            <Package className="mr-2 h-4 w-4 text-purple-600" />
+                            <span>{item.product}</span>
+                          </div>
+                          <div className="col-span-2">{item.product_id}</div>
+                          <div className="col-span-2 text-center">
+                            {item.quantity}
+                          </div>
+                          <div className="col-span-2 text-center">
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                item.quantity > 50
+                                  ? "bg-green-100 text-green-800"
+                                  : item.quantity > 20
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {item.quantity > 50
+                                ? "Optimal"
+                                : item.quantity > 20
+                                ? "Low Stock"
+                                : "Critical"}
+                            </span>
+                          </div>
+                          <div className="col-span-2 text-right">
+                            <button
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
                               onClick={() => handleEditClick(item)}
                             >
                               <span className="sr-only">Edit</span>

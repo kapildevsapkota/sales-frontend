@@ -3,13 +3,6 @@
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   ArrowUpDown,
   Check,
   ChevronDown,
@@ -149,131 +142,136 @@ const RawMaterialsInventory = () => {
   });
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle className="text-xl">Raw Materials Inventory</CardTitle>
-              <CardDescription>
-                Manage your raw materials for hair oil production
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                onClick={() => setIsAddingProduct(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Material
-              </button>
-            </div>
+    <div className="space-y-6 py-4 md:pl-4 rounded-md h-full w-full">
+      <div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="mb-3">
+            <h2 className="text-xl font-bold">Raw Materials Inventory</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage your raw materials for hair oil production
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search materials..."
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <button
-                className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[180px]"
-                onClick={() => setStatusFilter(statusFilter ? null : "low")}
-              >
-                <span>Filter by Status</span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
-              </button>
-              {statusFilter && (
-                <div className="absolute right-0 top-11 z-10 w-[180px] rounded-md border bg-popover text-popover-foreground shadow-md">
-                  <div
-                    className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => setStatusFilter(null)}
-                  >
-                    <span>All</span>
-                    {!statusFilter && <Check className="h-4 w-4" />}
-                  </div>
-                  <div
-                    className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => setStatusFilter("optimal")}
-                  >
-                    <span>Optimal</span>
-                    {statusFilter === "optimal" && (
-                      <Check className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div
-                    className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => setStatusFilter("low")}
-                  >
-                    <span>Low Stock</span>
-                    {statusFilter === "low" && <Check className="h-4 w-4" />}
-                  </div>
-                  <div
-                    className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => setStatusFilter("critical")}
-                  >
-                    <span>Critical</span>
-                    {statusFilter === "critical" && (
-                      <Check className="h-4 w-4" />
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full mb-3"
+              onClick={() => setIsAddingProduct(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Material
+            </button>
           </div>
+        </div>
 
-          {error ? (
-            <div className="rounded-md bg-red-50 p-4 my-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <AlertCircle className="h-5 w-5 text-red-400" />
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search materials..."
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="relative">
+            <button
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setStatusFilter(statusFilter ? null : "low")}
+            >
+              <span>Filter by Status</span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </button>
+            {statusFilter && (
+              <div className="absolute right-0 top-11 z-10 w-[180px] rounded-md border bg-popover text-popover-foreground shadow-md">
+                <div
+                  className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => setStatusFilter(null)}
+                >
+                  <span>All</span>
+                  {!statusFilter && <Check className="h-4 w-4" />}
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    Error loading data
-                  </h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    {error.message}
-                  </div>
+                <div
+                  className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => setStatusFilter("optimal")}
+                >
+                  <span>Optimal</span>
+                  {statusFilter === "optimal" && <Check className="h-4 w-4" />}
+                </div>
+                <div
+                  className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => setStatusFilter("low")}
+                >
+                  <span>Low Stock</span>
+                  {statusFilter === "low" && <Check className="h-4 w-4" />}
+                </div>
+                <div
+                  className="flex cursor-pointer items-center justify-between py-1.5 px-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => setStatusFilter("critical")}
+                >
+                  <span>Critical</span>
+                  {statusFilter === "critical" && <Check className="h-4 w-4" />}
                 </div>
               </div>
-            </div>
-          ) : !data ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <div className="grid grid-cols-8 bg-muted py-3 px-4 text-sm font-medium">
-                <div className="col-span-5 flex items-center">
-                  <span>Material Name</span>
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-                <div className="col-span-2 text-center">Quantity</div>
-                <div className="col-span-1 text-right">Actions</div>
-              </div>
+            )}
+          </div>
+        </div>
 
-              <div className="divide-y">
-                {filteredMaterials.map((material) => (
-                  <div
-                    key={material.id}
-                    className="grid grid-cols-8 items-center py-3 px-4"
-                  >
-                    <div className="col-span-5 flex items-center">
-                      <Leaf className="mr-2 h-4 w-4 text-green-600" />
-                      <div contentEditable={false}>{material.product.name}</div>
+        {error ? (
+          <div className="rounded-md bg-red-50 p-4 my-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Error loading data
+                </h3>
+                <div className="mt-2 text-sm text-red-700">{error.message}</div>
+              </div>
+            </div>
+          </div>
+        ) : !data ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            {/* Header */}
+            <div className="hidden sm:grid grid-cols-8 bg-muted py-3 px-4 text-sm font-medium">
+              <div className="col-span-5 flex items-center">
+                <span>Material Name</span>
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </div>
+              <div className="col-span-2 text-center">Quantity</div>
+              <div className="col-span-1 text-right">Actions</div>
+            </div>
+
+            {/* Rows */}
+            <div className="divide-y">
+              {filteredMaterials.map((material) => (
+                <div
+                  key={material.id}
+                  className="py-3 px-4 text-sm grid sm:grid-cols-8 sm:items-center gap-y-2 sm:gap-y-0 bg-white rounded-md"
+                >
+                  {/* Material Name */}
+                  <div className="sm:col-span-5 flex items-center">
+                    <Leaf className="mr-2 h-4 w-4 text-green-600" />
+                    <div>{material.product.name}</div>
+                  </div>
+
+                  {/* Quantity (mobile with label) */}
+                  <div className="sm:col-span-2">
+                    <div className="sm:hidden text-muted-foreground">
+                      Quantity:
                     </div>
-                    <div className="col-span-2 text-center">
+                    <div className="text-left sm:text-center">
                       {material.quantity}
                     </div>
-                    <div className="col-span-1 text-right">
+                  </div>
+
+                  {/* Actions */}
+                  <div className="sm:col-span-1">
+                    <div className="flex justify-end">
                       <button
                         className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
                         onClick={() => handleEditClick(material)}
@@ -297,12 +295,12 @@ const RawMaterialsInventory = () => {
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
 
       {/* Edit Material Modal */}
       {editingMaterial && (

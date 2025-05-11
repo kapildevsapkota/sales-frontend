@@ -126,7 +126,7 @@ const ProductInventory = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
                 onClick={handleAddProductClick}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -149,7 +149,7 @@ const ProductInventory = () => {
             </div>
             <div className="relative">
               <button
-                className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[180px]"
+                className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full"
                 onClick={() =>
                   setStatusFilter(statusFilter ? null : "ready_to_dispatch")
                 }
@@ -193,32 +193,47 @@ const ProductInventory = () => {
             <div key={distributorName} className="mb-8">
               <h2 className="text-lg font-semibold mb-4">{distributorName}</h2>
               <div className="rounded-md border">
-                <div className="grid grid-cols-12 bg-muted py-3 px-4 text-sm font-medium">
-                  <div className="col-span-4 flex items-center">
+                {/* Header */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 bg-muted py-3 px-4 text-sm font-medium gap-y-2 sm:gap-y-0">
+                  <div className="sm:col-span-4 flex items-center justify-between sm:justify-start">
                     <span>Product Name</span>
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className="ml-2 h-4 w-4 sm:ml-2" />
                   </div>
-                  <div className="col-span-2">Product ID</div>
-                  <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-center">Status</div>
-                  <div className="col-span-2 text-right">Actions</div>
+                  <div className="sm:col-span-2">Product ID</div>
+                  <div className="sm:col-span-2 text-left sm:text-center">
+                    Quantity
+                  </div>
+                  <div className="sm:col-span-2 text-left sm:text-center">
+                    Status
+                  </div>
+                  <div className="sm:col-span-2 text-left sm:text-right">
+                    Actions
+                  </div>
                 </div>
 
+                {/* Product Rows */}
                 <div className="divide-y">
                   {filterProducts(distributorData.inventory).map((product) => (
                     <div
                       key={product.id}
-                      className="grid grid-cols-12 items-center py-3 px-4"
+                      className="grid grid-cols-1 sm:grid-cols-12 items-start sm:items-center gap-y-2 sm:gap-y-0 py-3 px-4 text-sm"
                     >
-                      <div className="col-span-4 flex items-center">
+                      {/* Product Name */}
+                      <div className="sm:col-span-4 flex items-center">
                         <Package className="mr-2 h-4 w-4 text-purple-600" />
                         <span>{product.product}</span>
                       </div>
-                      <div className="col-span-2">{product.product_id}</div>
-                      <div className="col-span-2 text-center">
+
+                      {/* Product ID */}
+                      <div className="sm:col-span-2">{product.product_id}</div>
+
+                      {/* Quantity */}
+                      <div className="sm:col-span-2 text-left sm:text-center">
                         {product.quantity}
                       </div>
-                      <div className="col-span-2 text-center">
+
+                      {/* Status */}
+                      <div className="sm:col-span-2 text-left sm:text-center">
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                             product.status === "ready_to_dispatch"
@@ -235,8 +250,10 @@ const ProductInventory = () => {
                             product.status.slice(1)}
                         </span>
                       </div>
-                      <div className="col-span-2 text-right">
-                        <div className="flex justify-end gap-2">
+
+                      {/* Actions */}
+                      <div className="sm:col-span-2 text-left sm:text-right">
+                        <div className="flex sm:justify-end gap-2">
                           <button
                             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
                             onClick={() => handleEditClick(product)}

@@ -7,7 +7,7 @@ export default function AdminLayout({
 }) {
   return (
     <DashboardLayout>
-      <div className="p-4">{children}</div>
+      <div className="">{children}</div>
     </DashboardLayout>
   );
 }

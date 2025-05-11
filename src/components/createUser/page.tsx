@@ -210,12 +210,7 @@ export default function CreateAccountForm() {
 
     switch (user.role) {
       case Role.SuperAdmin:
-        return [
-          Role.SuperAdmin,
-          Role.Distributor,
-          Role.Franchise,
-          Role.SalesPerson,
-        ];
+        return [Role.Distributor, Role.Franchise, Role.Logistic];
       case Role.Distributor:
         return [Role.Franchise, Role.SalesPerson];
       case Role.Franchise:
@@ -263,7 +258,7 @@ export default function CreateAccountForm() {
   };
 
   return (
-    <Card className="w-full max-w-6xl mx-4 md:mx-44 shadow-md mr-10">
+    <Card className="shadow-md">
       <CardHeader className="bg-slate-50 border-b p-4 md:p-6">
         <CardTitle className="flex items-center gap-2 text-2xl font-semibold">
           <UserPlus className="w-6 h-6 text-primary" />
