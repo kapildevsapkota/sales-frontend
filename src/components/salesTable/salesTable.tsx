@@ -565,16 +565,18 @@ export default function SalesTable() {
                 </span>
               )}
             </span>
-            {sale.payment_method === "Prepaid" && sale.payment_screenshot && (
-              <Eye
-                className="h-4 w-4 cursor-pointer text-gray-500 hover:text-gray-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPaymentImage(sale.payment_screenshot);
-                  setShowPaymentImageModal(true);
-                }}
-              />
-            )}
+            {(sale.payment_method === "Prepaid" ||
+              sale.payment_method === "Office Visit") &&
+              sale.payment_screenshot && (
+                <Eye
+                  className="h-4 w-4 cursor-pointer text-gray-500 hover:text-gray-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPaymentImage(sale.payment_screenshot);
+                    setShowPaymentImageModal(true);
+                  }}
+                />
+              )}
           </div>
         );
       case "delivery_charge":

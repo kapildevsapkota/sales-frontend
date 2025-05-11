@@ -51,8 +51,6 @@ interface AddProductProps {
 const formSchema = z.object({
   product: z.string().min(1, "Please select a product"),
   quantity: z.number().min(1, "Quantity must be at least 1"),
-  status: z.string().min(1, "Please select a status"),
-  franchise_id: z.string().min(1, "Please select a franchise"),
 });
 
 const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
@@ -67,8 +65,6 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
     defaultValues: {
       product: "",
       quantity: 1,
-      status: "Active",
-      franchise_id: "",
     },
   });
 
@@ -99,27 +95,6 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
     fetchInitialData();
   }, [toast]);
 
-  useEffect(() => {
-    const fetchFranchises = async () => {
-      try {
-        const response = await fetch(
-          `https://sales.baliyoventures.com/api/account/franchises/`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setFranchises(data || []);
-        } else {
-          setFranchises([]);
-        }
-      } catch (error) {
-        console.error("Error fetching franchises:", error);
-        setFranchises([]);
-      }
-    };
-
-    fetchFranchises();
-  }, []);
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     const accessToken = localStorage.getItem("accessToken");
@@ -147,7 +122,6 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
           body: JSON.stringify({
             product_id: productId,
             quantity: values.quantity,
-            franchise_id: Number.parseInt(values.franchise_id),
           }),
         }
       );
@@ -241,37 +215,6 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
                           field.onChange(parseInt(e.target.value) || 0)
                         }
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="franchise_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Franchise</FormLabel>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select franchise" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {franchises.map((franchise) => (
-                            <SelectItem
-                              key={franchise.id}
-                              value={franchise.id.toString()}
-                            >
-                              {franchise.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
