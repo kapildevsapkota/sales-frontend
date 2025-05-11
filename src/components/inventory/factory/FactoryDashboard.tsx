@@ -25,9 +25,9 @@ const FactoryDashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen sm:flex-row flex-col">
       {/* Sidebar */}
-      <div className="w-56 mt-6 bg-gray-50 rounded ">
+      <div className="w-full mt-6 bg-gray-50 rounded sm:w-56 ">
         <div className="p-4">
           {navItems.map((item) => (
             <button
@@ -48,7 +48,7 @@ const FactoryDashboard = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 py-6 overflow-auto">
         {navItems.find((item) => item.id === activeTab)?.content}
       </div>
     </div>

@@ -2,6 +2,12 @@
 
 import { useState, useEffect, JSX } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Factory, TruckIcon, X } from "lucide-react";
 import { MdStorefront } from "react-icons/md";
 import FactoryDashboard from "@/components/inventory/factory/FactoryDashboard";
@@ -205,25 +211,53 @@ const InventoryDashboard = () => {
   };
 
   return (
-    <div className="p-6 relative">
-      <h1 className="text-4xl font-bold mb-8">Inventory Management</h1>
-      <div className="flex flex-wrap gap-4 justify-between">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => handleTabClick(tab.id)}
-            className={cn(
-              "flex items-center px-4 py-2 rounded-full border border-gray-300 font-medium transition-colors",
-              activeTab === tab.id && tab.id !== "activity-log"
-                ? "bg-yellow-100 border-yellow-200"
-                : "bg-white hover:bg-gray-50",
-              tab.isRightAligned ? "ml-auto" : ""
-            )}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
+    <div className="p-2 relative">
+      <h1 className="text-3xl font-bold mb-8">Inventory Management</h1>
+      <div className="flex-wrap gap-4 justify-between flex">
+        <div className="hidden md:flex gap-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabClick(tab.id)}
+              className={cn(
+                "flex items-center px-4 py-2 rounded-full border border-gray-300 font-medium transition-colors",
+                activeTab === tab.id && tab.id !== "activity-log"
+                  ? "bg-yellow-100 border-yellow-200"
+                  : "bg-white hover:bg-gray-50",
+                tab.isRightAligned ? "ml-auto" : ""
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="xs:block md:hidden  px-4 py-2 rounded-full border border-gray-300 font-medium transition-colors">
+          <Sheet>
+            <SheetTrigger>Managements</SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader className="mb-4 text-lg">Managements</SheetHeader>
+              <SheetHeader>
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={cn(
+                      "flex items-center px-4 py-2 rounded-full border border-gray-300 font-medium transition-colors",
+                      activeTab === tab.id && tab.id !== "activity-log"
+                        ? "bg-yellow-100 border-yellow-200"
+                        : "bg-white hover:bg-gray-50",
+                      tab.isRightAligned ? "ml-auto" : ""
+                    )}
+                  >
+                    {tab.icon}
+                    {tab.label}
+                  </button>
+                ))}
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
       {activeTab === "factory" && userRole === Role.SuperAdmin && (
         <FactoryDashboard />
