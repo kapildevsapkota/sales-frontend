@@ -308,7 +308,12 @@ export default function CreateOrderForm({
       formData.append("remarks", data.remarks || "");
       formData.append("order_products", JSON.stringify(orderProducts));
       formData.append("delivery_charge", data.delivery_charge.toString());
-      formData.append("prepaid_amount", data.prepaid_amount?.toString() || "0");
+      formData.append(
+        "prepaid_amount",
+        data.payment_method === "Office Visit"
+          ? data.total_amount.toString()
+          : data.prepaid_amount?.toString() || "0"
+      );
 
       // Append payment screenshot if it exists
       if (uploadedFile) {
@@ -437,10 +442,12 @@ export default function CreateOrderForm({
   const handleFormSubmit = (data: OrderFormValues) => onSubmit(data);
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
+    <div className="container mx-auto max-w-4xl px-4 py-6">
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-green-800">Yachu Hair Oil</h1>
+      <div className="mb-8 text-left">
+        <h1 className="text-3xl font-bold text-green-800">
+          Create Your Order Here
+        </h1>
         <p className="text-lg text-gray-600">
           {isEditMode ? "Edit Order" : "Sales Order Form"}
         </p>
@@ -634,7 +641,7 @@ export default function CreateOrderForm({
                                 checked={selectedOilTypes.includes(
                                   product.name
                                 )}
-                                className="mr-3 h-4 w-4 text-green-600 focus:ring-green-500"
+                                className="mr-3 h-8 w-4 text-green-600 focus:ring-green-500"
                                 onChange={() => {}} // Handled by parent div click
                               />
                               <span className="text-sm">{product.name}</span>
@@ -660,7 +667,7 @@ export default function CreateOrderForm({
                   <Button
                     type="button"
                     variant="outline"
-                    className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                    className="h-[45px] text-gray-600 border-gray-300 hover:bg-gray-50"
                     onClick={() => {
                       setSelectedOilTypes([]); // Clear selected oil types
                       setQuantities({}); // Clear quantities
@@ -684,7 +691,7 @@ export default function CreateOrderForm({
                           <Input
                             type="number"
                             placeholder="0.00"
-                            className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                            className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
                             onWheel={preventScroll}
                             onChange={(e) => {
@@ -712,7 +719,7 @@ export default function CreateOrderForm({
                           <Input
                             type="number"
                             placeholder="0.00"
-                            className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                            className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
                             onWheel={preventScroll}
                             onChange={(e) => {
@@ -733,7 +740,7 @@ export default function CreateOrderForm({
                   name="total_amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium flex items-center">
+                      <FormLabel className="text-sm font-medium flex items-center mt-3">
                         Total Amount{" "}
                         <span className="text-red-500 ml-1">*</span>
                       </FormLabel>
@@ -745,7 +752,7 @@ export default function CreateOrderForm({
                           <Input
                             type="number"
                             placeholder="0.00"
-                            className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                            className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
                             onWheel={preventScroll}
                             disabled
@@ -860,7 +867,7 @@ export default function CreateOrderForm({
                               <Input
                                 type="number"
                                 placeholder="0.00"
-                                className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                                className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                                 {...field}
                                 onWheel={preventScroll}
                                 onChange={(e) => {
@@ -889,7 +896,7 @@ export default function CreateOrderForm({
                           <Input
                             type="number"
                             placeholder="0.00"
-                            className="pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                            className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             disabled
                             value={remainingAmount}
                           />
@@ -966,14 +973,14 @@ export default function CreateOrderForm({
                 <Button
                   type="button"
                   variant="outline"
-                  className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                  className="h-[45px] text-gray-600 border-gray-300 hover:bg-gray-50"
                   onClick={() => form.reset()}
                 >
                   Clear Form
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3"
+                  className="h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3"
                   disabled={loading}
                 >
                   {loading ? (
@@ -1056,7 +1063,7 @@ export default function CreateOrderForm({
                 }
               }}
               disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold"
+              className="h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold"
             >
               Force Order
             </Button>
