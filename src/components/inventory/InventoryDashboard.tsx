@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Factory, TruckIcon, X } from "lucide-react";
+import { Factory, TruckIcon } from "lucide-react";
 import { MdStorefront } from "react-icons/md";
 import FactoryDashboard from "@/components/inventory/factory/FactoryDashboard";
 import ProductInventory from "@/components/inventory/distributor/ProductInventory";

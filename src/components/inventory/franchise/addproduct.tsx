@@ -39,11 +39,6 @@ interface Product {
   name: string;
 }
 
-interface Franchise {
-  id: number;
-  name: string;
-}
-
 interface AddProductProps {
   onClose: () => void;
 }
@@ -55,7 +50,6 @@ const formSchema = z.object({
 
 const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
