@@ -71,13 +71,29 @@ export function SearchBar({
 
         // Add date range parameters if selected
         if (dateRange?.from) {
-          const startDate = dateRange.from.toISOString().split("T")[0];
-          queryParams.append("start_date", startDate);
+          // Format start date correctly with no timezone shifting
+          const formatDate = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
+
+          const startDate = new Date(dateRange.from);
+          queryParams.append("start_date", formatDate(startDate));
         }
 
         if (dateRange?.to) {
-          const endDate = dateRange.to.toISOString().split("T")[0];
-          queryParams.append("end_date", endDate);
+          // Format end date correctly with no timezone shifting
+          const formatDate = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
+
+          const endDate = new Date(dateRange.to);
+          queryParams.append("end_date", formatDate(endDate));
         }
 
         // Make API call to backend with search and filter parameters
