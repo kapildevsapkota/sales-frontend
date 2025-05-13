@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon, X } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import * as React from "react";
 import type { DateRange } from "react-day-picker";
 
@@ -43,10 +43,14 @@ export default function DateRangePicker({
   };
 
   // Clear the date range
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    handleDateChange(undefined);
-  };
+  // const handleClear = (e: React.MouseEvent) => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //   setDate(undefined);
+  //   if (onChange) {
+  //     onChange(undefined);
+  //   }
+  // };
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -66,11 +70,6 @@ export default function DateRangePicker({
                 <>
                   {format(date.from, "MMM dd, yyyy")} -{" "}
                   {format(date.to, "MMM dd, yyyy")}
-                  <X
-                    className="ml-2 h-4 w-4 hover:text-destructive"
-                    onClick={handleClear}
-                    aria-label="Clear date range"
-                  />
                 </>
               ) : (
                 format(date.from, "MMM dd, yyyy")

@@ -65,13 +65,17 @@ export default function OrderList() {
         setDisplayData(data.results);
 
         if (data.count !== undefined) {
-          setSales((prevSales: SalesResponse | null) => prevSales ? ({
-            ...prevSales,
-            results: data.results,
-            count: data.count,
-            next: data.next,
-            previous: data.previous,
-          }) : null);
+          setSales((prevSales: SalesResponse | null) =>
+            prevSales
+              ? {
+                  ...prevSales,
+                  results: data.results,
+                  count: data.count,
+                  next: data.next,
+                  previous: data.previous,
+                }
+              : null
+          );
         }
       }
     },
