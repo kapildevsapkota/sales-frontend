@@ -16,8 +16,10 @@ export default function DashboardPage() {
         if (user.role === Role.SalesPerson) {
           router.push("/sales/dashboard");
         } else if (user.role === Role.SuperAdmin) {
+          router.push("/super-admin");
+        } else if (user.role === Role.Distributor) {
           router.push("/admin");
-        } else {
+        } else if (user.role === Role.Franchise) {
           router.push("/admin");
         }
       }, 3000);

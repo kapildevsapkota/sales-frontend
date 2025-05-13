@@ -47,11 +47,6 @@ const InventoryDashboard = () => {
       icon: <MdStorefront className="h-4 w-4 mr-2" />,
     },
     {
-      id: "supply",
-      label: "Supply Chain",
-      icon: <TruckIcon className="h-4 w-4 mr-2" rotate={180} />,
-    },
-    {
       id: "activity-log",
       label: "Activity Log",
       icon: <MdStorefront className="h-4 w-4 mr-2" />,
@@ -63,16 +58,11 @@ const InventoryDashboard = () => {
       return (
         tab.id === "distributors" ||
         tab.id === "franchise" ||
-        tab.id === "supply" ||
         tab.id === "activity-log"
       );
     }
     if (userRole === Role.Franchise) {
-      return (
-        tab.id === "franchise" ||
-        tab.id === "supply" ||
-        tab.id === "activity-log"
-      );
+      return tab.id === "franchise" || tab.id === "activity-log";
     }
     if (userRole === Role.Factory) {
       return true;
