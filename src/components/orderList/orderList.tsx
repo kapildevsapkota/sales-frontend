@@ -20,6 +20,7 @@ export default function OrderList() {
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
   const [searchInput, setSearchInput] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("all");
+  const [orderStatus, setOrderStatus] = useState("all");
   // Define the dateRange state
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [exportDateRange, setExportDateRange] = useState<
@@ -124,6 +125,8 @@ export default function OrderList() {
               }}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
+              orderStatus={orderStatus}
+              setOrderStatus={setOrderStatus}
               dateRange={dateRange}
               setDateRange={setDateRange}
               onSearchResults={handleSearchResults}

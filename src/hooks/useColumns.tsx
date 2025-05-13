@@ -118,6 +118,13 @@ export function useColumns() {
       width: 120,
       sortable: true,
     },
+    {
+      id: "order_status",
+      label: "Order Status",
+      visible: false,
+      width: 120,
+      sortable: true,
+    },
   ]);
 
   // Toggle column visibility
