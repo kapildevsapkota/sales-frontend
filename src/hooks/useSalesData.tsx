@@ -52,6 +52,7 @@ export function useSalesData() {
 
   return {
     sales,
+    setSales, // Add this line
     displayData,
     setDisplayData,
     isLoading,

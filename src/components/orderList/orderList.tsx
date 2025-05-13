@@ -119,6 +119,10 @@ export default function OrderList() {
     fetchSales(currentPage);
   }, [fetchSales, currentPage]);
 
+  function handleSearchResults(): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="container-fluid px-2 py-2">
       {/* Header Section */}
@@ -148,27 +152,30 @@ export default function OrderList() {
               fetchSales(1);
             }}
             toggleFilterForm={() => setShowFilterForm(!showFilterForm)}
+            onSearchResults={handleSearchResults}
           />
 
           {showFilterForm && (
-            <FilterForm
-              filters={filters}
-              setFilters={setFilters}
-              dateRange={dateRange}
-              setDateRange={setDateRange}
-              columns={columns}
-              onApply={() => {
-                handleAdvancedFilter();
-                setShowFilterForm(false);
-              }}
-              onClear={() => {
-                setFilters({});
-                setDateRange([undefined, undefined]);
-                fetchSales(1);
-                setShowFilterForm(false);
-              }}
-              onClose={() => setShowFilterForm(false)}
-            />
+            <div className="">
+              <FilterForm
+                filters={filters}
+                setFilters={setFilters}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                columns={columns}
+                onApply={() => {
+                  handleAdvancedFilter();
+                  setShowFilterForm(false);
+                }}
+                onClear={() => {
+                  setFilters({});
+                  setDateRange([undefined, undefined]);
+                  fetchSales(1);
+                  setShowFilterForm(false);
+                }}
+                onClose={() => setShowFilterForm(false)}
+              />
+            </div>
           )}
         </div>
 

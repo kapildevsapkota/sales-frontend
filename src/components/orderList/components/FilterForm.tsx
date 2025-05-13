@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import DatePicker from "react-datepicker";
+import DateRangePicker from "@/components/ui/date-range-picker"; // Ensure this is the correct import
 import "react-datepicker/dist/react-datepicker.css";
 import type { Column } from "@/types/sale";
 
@@ -32,7 +32,6 @@ interface FilterFormProps {
 export function FilterForm({
   filters,
   setFilters,
-  dateRange,
   setDateRange,
   columns,
   onApply,
@@ -57,28 +56,12 @@ export function FilterForm({
         <div className="grid grid-cols-[120px_1fr] gap-2 items-center">
           <label className="text-sm font-medium">Date Range</label>
           <div className="flex gap-2">
-            <DatePicker
-              selected={dateRange[0]}
-              onChange={(date) =>
-                setDateRange([date || undefined, dateRange[1]])
-              }
-              selectsStart
-              startDate={dateRange[0]}
-              endDate={dateRange[1]}
-              placeholderText="Start Date"
+            <DateRangePicker
               className="w-full p-2 border rounded-md"
-            />
-            <DatePicker
-              selected={dateRange[1]}
-              onChange={(date) =>
-                setDateRange([dateRange[0], date || undefined])
-              }
-              selectsEnd
-              startDate={dateRange[0]}
-              endDate={dateRange[1]}
-              minDate={dateRange[0]}
-              placeholderText="End Date"
-              className="w-full p-2 border rounded-md"
+              onChange={(event: React.FormEvent<HTMLDivElement>) => {
+                const range = event as unknown as { from?: Date; to?: Date };
+                setDateRange([range.from, range.to]);
+              }}
             />
           </div>
         </div>
