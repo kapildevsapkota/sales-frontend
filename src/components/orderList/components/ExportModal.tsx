@@ -34,7 +34,9 @@ export function ExportModal({
         ? exportDateRange[1].toISOString().split("T")[0]
         : "";
 
-      const url = `https://sales.baliyoventures.com/api/sales/export-csv/?start_date=${startDate}${
+      const url = `${
+        process.env.NEXT_PUBLIC_API_URL
+      }api/sales/export-csv/?start_date=${startDate}${
         endDate ? `&end_date=${endDate}` : ""
       }`;
 
