@@ -61,7 +61,7 @@ const InventoryDashboard = () => {
         tab.id === "activity-log"
       );
     }
-    if (userRole === Role.Franchise) {
+    if (userRole === Role.Franchise || userRole === Role.Packaging) {
       return tab.id === "franchise" || tab.id === "activity-log";
     }
     if (userRole === Role.Factory) {
@@ -75,7 +75,7 @@ const InventoryDashboard = () => {
       setActiveTab("factory");
     } else if (userRole === Role.Distributor) {
       setActiveTab("distributors");
-    } else if (userRole === Role.Franchise) {
+    } else if (userRole === Role.Franchise || userRole === Role.Packaging) {
       setActiveTab("franchise");
     } else if (userRole === Role.Factory) {
       setActiveTab("factory");
@@ -149,6 +149,7 @@ const InventoryDashboard = () => {
       {activeTab === "franchise" &&
         (userRole === Role.SuperAdmin ||
           userRole === Role.Distributor ||
+          userRole === Role.Packaging ||
           userRole === Role.Franchise) && <StockManagement />}
 
       {/* Activity Log Side Sheet */}
