@@ -8,19 +8,6 @@ export interface OrderProduct {
   get_total_price: number;
 }
 
-// {
-//                 "id": 43,
-//                 "product": {
-//                     "id": 1,
-//                     "name": "Dandruff Oil Bottle",
-//                     "price": "2500.00",
-//                     "description": ""
-//                 },
-//                 "quantity": 1,
-//                 "discount": "10.00",
-//                 "get_total_price": 2250.0
-//             },
-
 export enum PaymentMethod {
   CashOnDelivery = "Cash on Delivery",
   Prepaid = "Prepaid",

@@ -2,35 +2,29 @@
 
 import type React from "react";
 
-import { useRef } from "react";
-
 import { useState, useEffect, useCallback } from "react";
 import { SalesTable } from "./components/SalesTable";
 import { SearchBar } from "./components/SearchBar";
 import { ColumnSelector } from "./components/ColumnSelector";
-import { FilterForm } from "./components/FilterForm";
 import { ExportModal } from "./components/ExportModal";
 import { PaymentImageModal } from "./components/PaymentImageModal";
 import { Button } from "@/components/ui/button";
 import { useColumns } from "@/hooks/useColumns";
 import { useSalesData } from "@/hooks/useSalesData";
-import { useFilters } from "@/hooks/useFilters";
+import type { SalesResponse } from "@/types/sale";
 
 export default function OrderList() {
-  const [showFilterForm, setShowFilterForm] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
   const [searchInput, setSearchInput] = useState("");
-  const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+  const [paymentMethod, setPaymentMethod] = useState("all");
+  const [exportDateRange, setExportDateRange] = useState<
+    [Date | undefined, Date | undefined]
+  >([undefined, undefined]);
 
-  const {
-    columns,
-
-    toggleColumnVisibility,
-    showAllColumns,
-    hideAllColumns,
-  } = useColumns();
+  const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
+    useColumns();
 
   const {
     sales,
@@ -40,20 +34,10 @@ export default function OrderList() {
     pageSize,
 
     fetchSales,
-    setDisplayData,
-
     setFilterTerm,
+    setSales,
+    setDisplayData,
   } = useSalesData();
-
-  const {
-    filters,
-    setFilters,
-    dateRange,
-    setDateRange,
-    exportDateRange,
-    setExportDateRange,
-    handleAdvancedFilter,
-  } = useFilters(fetchSales);
 
   // Handle search input change
   const handleSearchInputChange = useCallback(
@@ -61,51 +45,34 @@ export default function OrderList() {
       const value = e.target.value;
       setSearchInput(value);
 
-      clearTimeout(searchTimeout.current);
-      searchTimeout.current = setTimeout(() => {
-        if (value.length >= 3) {
-          // If search term is 3 or more characters, fetch from API
-          setFilterTerm(value);
-          fetchSales(1);
-        } else if (value.length === 0) {
-          // If search is cleared, reset to original data
-          setFilterTerm("");
-          fetchSales(1);
-        } else {
-          // For 1-2 characters, just filter the current data
-          handleGlobalSearch(value);
-        }
-      }, 300);
+      // If search is cleared, reset to original data
+      if (value.length === 0 && paymentMethod === "all") {
+        setFilterTerm("");
+        fetchSales(1);
+      }
+      // For backend search, we'll let the SearchBar component handle the API call
     },
-    [fetchSales, setFilterTerm]
+    [fetchSales, setFilterTerm, paymentMethod]
   );
 
-  // Global search function
-  const handleGlobalSearch = useCallback(
-    (searchTerm: string) => {
-      if (!sales?.results) return;
+  // Handle search results from backend
+  const handleSearchResults = useCallback(
+    (data: SalesResponse) => {
+      if (data && data.results) {
+        setDisplayData(data.results);
 
-      const filtered = sales.results.filter((sale) => {
-        const searchableFields = [
-          sale.full_name,
-          sale.delivery_address,
-          sale.city,
-          sale.phone_number,
-          sale.remarks,
-          sale.order_products[0]?.product.name,
-          sale.payment_method,
-          `${sale.sales_person.first_name} ${sale.sales_person.last_name}`,
-          sale.total_amount.toString(),
-        ];
-
-        return searchableFields.some((field) =>
-          field?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      });
-
-      setDisplayData(filtered);
+        if (data.count !== undefined) {
+          setSales((prevSales) => ({
+            ...prevSales,
+            results: data.results,
+            count: data.count,
+            next: data.next,
+            previous: data.previous,
+          }));
+        }
+      }
     },
-    [sales, setDisplayData]
+    [setDisplayData, setSales]
   );
 
   // Handle payment image view
@@ -118,10 +85,6 @@ export default function OrderList() {
   useEffect(() => {
     fetchSales(currentPage);
   }, [fetchSales, currentPage]);
-
-  function handleSearchResults(): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <div className="container-fluid px-2 py-2">
@@ -143,40 +106,20 @@ export default function OrderList() {
             </div>
           </div>
 
-          <SearchBar
-            searchInput={searchInput}
-            handleSearchInputChange={handleSearchInputChange}
-            clearSearch={() => {
-              setSearchInput("");
-              setFilterTerm("");
-              fetchSales(1);
-            }}
-            toggleFilterForm={() => setShowFilterForm(!showFilterForm)}
-            onSearchResults={handleSearchResults}
-          />
-
-          {showFilterForm && (
-            <div className="">
-              <FilterForm
-                filters={filters}
-                setFilters={setFilters}
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                columns={columns}
-                onApply={() => {
-                  handleAdvancedFilter();
-                  setShowFilterForm(false);
-                }}
-                onClear={() => {
-                  setFilters({});
-                  setDateRange([undefined, undefined]);
-                  fetchSales(1);
-                  setShowFilterForm(false);
-                }}
-                onClose={() => setShowFilterForm(false)}
-              />
-            </div>
-          )}
+          <div className="w-full">
+            <SearchBar
+              searchInput={searchInput}
+              handleSearchInputChange={handleSearchInputChange}
+              clearSearch={() => {
+                setSearchInput("");
+                setFilterTerm("");
+                fetchSales(1);
+              }}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
+              onSearchResults={handleSearchResults}
+            />
+          </div>
         </div>
 
         {/* Export CSV Button */}
