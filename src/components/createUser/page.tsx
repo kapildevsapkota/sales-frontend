@@ -56,7 +56,14 @@ const formSchema = z.object({
   phone_number: z.string().min(1, "Phone number is required"),
   address: z.string().min(1, "Address is required"),
   role: z.enum(
-    ["SuperAdmin", "Distributor", "Franchise", "SalesPerson", "Others"],
+    [
+      "SuperAdmin",
+      "Distributor",
+      "Franchise",
+      "SalesPerson",
+      "Packaging",
+      "Others",
+    ],
     {
       required_error: "Role is required",
     }
@@ -169,6 +176,7 @@ export default function CreateAccountForm() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
           credentials: "include",
           body: JSON.stringify(formData),
@@ -214,7 +222,7 @@ export default function CreateAccountForm() {
       case Role.Distributor:
         return [Role.Franchise, Role.SalesPerson];
       case Role.Franchise:
-        return [Role.SalesPerson];
+        return [Role.SalesPerson, Role.Packaging];
       default:
         return [];
     }
