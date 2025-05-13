@@ -40,7 +40,6 @@ export interface SalesResponse {
   previous: string | null;
   results: SaleItem[];
 }
-
 export interface Column {
   id: string;
   label: string;

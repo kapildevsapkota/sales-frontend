@@ -8,12 +8,6 @@ import { InventoryBanner } from "@/components/dashboard/inventory-banner";
 export const DashboardContent: React.FC = () => {
   return (
     <div className="container mx-auto space-y-6  sm:p-4 md:p-6 ">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight md:text-3xl">
-          Sales Dashboard
-        </h1>
-      </div>
-
       <InventoryBanner />
 
       {/* Modern Stat Panels */}

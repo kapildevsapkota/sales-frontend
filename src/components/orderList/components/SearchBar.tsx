@@ -104,7 +104,7 @@ export function SearchBar({
           onChange={handleSearchInputChange}
         />
         {isSearching && (
-          <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             <div className="h-4 w-4 border-t-2 border-blue-500 rounded-full animate-spin"></div>
           </div>
         )}
@@ -112,7 +112,7 @@ export function SearchBar({
           <Button
             variant="ghost"
             size="sm"
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+            className="absolute right-6 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
             onClick={clearSearch}
           >
             <X className="h-4 w-4" />
