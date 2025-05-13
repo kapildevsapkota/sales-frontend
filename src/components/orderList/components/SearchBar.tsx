@@ -12,7 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DateRangePicker from "@/components/ui/date-range-picker";
 import axios from "axios";
+import type { DateRange } from "react-day-picker";
 
 // Add import for SalesResponse type at the top of the file
 import type { SalesResponse } from "@/types/sale";
@@ -23,6 +25,8 @@ interface SearchBarProps {
   clearSearch: () => void;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
+  dateRange: DateRange | undefined;
+  setDateRange: (range: DateRange | undefined) => void;
   onSearchResults: (results: SalesResponse) => void;
 }
 
@@ -32,6 +36,8 @@ export function SearchBar({
   clearSearch,
   paymentMethod,
   setPaymentMethod,
+  dateRange,
+  setDateRange,
   onSearchResults,
 }: SearchBarProps) {
   const [isSearching, setIsSearching] = useState(false);
@@ -63,6 +69,17 @@ export function SearchBar({
           queryParams.append("payment_method", paymentMethod);
         }
 
+        // Add date range parameters if selected
+        if (dateRange?.from) {
+          const startDate = dateRange.from.toISOString().split("T")[0];
+          queryParams.append("start_date", startDate);
+        }
+
+        if (dateRange?.to) {
+          const endDate = dateRange.to.toISOString().split("T")[0];
+          queryParams.append("end_date", endDate);
+        }
+
         // Make API call to backend with search and filter parameters
         const response = await axios.get(
           `${
@@ -90,7 +107,7 @@ export function SearchBar({
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [searchInput, paymentMethod, onSearchResults]);
+  }, [searchInput, paymentMethod, dateRange, onSearchResults]);
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-2 w-full">
@@ -133,6 +150,15 @@ export function SearchBar({
             <SelectItem value="Office Visit">Office Visit</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Date Range Picker */}
+      <div className="w-full md:w-auto">
+        <DateRangePicker
+          className="w-full"
+          value={dateRange}
+          onChange={setDateRange}
+        />
       </div>
     </div>
   );

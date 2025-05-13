@@ -3,15 +3,16 @@
 import type React from "react";
 
 import { useState, useEffect, useCallback } from "react";
-import { SalesTable } from "./components/SalesTable";
-import { SearchBar } from "./components/SearchBar";
-import { ColumnSelector } from "./components/ColumnSelector";
-import { ExportModal } from "./components/ExportModal";
-import { PaymentImageModal } from "./components/PaymentImageModal";
+import { SalesTable } from "@/components/orderList/components/SalesTable";
+import { SearchBar } from "@/components/orderList/components/SearchBar";
+import { ColumnSelector } from "@/components/orderList/components/ColumnSelector";
+import { ExportModal } from "@/components/orderList/components/ExportModal";
+import { PaymentImageModal } from "@/components/orderList/components/PaymentImageModal";
 import { Button } from "@/components/ui/button";
 import { useColumns } from "@/hooks/useColumns";
 import { useSalesData } from "@/hooks/useSalesData";
 import type { SalesResponse } from "@/types/sale";
+import type { DateRange } from "react-day-picker";
 
 export default function OrderList() {
   const [showExportModal, setShowExportModal] = useState(false);
@@ -19,6 +20,8 @@ export default function OrderList() {
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
   const [searchInput, setSearchInput] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("all");
+  // Define the dateRange state
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [exportDateRange, setExportDateRange] = useState<
     [Date | undefined, Date | undefined]
   >([undefined, undefined]);
@@ -46,13 +49,13 @@ export default function OrderList() {
       setSearchInput(value);
 
       // If search is cleared, reset to original data
-      if (value.length === 0 && paymentMethod === "all") {
+      if (value.length === 0 && paymentMethod === "all" && !dateRange) {
         setFilterTerm("");
         fetchSales(1);
       }
       // For backend search, we'll let the SearchBar component handle the API call
     },
-    [fetchSales, setFilterTerm, paymentMethod]
+    [fetchSales, setFilterTerm, paymentMethod, dateRange]
   );
 
   // Handle search results from backend
@@ -62,13 +65,13 @@ export default function OrderList() {
         setDisplayData(data.results);
 
         if (data.count !== undefined) {
-          setSales((prevSales) => ({
+          setSales((prevSales: SalesResponse | null) => prevSales ? ({
             ...prevSales,
             results: data.results,
             count: data.count,
             next: data.next,
             previous: data.previous,
-          }));
+          }) : null);
         }
       }
     },
@@ -117,6 +120,8 @@ export default function OrderList() {
               }}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
               onSearchResults={handleSearchResults}
             />
           </div>
