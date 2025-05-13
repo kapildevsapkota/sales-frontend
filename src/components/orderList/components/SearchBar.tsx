@@ -15,8 +15,7 @@ import {
 import DateRangePicker from "@/components/ui/date-range-picker";
 import axios from "axios";
 import type { DateRange } from "react-day-picker";
-
-// Add import for SalesResponse type at the top of the file
+import { useAuth } from "@/contexts/AuthContext";
 import type { SalesResponse } from "@/types/sale";
 
 interface SearchBarProps {
@@ -25,6 +24,8 @@ interface SearchBarProps {
   clearSearch: () => void;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
+  orderStatus: string;
+  setOrderStatus: (value: string) => void;
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
   onSearchResults: (results: SalesResponse) => void;
@@ -36,12 +37,15 @@ export function SearchBar({
   clearSearch,
   paymentMethod,
   setPaymentMethod,
+  orderStatus,
+  setOrderStatus,
   dateRange,
   setDateRange,
   onSearchResults,
 }: SearchBarProps) {
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const { user } = useAuth();
 
   // Handle search with backend API
   useEffect(() => {
@@ -67,6 +71,11 @@ export function SearchBar({
         // Add payment method filter if selected
         if (paymentMethod && paymentMethod !== "all") {
           queryParams.append("payment_method", paymentMethod);
+        }
+
+        // Add order status filter if selected
+        if (orderStatus && orderStatus !== "all") {
+          queryParams.append("order_status", orderStatus);
         }
 
         // Add date range parameters if selected
@@ -123,7 +132,21 @@ export function SearchBar({
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [searchInput, paymentMethod, dateRange, onSearchResults]);
+  }, [searchInput, paymentMethod, orderStatus, dateRange, onSearchResults]);
+
+  // Function to get order status color
+  const getOrderStatusColor = (status: string) => {
+    switch (status) {
+      case "Delivered":
+        return "bg-green-500";
+      case "Pending":
+        return "bg-yellow-500";
+      case "Cancelled":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-2 w-full">
@@ -176,6 +199,44 @@ export function SearchBar({
           onChange={setDateRange}
         />
       </div>
+
+      {/* Order Status Dropdown - Only show for Distributor role */}
+      {user?.role === "Distributor" && (
+        <div className="w-full md:w-48">
+          <Select value={orderStatus} onValueChange={setOrderStatus}>
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Order Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="Pending">
+                <span
+                  className={`${getOrderStatusColor(
+                    "Pending"
+                  )} rounded-full w-4 h-4 inline-block mr-2`}
+                ></span>
+                Pending
+              </SelectItem>
+              <SelectItem value="Delivered">
+                <span
+                  className={`${getOrderStatusColor(
+                    "Delivered"
+                  )} rounded-full w-4 h-4 inline-block mr-2`}
+                ></span>
+                Delivered
+              </SelectItem>
+              <SelectItem value="Cancelled">
+                <span
+                  className={`${getOrderStatusColor(
+                    "Cancelled"
+                  )} rounded-full w-4 h-4 inline-block mr-2`}
+                ></span>
+                Cancelled
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 }

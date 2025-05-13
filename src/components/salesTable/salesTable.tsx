@@ -20,6 +20,7 @@ export default function SaleTable() {
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
   const [searchInput, setSearchInput] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("all");
+  const [orderStatus, setOrderStatus] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [exportDateRange, setExportDateRange] = useState<
     [Date | undefined, Date | undefined]
@@ -54,7 +55,7 @@ export default function SaleTable() {
       }
       // For backend search, we'll let the SearchBar component handle the API call
     },
-    [fetchSales, setFilterTerm, paymentMethod]
+    [fetchSales, setFilterTerm, paymentMethod, orderStatus]
   );
 
   // Handle search results from backend
@@ -122,6 +123,8 @@ export default function SaleTable() {
               onSearchResults={handleSearchResults}
               dateRange={dateRange}
               setDateRange={setDateRange}
+              orderStatus={orderStatus}
+              setOrderStatus={setOrderStatus}
             />
           </div>
         </div>
