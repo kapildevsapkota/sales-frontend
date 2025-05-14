@@ -7,13 +7,7 @@ import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Table,
   TableBody,
@@ -29,7 +23,6 @@ import type {
   Column,
   SortDirection,
 } from "@/types/sale";
-import axios from "axios";
 
 interface SalesTableProps {
   columns: Column[];
@@ -176,44 +169,6 @@ Please process this order promptly! 🚀
     router.push(`/sales/orders/edit/${sale.id}`);
   };
 
-  // Function to get color based on order status
-  const getOrderStatusColor = (status: string) => {
-    switch (status) {
-      case "Delivered":
-        return "bg-green-500"; // Green for delivered
-      case "Pending":
-        return "bg-yellow-500"; // Yellow for pending
-      case "Cancelled":
-        return "bg-red-500"; // Red for cancelled
-      default:
-        return "bg-gray-500"; // Default color
-    }
-  };
-
-  // Add this function to handle status change
-  const handleStatusChange = async (saleId: string, newStatus: string) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`;
-
-      await axios.patch(
-        url,
-        { order_status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Optionally, refetch sales data or update local state
-      // This would need to be handled via a callback to the parent component
-    } catch (error) {
-      console.error("Error updating order status:", error);
-      // showError("Failed to update order status");
-    }
-  };
-
   // Get value by column ID
   const getValueByColumnId = (sale: SaleItem, columnId: string) => {
     switch (columnId) {
@@ -273,17 +228,7 @@ Please process this order promptly! 🚀
         );
       case "delivery_charge":
         return Number.parseFloat(sale.delivery_charge);
-      case "order_status":
-        return (
-          <span
-            className={
-              getOrderStatusColor(sale.order_status) +
-              " text-white rounded-full w-4 h-4 mr-2"
-            }
-          >
-            {/* Color indicator */}
-          </span>
-        );
+
       case "send_order":
         return (
           <Button
@@ -404,45 +349,7 @@ Please process this order promptly! 🚀
                           (currentPage - 1) * pageSize + index + 1
                         ) : column.id === "order_status" ? (
                           <div className="flex items-center">
-                            <Select
-                              value={sale.order_status}
-                              onValueChange={(value) =>
-                                handleStatusChange(String(sale.id), value)
-                              }
-                            >
-                              <SelectTrigger className="w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
-                                <SelectValue placeholder="Change Status" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
-                                <SelectItem value="Pending">
-                                  <span
-                                    className={
-                                      getOrderStatusColor("Pending") +
-                                      " rounded-full w-4 h-4 inline-block mr-2"
-                                    }
-                                  ></span>
-                                  Pending
-                                </SelectItem>
-                                <SelectItem value="Delivered">
-                                  <span
-                                    className={
-                                      getOrderStatusColor("Delivered") +
-                                      " rounded-full w-4 h-4 inline-block mr-2"
-                                    }
-                                  ></span>
-                                  Delivered
-                                </SelectItem>
-                                <SelectItem value="Cancelled">
-                                  <span
-                                    className={
-                                      getOrderStatusColor("Cancelled") +
-                                      " rounded-full w-4 h-4 inline-block mr-2"
-                                    }
-                                  ></span>
-                                  Cancelled
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                            {sale.order_status}
                           </div>
                         ) : (
                           getValueByColumnId(sale, column.id)

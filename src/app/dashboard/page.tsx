@@ -21,6 +21,8 @@ export default function DashboardPage() {
           router.push("/admin");
         } else if (user.role === Role.Franchise) {
           router.push("/admin");
+        } else if (user.role === Role.Packaging) {
+          router.push("/admin");
         }
       }, 3000);
 
