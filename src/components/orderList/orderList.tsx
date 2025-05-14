@@ -35,7 +35,6 @@ export default function OrderList() {
     isLoading,
     currentPage,
     pageSize,
-
     fetchSales,
     setFilterTerm,
     setSales,

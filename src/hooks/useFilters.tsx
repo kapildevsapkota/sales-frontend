@@ -22,6 +22,8 @@ export function useFilters(fetchSales: (page: number) => Promise<void>) {
         return `${item.delivery_address}, ${item.city}`;
       case "phone_number":
         return item.phone_number;
+      case "alternate_phone_number":
+        return item.alternate_phone_number;
       case "remarks":
         return item.remarks || "";
       case "convinced_by":

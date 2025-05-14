@@ -15,6 +15,7 @@ export interface SaleItem {
   order_status: string;
   prepaid_amount: number | null;
   remaining_amount: number | null;
+  alternate_phone_number: string | null;
 }
 
 interface OrderProduct {

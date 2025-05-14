@@ -35,6 +35,14 @@ export function useColumns() {
       sortable: true,
     },
     {
+      id: "alternate_phone_number",
+      label: "Alternate Phone Number",
+      visible: false,
+      width: 150,
+      sortable: true,
+    },
+
+    {
       id: "oil_type",
       label: "Oil Type",
       visible: true,
@@ -69,6 +77,7 @@ export function useColumns() {
       width: 150,
       sortable: true,
     },
+
     {
       id: "send_order",
       label: "Send Order",

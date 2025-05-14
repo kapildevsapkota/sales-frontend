@@ -129,7 +129,9 @@ export function SalesTable({
 *Customer Details:*
 👤 Name: ${sale.full_name}
 📱 Phone: ${sale.phone_number}
+📱 AltPhone: ${sale.alternate_phone_number}
 📍 Location: ${sale.delivery_address}, ${sale.city}
+
 
 *Order Details:*
 🛒 Products: ${sale.order_products
