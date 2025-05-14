@@ -276,7 +276,7 @@ export default function CreateAccountForm() {
           >
             <div className="space-y-4 md:space-y-6">
               <h3 className="text-xl font-medium text-gray-800">
-                Personal Information
+                Personal Informations
               </h3>
               <div className="grid gap-4 md:gap-8 md:grid-cols-2">
                 <FormField
