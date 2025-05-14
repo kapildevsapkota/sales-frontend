@@ -163,12 +163,15 @@ export default function CreateAccountForm() {
         factory: values.factory,
       };
 
+      const token = localStorage.getItem("accessToken");
+
       const response = await fetch(
-        "https://sales.baliyoventures.com/api/account/users/",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           credentials: "include",
           body: JSON.stringify(formData),

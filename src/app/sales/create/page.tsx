@@ -14,6 +14,7 @@ export default function CreateOrderPage() {
     async function fetchProducts() {
       try {
         const accessToken = localStorage.getItem("accessToken");
+        console.log("Access Token:", accessToken);
 
         if (!accessToken) {
           throw new Error("No access token found");
