@@ -163,12 +163,15 @@ export default function CreateAccountForm() {
         factory: values.factory,
       };
 
+      const token = localStorage.getItem("accessToken"); // Retrieve the token from local storage
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Add the token to the Authorization header
           },
           credentials: "include",
           body: JSON.stringify(formData),
@@ -210,14 +213,11 @@ export default function CreateAccountForm() {
 
     switch (user.role) {
       case Role.SuperAdmin:
-        return [
-          Role.SuperAdmin,
-          Role.Distributor,
-          Role.Franchise,
-          Role.SalesPerson,
-        ];
+        return [Role.Distributor, Role.Franchise, Role.Logistic];
       case Role.Franchise:
-        return [Role.SalesPerson];
+        return [Role.SalesPerson, Role.TreatmentStaff, Role.Packaging];
+      case Role.Distributor:
+        return [Role.Franchise];
       default:
         return [];
     }
@@ -235,25 +235,13 @@ export default function CreateAccountForm() {
       case Role.SuperAdmin:
         return {
           showFactory: true,
-          showDistributor: false,
-          showFranchise: false,
+          showDistributor: true,
+          showFranchise: true,
         };
       case Role.Distributor:
         return {
           showFactory: false,
-          showDistributor: true,
-          showFranchise: false,
-        };
-      case Role.Franchise:
-        return {
-          showFactory: false,
-          showDistributor: true,
-          showFranchise: true,
-        };
-      case Role.SalesPerson:
-        return {
-          showFactory: false,
-          showDistributor: true,
+          showDistributor: false,
           showFranchise: true,
         };
       default:

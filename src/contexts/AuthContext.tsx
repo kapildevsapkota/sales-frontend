@@ -20,6 +20,7 @@ export enum Role {
   Factory = "Factory",
   TreatmentStaff = "TreatmentStaff",
   Logistic = "Logistic",
+  Packaging = "Packaging",
 }
 
 interface User {
