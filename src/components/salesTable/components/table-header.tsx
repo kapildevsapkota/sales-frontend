@@ -13,9 +13,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Column } from "@/types/sale";
 
-// Adjust the path as necessary
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import type { Column } from "@/types/sale";
 
 interface TableHeaderProps {
   columns: Column[];
@@ -32,6 +39,10 @@ interface TableHeaderProps {
   showFilterForm: boolean;
   setShowFilterForm: (value: boolean) => void;
   setShowExportModal: (value: boolean) => void;
+  paymentMethod: string;
+  setPaymentMethod: (value: string) => void;
+  orderStatus: string;
+  setOrderStatus: (value: string) => void;
 }
 
 export function TableHeader({
@@ -47,8 +58,20 @@ export function TableHeader({
   setFilterTerm,
   fetchSales,
   setShowExportModal,
+  paymentMethod,
+  setPaymentMethod,
+  orderStatus,
+  setOrderStatus,
 }: TableHeaderProps) {
-  // Use the hook to get setShowFilterForm
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
+    fetchSales(1); // Fetch sales with the new filter
+  };
+
+  const handleOrderStatusChange = (value: string) => {
+    setOrderStatus(value);
+    fetchSales(1); // Fetch sales with the new filter
+  };
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
@@ -124,6 +147,53 @@ export function TableHeader({
                   }}
                 ></Button>
               )}
+            </div>
+
+            {/* Payment Method Dropdown */}
+            <div className="w-full md:w-[180px]">
+              <Select
+                value={paymentMethod}
+                onValueChange={handlePaymentMethodChange}
+              >
+                <SelectTrigger className="h-10 w-full">
+                  <SelectValue placeholder="Payment Method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Payment Methods</SelectItem>
+                  <SelectItem value="Cash on Delivery">
+                    Cash on Delivery
+                  </SelectItem>
+                  <SelectItem value="Prepaid">Prepaid</SelectItem>
+                  <SelectItem value="Office Visit">Office Visit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Order Status Dropdown */}
+            <div className="w-full md:w-[180px]">
+              <Select
+                value={orderStatus}
+                onValueChange={handleOrderStatusChange}
+              >
+                <SelectTrigger className="h-10 w-full">
+                  <SelectValue placeholder="Order Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Processing">Processing</SelectItem>
+                  <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
+                  <SelectItem value="Delivered">Delivered</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="Returned By Customer">
+                    Returned By Customer
+                  </SelectItem>
+                  <SelectItem value="Returned By Dash">
+                    Returned By Dash
+                  </SelectItem>
+                  <SelectItem value="Return Pending">Return Pending</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Button

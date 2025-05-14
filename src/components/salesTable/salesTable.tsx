@@ -22,6 +22,8 @@ export default function SalesTable() {
   const [pageSize, setPageSize] = useState(20);
   const [filterTerm, setFilterTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("all");
+  const [orderStatus, setOrderStatus] = useState("all");
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
@@ -32,7 +34,6 @@ export default function SalesTable() {
   // Custom hooks
   const {
     columns,
-
     toggleColumnVisibility,
     showAllColumns,
     hideAllColumns,
@@ -42,7 +43,6 @@ export default function SalesTable() {
   const {
     sortField,
     sortDirection,
-
     handleSort,
     sortData,
     getValueByColumnId,
@@ -52,7 +52,6 @@ export default function SalesTable() {
   const {
     showFilterForm,
     setShowFilterForm,
-
     exportDateRange,
     setExportDateRange,
     applyFilters,
@@ -69,29 +68,43 @@ export default function SalesTable() {
         setIsLoading(true);
         const token = localStorage.getItem("accessToken");
 
-        const url = `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/api/sales/orders/?page=${page}&page_size=${size}&search=${encodeURIComponent(
-          filterTerm
-        )}`;
+        // Build URL with search and payment_method params
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/?page=${page}&page_size=${size}`;
+
+        // Add search parameter if present
+        if (filterTerm) {
+          url += `&search=${encodeURIComponent(filterTerm)}`;
+        }
+
+        // Add payment_method parameter if selected
+        if (paymentMethod && paymentMethod !== "all") {
+          url += `&payment_method=${encodeURIComponent(paymentMethod)}`;
+        }
+
+        // Add order_status parameter if selected
+        if (orderStatus && orderStatus !== "all") {
+          url += `&order_status=${encodeURIComponent(orderStatus)}`;
+        }
 
         const response = await axios.get<SalesResponse>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
         setSales(response.data);
         setCurrentPage(page);
         setPageSize(size);
 
         applyFilters(response.data.results || []);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching sales data:", error);
         showError("Failed to fetch sales data");
       } finally {
         setIsLoading(false);
       }
     },
-    [filterTerm, pageSize, applyFilters, showError]
+    [filterTerm, pageSize, applyFilters, showError, paymentMethod, orderStatus]
   );
 
   // Update the handleGlobalSearch function
@@ -171,6 +184,30 @@ export default function SalesTable() {
         });
       }
 
+      // Apply client-side payment method filter for 1-2 character searches
+      if (
+        paymentMethod &&
+        paymentMethod !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.payment_method === paymentMethod
+        );
+      }
+
+      // Apply client-side order status filter for 1-2 character searches
+      if (
+        orderStatus &&
+        orderStatus !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.order_status === orderStatus
+        );
+      }
+
       // Apply filters
       const filtered = applyFilters(dataToSort);
 
@@ -178,7 +215,16 @@ export default function SalesTable() {
       const sorted = sortData(filtered, sortField, sortDirection);
       setDisplayData(sorted);
     }
-  }, [sales, sortField, sortDirection, sortData, searchInput, applyFilters]);
+  }, [
+    sales,
+    sortField,
+    sortDirection,
+    sortData,
+    searchInput,
+    applyFilters,
+    paymentMethod,
+    orderStatus,
+  ]);
 
   // Load initial data
   useEffect(() => {
@@ -251,7 +297,7 @@ export default function SalesTable() {
         showAllColumns={showAllColumns}
         hideAllColumns={hideAllColumns}
         salesCount={sales?.count || 0}
-        resultsCount={sales?.results.length || 0}
+        resultsCount={sales?.results?.length || 0}
         searchInput={searchInput}
         handleSearchInputChange={handleSearchInputChange}
         setSearchInput={setSearchInput}
@@ -260,9 +306,11 @@ export default function SalesTable() {
         showFilterForm={showFilterForm}
         setShowFilterForm={setShowFilterForm}
         setShowExportModal={setShowExportModal}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
+        orderStatus={orderStatus}
+        setOrderStatus={setOrderStatus}
       />
-
-      {/* Filters */}
 
       {showExportModal && (
         <ExportModal

@@ -47,6 +47,8 @@ export interface Column {
   visible: boolean;
   width: number;
   sortable: boolean;
+  
+  
 }
 
 export type SortDirection = "asc" | "desc" | null;

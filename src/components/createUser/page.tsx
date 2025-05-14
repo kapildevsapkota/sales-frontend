@@ -98,7 +98,7 @@ export default function CreateAccountForm() {
     const fetchDistributors = async () => {
       try {
         const response = await fetch(
-          "https://sales.baliyoventures.com/api/account/distributors/"
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/distributors/`
         );
         const data = await response.json();
         setDistributors(data);
@@ -112,7 +112,7 @@ export default function CreateAccountForm() {
   const fetchFranchises = async (distributorId: number) => {
     try {
       const response = await fetch(
-        `https://sales.baliyoventures.com/api/account/distributors/${distributorId}/franchises/`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/account/distributors/${distributorId}/franchises/`
       );
       const data = await response.json();
       setFranchises(data);
@@ -125,7 +125,7 @@ export default function CreateAccountForm() {
     const fetchFactories = async () => {
       try {
         const response = await fetch(
-          "https://sales.baliyoventures.com/api/account/factories/"
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/factories/`
         );
         const data = await response.json();
         setFactories(data);
@@ -163,15 +163,12 @@ export default function CreateAccountForm() {
         factory: values.factory,
       };
 
-      const token = localStorage.getItem("accessToken");
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           credentials: "include",
           body: JSON.stringify(formData),
@@ -213,9 +210,12 @@ export default function CreateAccountForm() {
 
     switch (user.role) {
       case Role.SuperAdmin:
-        return [Role.Distributor, Role.Franchise, Role.Logistic];
-      case Role.Distributor:
-        return [Role.Franchise, Role.SalesPerson];
+        return [
+          Role.SuperAdmin,
+          Role.Distributor,
+          Role.Franchise,
+          Role.SalesPerson,
+        ];
       case Role.Franchise:
         return [Role.SalesPerson];
       default:
@@ -245,6 +245,11 @@ export default function CreateAccountForm() {
           showFranchise: false,
         };
       case Role.Franchise:
+        return {
+          showFactory: false,
+          showDistributor: true,
+          showFranchise: true,
+        };
       case Role.SalesPerson:
         return {
           showFactory: false,
