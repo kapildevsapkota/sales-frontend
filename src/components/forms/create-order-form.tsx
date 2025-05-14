@@ -175,7 +175,7 @@ export default function CreateOrderForm({
         try {
           const authToken = localStorage.getItem("accessToken");
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${orderId}/update`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${orderId}/update`,
             {
               headers: {
                 Authorization: `Bearer ${authToken}`,
@@ -329,7 +329,7 @@ export default function CreateOrderForm({
       if (isEditMode && orderId) {
         // Send PATCH request for edit mode
         response = await api.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${orderId}/update/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${orderId}/update/`,
           formData,
           {
             headers: {
@@ -341,7 +341,7 @@ export default function CreateOrderForm({
       } else {
         // Send POST request for create mode
         response = await api.post(
-          `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/`,
           formData,
           {
             headers: {

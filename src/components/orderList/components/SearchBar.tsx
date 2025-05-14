@@ -100,7 +100,7 @@ export function SearchBar({
         const response = await axios.get(
           `${
             process.env.NEXT_PUBLIC_API_URL
-          }api/sales/orders/?${queryParams.toString()}`,
+          }/api/sales/orders/?${queryParams.toString()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -21,7 +21,7 @@ export default function CreateOrderPage() {
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}api/sales/products`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/products`,
           {
             cache: "no-store",
             headers: {

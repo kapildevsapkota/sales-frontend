@@ -71,7 +71,7 @@ export default function SalesTable() {
 
         const url = `${
           process.env.NEXT_PUBLIC_API_URL
-        }api/sales/orders/?page=${page}&page_size=${size}&search=${encodeURIComponent(
+        }/api/sales/orders/?page=${page}&page_size=${size}&search=${encodeURIComponent(
           filterTerm
         )}`;
 
@@ -194,7 +194,7 @@ export default function SalesTable() {
   const handleStatusChange = async (saleId: string, newStatus: string) => {
     try {
       const token = localStorage.getItem("accessToken");
-      const url = `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${saleId}/`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`;
 
       await axios.patch(
         url,
