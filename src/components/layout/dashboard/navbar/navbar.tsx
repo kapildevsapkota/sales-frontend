@@ -71,12 +71,12 @@ export function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0  w-full border-b bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800">
+      <div className=" px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Desktop Navigation */}
           <div className="flex items-center">
-            <div className="flex-shrink-0 mr-6">
+            <div className="flex-shrink-0 ">
               <div className="flex items-center">
                 <Image
                   src="/image.png"
