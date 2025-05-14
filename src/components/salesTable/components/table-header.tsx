@@ -182,7 +182,10 @@ export function TableHeader({
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="Pending">Pending</SelectItem>
                   <SelectItem value="Processing">Processing</SelectItem>
+                  <SelectItem value="Indrive">Shipped</SelectItem>
                   <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
+                  <SelectItem value="Indrive">Indrive</SelectItem>
+
                   <SelectItem value="Delivered">Delivered</SelectItem>
                   <SelectItem value="Cancelled">Cancelled</SelectItem>
                   <SelectItem value="Returned By Customer">

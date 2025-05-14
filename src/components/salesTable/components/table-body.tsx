@@ -192,6 +192,15 @@ export function TableBody({
                               ></span>
                               Sent to Dash
                             </SelectItem>
+                            <SelectItem value="Indrive">
+                              <span
+                                className={
+                                  getOrderStatusColor("Indrive") +
+                                  " rounded-full w-4 h-4 inline-block mr-2"
+                                }
+                              ></span>
+                              Indrive
+                            </SelectItem>
                             <SelectItem value="Delivered">
                               <span
                                 className={

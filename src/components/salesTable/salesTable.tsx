@@ -252,7 +252,14 @@ export default function SalesTable() {
         }
       );
 
-      fetchSales(currentPage);
+      // Update the local state instead of refetching all sales
+      setDisplayData((prevData) =>
+        prevData.map((sale) =>
+          sale.id.toString() === saleId
+            ? { ...sale, order_status: newStatus }
+            : sale
+        )
+      );
     } catch (error) {
       console.error("Error updating order status:", error);
       showError("Failed to update order status");
