@@ -1,5 +1,4 @@
 "use client";
-
 import { Search, ChevronDown, Eye, EyeOff } from "lucide-react";
 import type React from "react";
 
@@ -78,14 +77,6 @@ export function TableHeader({
   useEffect(() => {
     fetchSales(1);
   }, [paymentMethod, orderStatus, deliveryType, dateRange]);
-
-  const handlePaymentMethodChange = (value: string) => {
-    setPaymentMethod(value);
-  };
-
-  const handleOrderStatusChange = (value: string) => {
-    setOrderStatus(value);
-  };
 
   const handleDeliveryTypeChange = (value: string) => {
     setDeliveryType(value);
@@ -178,10 +169,7 @@ export function TableHeader({
             </div>
 
             <div className="w-full md:w-[180px]">
-              <Select
-                value={paymentMethod}
-                onValueChange={handlePaymentMethodChange}
-              >
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="Payment Method" />
                 </SelectTrigger>
@@ -197,10 +185,7 @@ export function TableHeader({
             </div>
 
             <div className="w-full md:w-[180px]">
-              <Select
-                value={orderStatus}
-                onValueChange={handleOrderStatusChange}
-              >
+              <Select value={orderStatus} onValueChange={setOrderStatus}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="Order Status" />
                 </SelectTrigger>
