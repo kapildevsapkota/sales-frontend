@@ -13,6 +13,7 @@ import { PaymentImageModal } from "./components/payment-image-modal";
 import { useTableColumns } from "./hooks/use-table-columns";
 import { useTableData } from "./hooks/use-table-data";
 import { useTableFilters } from "./hooks/use-table-filters";
+import { DateRange } from "react-day-picker";
 
 export default function SalesTable() {
   const [sales, setSales] = useState<SalesResponse | null>(null);
@@ -25,6 +26,7 @@ export default function SalesTable() {
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [orderStatus, setOrderStatus] = useState("all");
   const [deliveryType, setDeliveryType] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
@@ -92,6 +94,21 @@ export default function SalesTable() {
           url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
         }
 
+        const formatDate = (date: Date): string => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
+        if (dateRange?.from) {
+          url += `&start_date=${formatDate(dateRange.from)}`;
+        }
+
+        if (dateRange?.to) {
+          url += `&end_date=${formatDate(dateRange.to)}`;
+        }
+
         const response = await axios.get<SalesResponse>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -118,6 +135,7 @@ export default function SalesTable() {
       paymentMethod,
       orderStatus,
       deliveryType,
+      dateRange,
     ]
   );
 
@@ -346,6 +364,8 @@ export default function SalesTable() {
         setOrderStatus={setOrderStatus}
         deliveryType={deliveryType}
         setDeliveryType={setDeliveryType}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
       />
 
       {showExportModal && (

@@ -1,4 +1,5 @@
 "use client";
+
 import { Search, ChevronDown, Eye, EyeOff } from "lucide-react";
 import type React from "react";
 
@@ -23,6 +24,9 @@ import {
 } from "@/components/ui/select";
 
 import type { Column } from "@/types/sale";
+import { useEffect } from "react";
+import DateRangePicker from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 
 interface TableHeaderProps {
   columns: Column[];
@@ -45,6 +49,8 @@ interface TableHeaderProps {
   setOrderStatus: (value: string) => void;
   deliveryType: string;
   setDeliveryType: (value: string) => void;
+  dateRange: DateRange | undefined;
+  setDateRange: (range: DateRange | undefined) => void;
 }
 
 export function TableHeader({
@@ -66,20 +72,23 @@ export function TableHeader({
   setOrderStatus,
   deliveryType,
   setDeliveryType,
+  dateRange,
+  setDateRange,
 }: TableHeaderProps) {
+  useEffect(() => {
+    fetchSales(1);
+  }, [paymentMethod, orderStatus, deliveryType, dateRange]);
+
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
-    fetchSales(1); // Fetch sales with the new filter
   };
 
   const handleOrderStatusChange = (value: string) => {
     setOrderStatus(value);
-    fetchSales(1); // Fetch sales with the new filter
   };
 
   const handleDeliveryTypeChange = (value: string) => {
     setDeliveryType(value);
-    fetchSales(1); // Fetch sales with the new filter
   };
 
   const handleClearFilters = () => {
@@ -88,60 +97,61 @@ export function TableHeader({
     setPaymentMethod("all");
     setOrderStatus("all");
     setDeliveryType("all");
+    setDateRange(undefined);
     fetchSales(1);
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
-      <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
-        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full md:w-auto">
-                Columns <ChevronDown className="ml-1 h-4 w-4" />
+    <div className="flex flex-col mb-4 gap-4">
+      <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="w-full md:w-auto">
+              Columns <ChevronDown className="ml-1 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[200px]">
+            <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <div className="max-h-[400px] overflow-y-auto">
+              {columns.map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.visible}
+                  onCheckedChange={() => toggleColumnVisibility(column.id)}
+                >
+                  {column.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex justify-between p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={showAllColumns}
+                className="w-[48%]"
+              >
+                <Eye className="mr-1 h-4 w-4" />
+                All
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-[400px] overflow-y-auto">
-                {columns.map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.visible}
-                    onCheckedChange={() => toggleColumnVisibility(column.id)}
-                  >
-                    {column.label}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <div className="flex justify-between p-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={showAllColumns}
-                  className="w-[48%]"
-                >
-                  <Eye className="mr-1 h-4 w-4" />
-                  All
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={hideAllColumns}
-                  className="w-[48%]"
-                >
-                  <EyeOff className="mr-1 h-4 w-4" />
-                  None
-                </Button>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <div className="text-xs text-gray-500 whitespace-nowrap">
-            {resultsCount ? `${resultsCount} of ${salesCount} entries` : ""}
-          </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={hideAllColumns}
+                className="w-[48%]"
+              >
+                <EyeOff className="mr-1 h-4 w-4" />
+                None
+              </Button>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <div className="text-xs text-gray-500 whitespace-nowrap">
+          {resultsCount ? `${resultsCount} of ${salesCount} entries` : ""}
         </div>
+      </div>
+      <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
         <div className="relative w-full md:max-w-xl">
           <div className="flex flex-col md:flex-row items-center gap-2 w-full">
             <div className="relative w-full md:w-[400px]">
@@ -167,7 +177,6 @@ export function TableHeader({
               )}
             </div>
 
-            {/* Payment Method Dropdown */}
             <div className="w-full md:w-[180px]">
               <Select
                 value={paymentMethod}
@@ -187,7 +196,6 @@ export function TableHeader({
               </Select>
             </div>
 
-            {/* Order Status Dropdown */}
             <div className="w-full md:w-[180px]">
               <Select
                 value={orderStatus}
@@ -200,10 +208,8 @@ export function TableHeader({
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="Pending">Pending</SelectItem>
                   <SelectItem value="Processing">Processing</SelectItem>
-                  <SelectItem value="Indrive">Shipped</SelectItem>
                   <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
                   <SelectItem value="Indrive">Indrive</SelectItem>
-
                   <SelectItem value="Delivered">Delivered</SelectItem>
                   <SelectItem value="Cancelled">Cancelled</SelectItem>
                   <SelectItem value="Returned By Customer">
@@ -217,7 +223,6 @@ export function TableHeader({
               </Select>
             </div>
 
-            {/* Delivery Type Dropdown */}
             <div className="w-full md:w-[180px]">
               <Select
                 value={deliveryType}
@@ -227,38 +232,63 @@ export function TableHeader({
                   <SelectValue placeholder="Delivery Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="all">All Delivery Types</SelectItem>
                   <SelectItem value="Inside valley">Inside Valley</SelectItem>
                   <SelectItem value="Outside valley">Outside Valley</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Clear Filters Button */}
-            {(searchInput ||
+            <div className="w-full md:w-auto">
+              <DateRangePicker
+                className="w-full"
+                value={dateRange}
+                onChange={setDateRange}
+              />
+            </div>
+
+            <div className="flex items-center justify-between w-full relative">
+              {searchInput ||
               paymentMethod !== "all" ||
               orderStatus !== "all" ||
-              deliveryType !== "all") && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto bg-red-100 hover:bg-red-200"
-                onClick={handleClearFilters}
-              >
-                Clear Filters
-              </Button>
-            )}
+              deliveryType !== "all" ||
+              dateRange !== undefined ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 whitespace-nowrap bg-red-400 hover:bg-red-500"
+                    onClick={handleClearFilters}
+                  >
+                    Clear Filters
+                  </Button>
 
-            <div className="flex-1 md:ml-[27rem]"></div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto bg-blue-400"
-              onClick={() => setShowExportModal(true)}
-            >
-              <span>Export CSV</span>
-            </Button>
+                  <div className="ml-[18.4rem]">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500"
+                      onClick={() => setShowExportModal(true)}
+                    >
+                      <span>Export CSV</span>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="ml-[22rem]">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500"
+                      onClick={() => setShowExportModal(true)}
+                    >
+                      <span>Export CSV</span>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
