@@ -2,12 +2,6 @@
 
 import { useState, useEffect, JSX } from "react";
 import { cn } from "@/lib/utils";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Factory, TruckIcon } from "lucide-react";
 import { MdStorefront } from "react-icons/md";
 import FactoryDashboard from "@/components/inventory/factory/FactoryDashboard";

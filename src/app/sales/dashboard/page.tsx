@@ -20,48 +20,67 @@ export default function SalesDashboard() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Sales Dashboard</h1>
+    <div className="container mx-auto px-4 py-12 min-h-screen ">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
+        <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-teal-400 bg-clip-text text-transparent drop-shadow-lg">
+          Sales Dashboard
+        </h1>
         <button
           onClick={() => logout()}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+          aria-label="Logout"
         >
           <LogOut className="h-5 w-5" />
-          Logout
+          <span className="font-medium">Logout</span>
         </button>
       </div>
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{
+            scale: 1.04,
+            boxShadow: "0 8px 32px rgba(80,80,200,0.15)",
+          }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleCreateOrder}
         >
-          <Card className="cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-            <CardHeader>
-              <CardTitle>Create Order</CardTitle>
+          <Card className="cursor-pointer bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-500 text-white shadow-xl border-0 transition-transform duration-200 hover:shadow-2xl">
+            <CardHeader className="flex flex-col items-center">
+              <CardTitle className="text-2xl font-semibold tracking-wide">
+                Create Order
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center justify-center">
-              <ShoppingBag className="h-24 w-24" />
+            <CardContent className="flex flex-col items-center justify-center py-8">
+              <ShoppingBag className="h-20 w-20 mb-4 drop-shadow-lg" />
+              <span className="text-lg opacity-80">
+                Start a new sales order
+              </span>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{
+            scale: 1.04,
+            boxShadow: "0 8px 32px rgba(40,200,160,0.15)",
+          }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleViewOrders}
         >
-          <Card className="cursor-pointer bg-gradient-to-r from-green-500 to-teal-500 text-white">
-            <CardHeader>
-              <CardTitle>View Orders</CardTitle>
+          <Card className="cursor-pointer bg-gradient-to-br from-green-500 via-teal-500 to-cyan-500 text-white shadow-xl border-0 transition-transform duration-200 hover:shadow-2xl">
+            <CardHeader className="flex flex-col items-center">
+              <CardTitle className="text-2xl font-semibold tracking-wide">
+                View Orders
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center justify-center">
-              <FileText className="h-24 w-24" />
+            <CardContent className="flex flex-col items-center justify-center py-8">
+              <FileText className="h-20 w-20 mb-4 drop-shadow-lg" />
+              <span className="text-lg opacity-80">
+                Browse and manage orders
+              </span>
             </CardContent>
           </Card>
         </motion.div>
       </div>
-      <div className="mt-8">
+      <div className="mt-14">
         <Stats />
       </div>
     </div>

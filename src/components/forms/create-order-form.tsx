@@ -65,6 +65,23 @@ enum DeliveryType {
   Outside = "Outside valley",
 }
 
+interface DuplicateOrderError {
+  error: string;
+  status: string | number;
+  existing_order: {
+    order_id: string;
+    created_at: string;
+    salesperson: {
+      name: string;
+      phone: string;
+    };
+    location: {
+      franchise: string;
+      distributor: string;
+    };
+  };
+}
+
 export default function CreateOrderForm({
   orderId,
   isEditMode = false,
@@ -81,6 +98,8 @@ export default function CreateOrderForm({
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
   const [forceOrderDialogOpen, setForceOrderDialogOpen] = useState(false);
   const [forceOrderErrorMsg, setForceOrderErrorMsg] = useState("");
+  const [duplicateOrderError, setDuplicateOrderError] =
+    useState<DuplicateOrderError | null>(null);
   const [pendingForceOrderData, setPendingForceOrderData] =
     useState<OrderFormValues | null>(null);
 
@@ -372,24 +391,22 @@ export default function CreateOrderForm({
       }
     } catch (error) {
       const err = error as AxiosError;
-      if (err.response?.status === 403) {
-        // Show force order dialog
+      if (err.response?.status === 403 || err.response?.status === 400) {
         let errorMsg = "Order could not be placed.";
+        let duplicateError: DuplicateOrderError | null = null;
         if (err.response.data) {
           if (
-            Array.isArray(err.response.data) &&
-            err.response.data.length > 0
-          ) {
-            errorMsg = err.response.data[0];
-          } else if (
             typeof err.response.data === "object" &&
             err.response.data !== null &&
-            "error" in err.response.data
+            "error" in err.response.data &&
+            "existing_order" in err.response.data
           ) {
-            errorMsg = err.response.data.error as string;
+            duplicateError = err.response.data as DuplicateOrderError;
+            errorMsg = duplicateError.error;
           }
         }
         setForceOrderErrorMsg(errorMsg);
+        setDuplicateOrderError(duplicateError);
         setPendingForceOrderData(data);
         setForceOrderDialogOpen(true);
         return;
@@ -449,6 +466,14 @@ export default function CreateOrderForm({
 
   // Add this wrapper for react-hook-form
   const handleFormSubmit = (data: OrderFormValues) => onSubmit(data);
+
+  // Add a function to reset all dialog-related state
+  const handleCloseForceOrderDialog = () => {
+    setForceOrderDialogOpen(false);
+    setForceOrderErrorMsg("");
+    setDuplicateOrderError(null);
+    setPendingForceOrderData(null);
+  };
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -1102,12 +1127,51 @@ export default function CreateOrderForm({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Duplicate Order Detected</DialogTitle>
-            <DialogDescription>{forceOrderErrorMsg}</DialogDescription>
+            <DialogDescription>
+              {duplicateOrderError
+                ? duplicateOrderError.error
+                : forceOrderErrorMsg}
+            </DialogDescription>
+            {duplicateOrderError && (
+              <div className="space-y-2 text-left mt-2">
+                <div className="border rounded p-3 bg-gray-50">
+                  <div>
+                    <span className="font-medium">Order ID:</span>{" "}
+                    {duplicateOrderError.existing_order.order_id}
+                  </div>
+                  <div>
+                    <span className="font-medium">Created At:</span>{" "}
+                    {new Date(
+                      duplicateOrderError.existing_order.created_at
+                    ).toLocaleString()}
+                  </div>
+                  <div>
+                    <span className="font-medium">Salesperson:</span>{" "}
+                    {duplicateOrderError.existing_order.salesperson.name} (
+                    <a
+                      href={`tel:${duplicateOrderError.existing_order.salesperson.phone}`}
+                      className="text-blue-600 underline"
+                    >
+                      {duplicateOrderError.existing_order.salesperson.phone}
+                    </a>
+                    )
+                  </div>
+                  <div>
+                    <span className="font-medium">Franchise:</span>{" "}
+                    {duplicateOrderError.existing_order.location.franchise}
+                  </div>
+                  <div>
+                    <span className="font-medium">Distributor:</span>{" "}
+                    {duplicateOrderError.existing_order.location.distributor}
+                  </div>
+                </div>
+              </div>
+            )}
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setForceOrderDialogOpen(false)}
+              onClick={handleCloseForceOrderDialog}
               disabled={loading}
             >
               Cancel
@@ -1117,8 +1181,8 @@ export default function CreateOrderForm({
                 setForceOrderDialogOpen(false);
                 if (pendingForceOrderData) {
                   await onSubmit(pendingForceOrderData, true);
-                  setPendingForceOrderData(null);
                 }
+                handleCloseForceOrderDialog();
               }}
               disabled={loading}
               className="h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold"

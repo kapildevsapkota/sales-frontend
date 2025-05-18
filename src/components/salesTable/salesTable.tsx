@@ -330,9 +330,10 @@ export default function SalesTable() {
   };
 
   return (
-    <div className="container-fluid px-2 py-2">
+    <div className="relative flex flex-col min-h-screen px-2 py-2">
       {/* Header Section */}
       <TableHeader
+        className="sticky top-[64px] z-10 py-2 bg-white"
         columns={columns}
         toggleColumnVisibility={toggleColumnVisibility}
         showAllColumns={showAllColumns}
@@ -375,7 +376,8 @@ export default function SalesTable() {
         />
       )}
 
-      <div className="overflow-x-auto border rounded-md h-[calc(100vh-180px)]">
+      {/* Table body should take all available space and be scrollable */}
+      <div className="flex-1 overflow-auto border rounded-md my-2">
         <TableBody
           tableRef={tableRef as React.RefObject<HTMLTableElement>}
           columns={columns}
@@ -394,14 +396,17 @@ export default function SalesTable() {
         />
       </div>
 
+      {/* Pagination pinned to the bottom */}
       {sales && (
-        <TablePagination
-          currentPage={currentPage}
-          pageSize={pageSize}
-          totalCount={sales.count || 0}
-          hasNext={!!sales.next}
-          fetchSales={fetchSales}
-        />
+        <div className="sticky bottom-0 z-10 bg-white mt-2">
+          <TablePagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalCount={sales.count || 0}
+            hasNext={!!sales.next}
+            fetchSales={fetchSales}
+          />
+        </div>
       )}
     </div>
   );

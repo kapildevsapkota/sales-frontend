@@ -8,7 +8,6 @@ import {
   type LucideIcon,
   LogOut,
   Menu,
-  X,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -99,9 +98,6 @@ export function AppHeader() {
                 height={40}
                 className="h-9 w-9 rounded-lg shadow"
               />
-              <span className="hidden md:inline text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
-                SalesHub
-              </span>
             </div>
             {/* Desktop Navigation */}
             <nav className="hidden md:flex md:space-x-2 ml-6">

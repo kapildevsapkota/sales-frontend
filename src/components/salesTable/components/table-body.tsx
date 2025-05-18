@@ -252,7 +252,13 @@ export function TableBody({
                     ) : column.id === "payment_method" ? (
                       <div className="flex items-center gap-2">
                         <span>
-                          {sale.payment_method}
+                          {sale.payment_method === "Cash on Delivery"
+                            ? "COD"
+                            : sale.payment_method === "Prepaid"
+                            ? "PP"
+                            : sale.payment_method === "Office Visit"
+                            ? "OV"
+                            : sale.payment_method}
                           {sale.payment_method === "Prepaid" &&
                             sale.prepaid_amount && (
                               <span className="ml-1 text-sm text-gray-500">
@@ -274,6 +280,10 @@ export function TableBody({
                               }}
                             />
                           )}
+                      </div>
+                    ) : column.id === "delivery_location" ? (
+                      <div className="whitespace-normal break-words">
+                        {getValueByColumnId(sale, column.id)}
                       </div>
                     ) : column.id === "edit" ? (
                       <Button
@@ -299,6 +309,14 @@ export function TableBody({
                         </svg>
                         Edit
                       </Button>
+                    ) : column.id === "product_sold" ? (
+                      <div className="whitespace-normal break-words">
+                        {sale.order_products.map((item, idx) => (
+                          <div key={item.id || idx}>
+                            {item.product.name} - {item.quantity}
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       getValueByColumnId(sale, column.id)
                     )}
