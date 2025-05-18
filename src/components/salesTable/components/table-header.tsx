@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react"; // Import useEffect
 import { Search, ChevronDown, Eye, EyeOff } from "lucide-react";
 import type React from "react";
 
@@ -63,15 +64,9 @@ export function TableHeader({
   orderStatus,
   setOrderStatus,
 }: TableHeaderProps) {
-  const handlePaymentMethodChange = (value: string) => {
-    setPaymentMethod(value);
-    fetchSales(1); // Fetch sales with the new filter
-  };
-
-  const handleOrderStatusChange = (value: string) => {
-    setOrderStatus(value);
-    fetchSales(1); // Fetch sales with the new filter
-  };
+  useEffect(() => {
+    fetchSales(1); // Fetch sales whenever paymentMethod or orderStatus changes
+  }, [paymentMethod, orderStatus]);
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
@@ -151,10 +146,7 @@ export function TableHeader({
 
             {/* Payment Method Dropdown */}
             <div className="w-full md:w-[180px]">
-              <Select
-                value={paymentMethod}
-                onValueChange={handlePaymentMethodChange}
-              >
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="Payment Method" />
                 </SelectTrigger>
@@ -171,10 +163,7 @@ export function TableHeader({
 
             {/* Order Status Dropdown */}
             <div className="w-full md:w-[180px]">
-              <Select
-                value={orderStatus}
-                onValueChange={handleOrderStatusChange}
-              >
+              <Select value={orderStatus} onValueChange={setOrderStatus}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="Order Status" />
                 </SelectTrigger>

@@ -196,7 +196,6 @@ export default function SalesTable() {
         );
       }
 
-      // Apply client-side order status filter for 1-2 character searches
       if (
         orderStatus &&
         orderStatus !== "all" &&
@@ -225,8 +224,6 @@ export default function SalesTable() {
     paymentMethod,
     orderStatus,
   ]);
-
-  // Load initial data
   useEffect(() => {
     fetchSales(currentPage);
   }, [fetchSales, currentPage]);
@@ -236,7 +233,6 @@ export default function SalesTable() {
     router.push(`/sales/orders/edit/${sale.id}`);
   };
 
-  // Add this function to handle status change
   const handleStatusChange = async (saleId: string, newStatus: string) => {
     try {
       const token = localStorage.getItem("accessToken");
@@ -252,14 +248,7 @@ export default function SalesTable() {
         }
       );
 
-      // Update the local state instead of refetching all sales
-      setDisplayData((prevData) =>
-        prevData.map((sale) =>
-          sale.id.toString() === saleId
-            ? { ...sale, order_status: newStatus }
-            : sale
-        )
-      );
+      fetchSales(currentPage);
     } catch (error) {
       console.error("Error updating order status:", error);
       showError("Failed to update order status");
@@ -270,7 +259,7 @@ export default function SalesTable() {
   const handleExportCSV = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const url = `https://sales.baliyoventures.com/api/sales/export-csv`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv`;
 
       const response = await axios.get(url, {
         headers: {
