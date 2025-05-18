@@ -13,6 +13,7 @@ import { PaymentImageModal } from "./components/payment-image-modal";
 import { useTableColumns } from "./hooks/use-table-columns";
 import { useTableData } from "./hooks/use-table-data";
 import { useTableFilters } from "./hooks/use-table-filters";
+import { DateRange } from "react-day-picker";
 
 export default function SalesTable() {
   const [sales, setSales] = useState<SalesResponse | null>(null);
@@ -24,6 +25,8 @@ export default function SalesTable() {
   const [searchInput, setSearchInput] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [orderStatus, setOrderStatus] = useState("all");
+  const [deliveryType, setDeliveryType] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
@@ -86,6 +89,26 @@ export default function SalesTable() {
           url += `&order_status=${encodeURIComponent(orderStatus)}`;
         }
 
+        // Add delivery_type parameter if selected
+        if (deliveryType && deliveryType !== "all") {
+          url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
+        }
+
+        const formatDate = (date: Date): string => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
+        if (dateRange?.from) {
+          url += `&start_date=${formatDate(dateRange.from)}`;
+        }
+
+        if (dateRange?.to) {
+          url += `&end_date=${formatDate(dateRange.to)}`;
+        }
+
         const response = await axios.get<SalesResponse>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -104,7 +127,16 @@ export default function SalesTable() {
         setIsLoading(false);
       }
     },
-    [filterTerm, pageSize, applyFilters, showError, paymentMethod, orderStatus]
+    [
+      filterTerm,
+      pageSize,
+      applyFilters,
+      showError,
+      paymentMethod,
+      orderStatus,
+      deliveryType,
+      dateRange,
+    ]
   );
 
   // Update the handleGlobalSearch function
@@ -207,6 +239,18 @@ export default function SalesTable() {
         );
       }
 
+      // Apply client-side delivery type filter for 1-2 character searches
+      if (
+        deliveryType &&
+        deliveryType !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.delivery_type === deliveryType
+        );
+      }
+
       // Apply filters
       const filtered = applyFilters(dataToSort);
 
@@ -223,6 +267,7 @@ export default function SalesTable() {
     applyFilters,
     paymentMethod,
     orderStatus,
+    deliveryType,
   ]);
   useEffect(() => {
     fetchSales(currentPage);
@@ -306,6 +351,10 @@ export default function SalesTable() {
         setPaymentMethod={setPaymentMethod}
         orderStatus={orderStatus}
         setOrderStatus={setOrderStatus}
+        deliveryType={deliveryType}
+        setDeliveryType={setDeliveryType}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
       />
 
       {showExportModal && (
