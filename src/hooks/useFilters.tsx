@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 
 import type { SaleItem } from "@/types/sale";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useFilters(fetchSales: (page: number) => Promise<void>) {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [dateRange, setDateRange] = useState<

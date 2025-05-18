@@ -2,12 +2,6 @@
 
 import { useState, useEffect, JSX } from "react";
 import { cn } from "@/lib/utils";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Factory, TruckIcon } from "lucide-react";
 import { MdStorefront } from "react-icons/md";
 import FactoryDashboard from "@/components/inventory/factory/FactoryDashboard";
@@ -16,6 +10,13 @@ import StockManagement from "@/components/inventory/franchise/StockManagement";
 import { useAuth } from "@/contexts/AuthContext";
 import { Role } from "@/contexts/AuthContext";
 import ActivityLog from "./ActivityLog";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Tab {
   id: string;
@@ -27,7 +28,7 @@ interface Tab {
 const InventoryDashboard = () => {
   const { user } = useAuth();
   const userRole = user?.role;
-  const [activeTab, setActiveTab] = useState("factory");
+  const [activeTab, setActiveTab] = useState("franchise");
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
 
   const tabs: Tab[] = [
@@ -77,7 +78,7 @@ const InventoryDashboard = () => {
     if (userRole === Role.SuperAdmin) {
       setActiveTab("factory");
     } else if (userRole === Role.Distributor) {
-      setActiveTab("distributors");
+      setActiveTab("franchise");
     } else if (userRole === Role.Franchise) {
       setActiveTab("franchise");
     } else if (userRole === Role.Factory) {
@@ -99,7 +100,8 @@ const InventoryDashboard = () => {
     <div className="p-2 relative">
       <h1 className="text-3xl font-bold mb-8">Inventory Management</h1>
       <div className="flex-wrap gap-4 justify-between flex">
-        <div className="hidden md:flex gap-4">
+        {/* Desktop Tab Bar */}
+        <div className="hidden md:flex w-full gap-4">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -111,37 +113,27 @@ const InventoryDashboard = () => {
                   : "bg-white hover:bg-gray-50",
                 tab.isRightAligned ? "ml-auto" : ""
               )}
+              style={{ minWidth: "max-content" }}
             >
               {tab.icon}
               {tab.label}
             </button>
           ))}
         </div>
-        <div className="xs:block md:hidden  px-4 py-2 rounded-full border border-gray-300 font-medium transition-colors">
-          <Sheet>
-            <SheetTrigger>Managements</SheetTrigger>
-            <SheetContent side="left">
-              <SheetHeader className="mb-4 text-lg">Managements</SheetHeader>
-              <SheetHeader>
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabClick(tab.id)}
-                    className={cn(
-                      "flex items-center px-4 py-2 rounded-full border border-gray-300 font-medium transition-colors",
-                      activeTab === tab.id && tab.id !== "activity-log"
-                        ? "bg-yellow-100 border-yellow-200"
-                        : "bg-white hover:bg-gray-50",
-                      tab.isRightAligned ? "ml-auto" : ""
-                    )}
-                  >
-                    {tab.icon}
-                    {tab.label}
-                  </button>
-                ))}
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
+        {/* Mobile Dropdown */}
+        <div className="w-full md:hidden mb-4">
+          <Select value={activeTab} onValueChange={handleTabClick}>
+            <SelectTrigger className="w-full px-4 py-2 rounded-full border border-gray-300 font-medium bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {tabs.map((tab) => (
+                <SelectItem key={tab.id} value={tab.id}>
+                  {tab.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       {activeTab === "factory" && userRole === Role.SuperAdmin && (

@@ -21,13 +21,6 @@ interface TableBodyProps {
   displayData: SaleItem[];
   currentPage: number;
   pageSize: number;
-  handleSort: (columnId: string) => void;
-  getSortIcon: (columnId: string) => JSX.Element;
-  handleResizeStart: (
-    e: React.MouseEvent,
-    columnId: string,
-    initialWidth: number
-  ) => void;
   getValueByColumnId: (
     sale: SaleItem,
     columnId: string
@@ -45,9 +38,6 @@ export function TableBody({
   displayData,
   currentPage,
   pageSize,
-  handleSort,
-  getSortIcon,
-  handleResizeStart,
   getValueByColumnId,
   handleStatusChange,
   handleEdit,
@@ -87,32 +77,13 @@ export function TableBody({
             .map((column) => (
               <th
                 key={column.id}
-                className={`border p-2 text-left relative ${
-                  column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
-                }`}
+                className="border p-2 text-left relative"
                 style={{
                   width: `${column.width}px`,
                   minWidth: `${column.width}px`,
                 }}
-                onClick={() => column.sortable && handleSort(column.id)}
               >
-                <div className="flex items-center justify-between">
-                  <span>{column.label}</span>
-                  {column.sortable && (
-                    <span className="flex items-center">
-                      {getSortIcon(column.id)}
-                    </span>
-                  )}
-                  <div
-                    className="absolute right-0 top-0 h-full w-1 cursor-col-resize group"
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, column.id, column.width);
-                    }}
-                  >
-                    <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-gray-400"></div>
-                  </div>
-                </div>
+                <span>{column.label}</span>
               </th>
             ))}
         </tr>
@@ -251,15 +222,21 @@ export function TableBody({
                       </div>
                     ) : column.id === "payment_method" ? (
                       <div className="flex items-center gap-2">
-                        <span>
-                          {sale.payment_method}
+                        <div className="flex flex-col">
+                          {sale.payment_method === "Cash on Delivery"
+                            ? "COD"
+                            : sale.payment_method === "Prepaid"
+                            ? "PP"
+                            : sale.payment_method === "Office Visit"
+                            ? "OV"
+                            : sale.payment_method}
                           {sale.payment_method === "Prepaid" &&
                             sale.prepaid_amount && (
-                              <span className="ml-1 text-sm text-gray-500">
-                                (Rs. {sale.prepaid_amount.toLocaleString()})
+                              <span className="text-xs text-gray-500">
+                                Rs. {sale.prepaid_amount.toLocaleString()}
                               </span>
                             )}
-                        </span>
+                        </div>
                         {(sale.payment_method === "Prepaid" ||
                           sale.payment_method === "Office Visit") &&
                           sale.payment_screenshot && (
@@ -274,6 +251,10 @@ export function TableBody({
                               }}
                             />
                           )}
+                      </div>
+                    ) : column.id === "delivery_location" ? (
+                      <div className="whitespace-normal break-words">
+                        {getValueByColumnId(sale, column.id)}
                       </div>
                     ) : column.id === "edit" ? (
                       <Button
@@ -299,6 +280,14 @@ export function TableBody({
                         </svg>
                         Edit
                       </Button>
+                    ) : column.id === "product_sold" ? (
+                      <div className="whitespace-normal break-words">
+                        {sale.order_products.map((item, idx) => (
+                          <div key={item.id || idx}>
+                            {item.product.name} - {item.quantity}
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       getValueByColumnId(sale, column.id)
                     )}
