@@ -57,6 +57,8 @@ export function useTableData() {
           return `Rs. ${Number.parseFloat(
             sale.delivery_charge
           ).toLocaleString()}`;
+        case "delivery_type":
+          return sale.delivery_type;
         case "order_status":
           return sale.order_status;
         default:

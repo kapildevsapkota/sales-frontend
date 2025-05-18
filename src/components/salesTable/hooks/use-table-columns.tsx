@@ -92,6 +92,13 @@ export function useTableColumns() {
       sortable: true,
     },
     {
+      id: "delivery_type",
+      label: "Delivery Type",
+      visible: true,
+      width: 150,
+      sortable: true,
+    },
+    {
       id: "order_status",
       label: "Order Status",
       visible: true,

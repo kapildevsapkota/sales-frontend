@@ -28,6 +28,7 @@ import {
   CreditCardIcon,
   UploadIcon,
   TrashIcon,
+  TruckIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -57,6 +58,11 @@ interface ProductInfo {
   product_id: number;
   name: string;
   quantity: number;
+}
+
+enum DeliveryType {
+  Inside = "Inside valley",
+  Outside = "Outside valley",
 }
 
 export default function CreateOrderForm({
@@ -98,6 +104,7 @@ export default function CreateOrderForm({
       .number()
       .min(0, "Prepaid amount must be at least 0")
       .optional(),
+    delivery_type: z.nativeEnum(DeliveryType),
   });
 
   type OrderFormValues = z.infer<typeof orderSchema>;
@@ -119,6 +126,7 @@ export default function CreateOrderForm({
       payment_method: PaymentMethod.CashOnDelivery,
       payment_screenshot: undefined,
       prepaid_amount: 0,
+      delivery_type: DeliveryType.Inside,
     },
   });
 
@@ -308,6 +316,7 @@ export default function CreateOrderForm({
       formData.append("remarks", data.remarks || "");
       formData.append("order_products", JSON.stringify(orderProducts));
       formData.append("delivery_charge", data.delivery_charge.toString());
+      formData.append("delivery_type", data.delivery_type);
       formData.append(
         "prepaid_amount",
         data.payment_method === "Office Visit"
@@ -780,15 +789,64 @@ export default function CreateOrderForm({
                   name="remarks"
                   render={({ field }) => (
                     <FormItem className="mb-6">
-                      <FormLabel className="text-sm font-medium">
-                        Additional Remarks
-                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Add any special instructions or notes here"
                           className="min-h-[120px] border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
                           {...field}
                         />
+                      </FormControl>
+                      <FormMessage className="text-red-500 text-xs mt-1" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* inside or outside delivery */}
+              <div className="mb-8">
+                <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold text-green-700">
+                  Inside or Outside Delivery
+                </h2>
+                <FormField
+                  control={form.control}
+                  name="delivery_type"
+                  render={({ field }) => (
+                    <FormItem className="mb-6">
+                      <FormLabel className="text-sm font-medium flex items-center">
+                        Delivery Type{" "}
+                        <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                          {Object.values(DeliveryType).map((type) => (
+                            <label
+                              key={type}
+                              className={`flex items-center p-4 rounded-md cursor-pointer transition-colors border
+                                ${
+                                  field.value === type
+                                    ? "bg-green-50 border-green-200 ring-2 ring-green-200"
+                                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                                }`}
+                            >
+                              <input
+                                type="radio"
+                                value={type}
+                                checked={field.value === type}
+                                onChange={() => field.onChange(type)}
+                                className="mr-3 h-4 w-4 text-green-600 focus:ring-green-500"
+                              />
+                              <div className="flex items-center">
+                                <TruckIcon
+                                  size={18}
+                                  className="mr-2 text-gray-600"
+                                />
+                                <span className="text-sm font-medium">
+                                  {type}
+                                </span>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
                       </FormControl>
                       <FormMessage className="text-red-500 text-xs mt-1" />
                     </FormItem>
