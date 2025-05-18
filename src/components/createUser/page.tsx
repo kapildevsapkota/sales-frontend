@@ -50,25 +50,66 @@ interface Factory {
 }
 
 const formSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
   phone_number: z.string().min(1, "Phone number is required"),
   address: z.string().min(1, "Address is required"),
   role: z.enum(
-    ["SuperAdmin", "Distributor", "Franchise", "SalesPerson", "Others"],
+    [
+      "SuperAdmin",
+      "Distributor",
+      "Franchise",
+      "SalesPerson",
+      "Others",
+      "Logistic",
+      "Treatment Staff",
+      "Packaging",
+    ],
     {
       required_error: "Role is required",
     }
   ),
   distributor: z.number().nullable(),
   franchise: z.number().nullable(),
-  isActive: z.boolean(),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().optional(),
   factory: z.number().nullable(),
 });
 
-export default function CreateAccountForm() {
+export type CreateUserFormData = z.infer<typeof formSchema>;
+
+interface CreateAccountFormProps {
+  initialValues?: CreateUserFormData;
+  isEditMode?: boolean;
+}
+
+// Helper to clean form data based on role
+function cleanFormData(values: z.infer<typeof formSchema>) {
+  const cleaned = { ...values };
+  const role = values.role;
+
+  // Remove fields not relevant for the selected role
+  if (role === Role.SuperAdmin) {
+    // All fields relevant
+  } else if (role === Role.Distributor) {
+    cleaned.factory = null;
+    cleaned.distributor = null;
+  } else if (role === Role.Franchise) {
+    cleaned.factory = null;
+    cleaned.distributor = null;
+    cleaned.franchise = null;
+  } else {
+    cleaned.factory = null;
+    cleaned.distributor = null;
+    cleaned.franchise = null;
+  }
+  return cleaned;
+}
+
+export default function CreateAccountForm({
+  initialValues,
+  isEditMode = false,
+}: CreateAccountFormProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -77,15 +118,14 @@ export default function CreateAccountForm() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [factories, setFactories] = useState<Factory[]>([]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<CreateUserFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      isActive: true,
+    defaultValues: initialValues || {
       role: undefined,
       distributor: null,
       franchise: null,
-      firstName: "",
-      lastName: "",
+      first_name: "",
+      last_name: "",
       email: "",
       phone_number: "",
       address: "",
@@ -93,6 +133,12 @@ export default function CreateAccountForm() {
       factory: null,
     },
   });
+
+  useEffect(() => {
+    if (isEditMode && initialValues) {
+      form.reset(initialValues);
+    }
+  }, [isEditMode, initialValues, form]);
 
   useEffect(() => {
     const fetchDistributors = async () => {
@@ -143,41 +189,63 @@ export default function CreateAccountForm() {
         !values.phone_number ||
         !values.address ||
         !values.role ||
-        !values.password
+        (!isEditMode && !values.password)
       ) {
         console.error("Missing required fields:", { values });
         throw new Error("Please fill in all required fields");
       }
 
-      const formData = {
-        first_name: values.firstName,
-        last_name: values.lastName,
-        email: values.email,
-        phone_number: values.phone_number,
-        address: values.address,
-        role: values.role,
-        distributor: values.distributor,
-        franchise: values.franchise,
-        password: values.password,
-        is_active: values.isActive,
-        factory: values.factory,
-      };
+      // Clean the form data before sending
+      const cleanedValues = cleanFormData(values);
+
+      // Filter out null or undefined fields
+      const formData = Object.fromEntries(
+        Object.entries({
+          first_name: cleanedValues.first_name,
+          last_name: cleanedValues.last_name,
+          email: cleanedValues.email,
+          phone_number: cleanedValues.phone_number,
+          address: cleanedValues.address,
+          role: cleanedValues.role,
+          distributor: cleanedValues.distributor,
+          franchise: cleanedValues.franchise,
+          password: cleanedValues.password,
+          factory: cleanedValues.factory,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        }).filter(([_, v]) => v !== null && v !== undefined)
+      );
 
       const token = localStorage.getItem("accessToken"); // Retrieve the token from local storage
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Add the token to the Authorization header
-          },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        }
-      );
+      let response;
+      if (isEditMode) {
+        response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/${initialValues?.phone_number}/`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+            },
+            credentials: "include",
+            body: JSON.stringify(formData),
+          }
+        );
+      } else {
+        response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+            },
 
+            credentials: "include",
+            body: JSON.stringify(formData),
+          }
+        );
+      }
       const responseData = await response.json();
 
       if (!response.ok) {
@@ -194,7 +262,7 @@ export default function CreateAccountForm() {
         variant: "default",
       });
 
-      router.push("/admin");
+      router.push("/admin/usermanagement");
     } catch (error) {
       console.error("Submission error:", error);
       toast({
@@ -277,11 +345,11 @@ export default function CreateAccountForm() {
                       Personal Information
                     </h3>
                   </div>
-                  
+
                   <div className="grid gap-6 md:grid-cols-2">
                     <FormField
                       control={form.control}
-                      name="firstName"
+                      name="first_name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium text-gray-700">
@@ -300,7 +368,7 @@ export default function CreateAccountForm() {
                     />
                     <FormField
                       control={form.control}
-                      name="lastName"
+                      name="last_name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium text-gray-700">
@@ -388,7 +456,7 @@ export default function CreateAccountForm() {
                       Account Settings
                     </h3>
                   </div>
-                  
+
                   <div className="grid gap-6 md:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -405,7 +473,7 @@ export default function CreateAccountForm() {
                               form.setValue("franchise", null);
                               form.setValue("factory", null);
                             }}
-                            defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger className="h-11 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
@@ -424,26 +492,28 @@ export default function CreateAccountForm() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium text-gray-700">
-                            Password
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter password"
-                              {...field}
-                              className="h-11 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
-                            />
-                          </FormControl>
-                          <FormMessage className="text-red-500" />
-                        </FormItem>
-                      )}
-                    />
+                    {!isEditMode && (
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-gray-700">
+                              Password
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Enter password"
+                                {...field}
+                                className="h-11 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                              />
+                            </FormControl>
+                            <FormMessage className="text-red-500" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     {showFieldsByRole(form.watch("role")).showFactory && (
                       <FormField
                         control={form.control}
@@ -566,16 +636,35 @@ export default function CreateAccountForm() {
                     className="px-10 py-3 h-12 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 transition-colors text-white shadow-md hover:shadow-lg text-base focus:ring-4 focus:ring-blue-200"
                     disabled={loading}
                   >
-                    {loading ? 
+                    {loading ? (
                       <span className="flex items-center gap-2">
-                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg
+                          className="animate-spin h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         Processing...
                       </span>
-                      : "Create Account"
-                    }
+                    ) : isEditMode ? (
+                      "Update Account"
+                    ) : (
+                      "Create Account"
+                    )}
                   </Button>
                 </div>
               </form>

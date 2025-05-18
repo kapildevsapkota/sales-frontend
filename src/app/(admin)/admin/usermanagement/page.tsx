@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Users, UserPlus, Pencil, Trash2, AlertCircle, Check, X } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { Users, UserPlus, Pencil, Trash2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Role } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Card,
   CardContent,
@@ -39,15 +48,16 @@ interface User {
 }
 
 export default function UserManagementPage() {
-  const { user: currentUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedUserPhone, setSelectedUserPhone] = useState<string | null>(null);
+  const [selectedUserPhone, setSelectedUserPhone] = useState<string | null>(
+    null
+  );
   const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -55,66 +65,33 @@ export default function UserManagementPage() {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const getAccessToken = () => {
-    if (currentUser && 'token' in currentUser) {
-      return (currentUser as any).token;
-    }
-    const storedToken = localStorage.getItem("accessToken");
-    if (storedToken) {
-      return storedToken;
-    }
-    return null;
-  };
-
-  const token = getAccessToken();
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      if (!token) {
-        setError("Authentication token not found");
-        setLoading(false);
-        return;
-      }
-      
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-      
-      const response = await fetch(`${baseUrl}/api/account/users/`, { headers });
-      
-      if (!response.ok) {
-        let errorText;
-        try {
-          const errorData = await response.json();
-          errorText = typeof errorData === "object" ? 
-            JSON.stringify(errorData) : 
-            `Error: ${response.status} ${response.statusText}`;
-        } catch (e) {
-          errorText = `Error: ${response.status} ${response.statusText}`;
-        }
-        
-        throw new Error(`Failed to fetch users: ${errorText}`);
-      }
-      
-      const usersData = await response.json();
-      setUsers(usersData);
-    } catch (error) {
+      const response = await api.get("/api/account/users/");
+      setUsers(response.data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       console.error("Error fetching users:", error);
-      setError(error instanceof Error ? error.message : "Failed to fetch users");
+      setError(
+        error?.response?.data?.detail ||
+          error.message ||
+          "Failed to fetch users"
+      );
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch users",
+        description:
+          error?.response?.data?.detail ||
+          error.message ||
+          "Failed to fetch users",
         variant: "destructive",
       });
     } finally {
@@ -124,14 +101,17 @@ export default function UserManagementPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [token]); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCreateUser = () => {
     router.push("/admin/usermanagement/createuser");
   };
 
   const handleEditUser = (phoneNumber: string) => {
-    router.push(`/admin/usermanagement/edituser/${encodeURIComponent(phoneNumber)}`);
+    router.push(
+      `/admin/usermanagement/edituser/${encodeURIComponent(phoneNumber)}`
+    );
   };
 
   const handleRefresh = () => {
@@ -143,44 +123,22 @@ export default function UserManagementPage() {
 
     setLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-      const response = await fetch(
-        `${baseUrl}/api/account/users/${encodeURIComponent(selectedUserPhone)}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      await api.delete(
+        `/account/users/${encodeURIComponent(selectedUserPhone)}/`
       );
-
-      if (!response.ok) {
-        let errorMessage = "Failed to delete user";
-        try {
-          const errorData = await response.json();
-          errorMessage = typeof errorData === "object" ? 
-            JSON.stringify(errorData) : 
-            `Error: ${response.status} ${response.statusText}`;
-        } catch (e) {
-          // Keep default error message
-        }
-        throw new Error(errorMessage);
-      }
-
       toast({
         title: "Success",
         description: "User deleted successfully!",
         variant: "default",
       });
-
-      setUsers(users.filter(user => user.phone_number !== selectedUserPhone));
-    } catch (error) {
+      setUsers(users.filter((user) => user.phone_number !== selectedUserPhone));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       console.error("Deletion error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description:
+          error?.response?.data?.detail || error.message || "An error occurred",
         variant: "destructive",
       });
     } finally {
@@ -188,22 +146,6 @@ export default function UserManagementPage() {
       setIsDeleteDialogOpen(false);
     }
   };
-
-  if (!token) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Authentication token not found. Please log in again.
-          </AlertDescription>
-        </Alert>
-        <div className="mt-4">
-          <Button onClick={() => router.push("/login")}>Go to Login</Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -220,10 +162,18 @@ export default function UserManagementPage() {
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
-              <Button onClick={handleRefresh} variant="outline" disabled={loading} className="w-full md:w-auto">
+              <Button
+                onClick={handleRefresh}
+                variant="outline"
+                disabled={loading}
+                className="w-full md:w-auto"
+              >
                 {loading ? "Loading..." : "Refresh"}
               </Button>
-              <Button onClick={handleCreateUser} className="gap-2 w-full md:w-auto">
+              <Button
+                onClick={handleCreateUser}
+                className="gap-2 w-full md:w-auto"
+              >
                 <UserPlus className="w-4 h-4" />
                 Add User
               </Button>
@@ -237,7 +187,7 @@ export default function UserManagementPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           {loading && users.length === 0 ? (
             <div className="flex justify-center items-center h-64">
               <p>Loading data...</p>
@@ -250,7 +200,6 @@ export default function UserManagementPage() {
                   {users.map((user) => (
                     <div key={user.id} className="border rounded-lg p-3">
                       <div className="flex items-start gap-3">
-                       
                         <div className="flex-1">
                           <div className="font-medium">
                             {user.first_name} {user.last_name}
@@ -284,7 +233,9 @@ export default function UserManagementPage() {
                           variant="destructive"
                           onClick={() => {
                             setSelectedUserPhone(user.phone_number);
-                            setSelectedUserName(`${user.first_name} ${user.last_name}`);
+                            setSelectedUserName(
+                              `${user.first_name} ${user.last_name}`
+                            );
                             setIsDeleteDialogOpen(true);
                           }}
                           className="flex-1"
@@ -324,7 +275,9 @@ export default function UserManagementPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleEditUser(user.phone_number)}
+                                onClick={() =>
+                                  handleEditUser(user.phone_number)
+                                }
                               >
                                 <Pencil className="h-4 w-4 mr-1" /> Edit
                               </Button>
@@ -333,7 +286,9 @@ export default function UserManagementPage() {
                                 variant="destructive"
                                 onClick={() => {
                                   setSelectedUserPhone(user.phone_number);
-                                  setSelectedUserName(`${user.first_name} ${user.last_name}`);
+                                  setSelectedUserName(
+                                    `${user.first_name} ${user.last_name}`
+                                  );
                                   setIsDeleteDialogOpen(true);
                                 }}
                               >
@@ -365,8 +320,16 @@ export default function UserManagementPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user
-              {selectedUserName && <span> <strong>{selectedUserName}</strong></span>} with phone number <strong>{selectedUserPhone}</strong> and remove all associated data.
+              This action cannot be undone. This will permanently delete the
+              user
+              {selectedUserName && (
+                <span>
+                  {" "}
+                  <strong>{selectedUserName}</strong>
+                </span>
+              )}{" "}
+              with phone number <strong>{selectedUserPhone}</strong> and remove
+              all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
