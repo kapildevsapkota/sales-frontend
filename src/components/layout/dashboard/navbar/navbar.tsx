@@ -8,6 +8,7 @@ import {
   type LucideIcon,
   LogOut,
   Menu,
+  Users,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -64,6 +65,11 @@ const items: MenuItem[] = [
     label: "User Management",
     icon: UserPlus,
     href: "/admin/usermanagement",
+  },
+  {
+    label: "Sales Persons",
+    icon: Users,
+    href: "/admin/salesPersons",
   },
 ];
 
