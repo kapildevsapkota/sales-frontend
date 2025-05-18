@@ -35,22 +35,10 @@ export default function SalesTable() {
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Custom hooks
-  const {
-    columns,
-    toggleColumnVisibility,
-    showAllColumns,
-    hideAllColumns,
-    handleResizeStart,
-  } = useTableColumns();
+  const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
+    useTableColumns();
 
-  const {
-    sortField,
-    sortDirection,
-    handleSort,
-    sortData,
-    getValueByColumnId,
-    getSortIcon,
-  } = useTableData();
+  const { getValueByColumnId } = useTableData();
 
   const {
     showFilterForm,
@@ -254,21 +242,17 @@ export default function SalesTable() {
       // Apply filters
       const filtered = applyFilters(dataToSort);
 
-      // Apply sorting
-      const sorted = sortData(filtered, sortField, sortDirection);
-      setDisplayData(sorted);
+      setDisplayData(filtered);
     }
   }, [
     sales,
-    sortField,
-    sortDirection,
-    sortData,
     searchInput,
     applyFilters,
     paymentMethod,
     orderStatus,
     deliveryType,
   ]);
+
   useEffect(() => {
     fetchSales(currentPage);
   }, [fetchSales, currentPage]);
@@ -330,9 +314,10 @@ export default function SalesTable() {
   };
 
   return (
-    <div className="container-fluid px-2 py-2">
+    <div className="relative flex flex-col min-h-screen px-2 py-2">
       {/* Header Section */}
       <TableHeader
+        className="sticky top-[64px] z-10 py-2 bg-white"
         columns={columns}
         toggleColumnVisibility={toggleColumnVisibility}
         showAllColumns={showAllColumns}
@@ -359,6 +344,7 @@ export default function SalesTable() {
 
       {showExportModal && (
         <ExportModal
+          open={showExportModal}
           exportDateRange={exportDateRange}
           setExportDateRange={setExportDateRange}
           handleExportCSV={handleExportCSV}
@@ -374,7 +360,8 @@ export default function SalesTable() {
         />
       )}
 
-      <div className="overflow-x-auto border rounded-md h-[calc(100vh-180px)]">
+      {/* Table body should take all available space and be scrollable */}
+      <div className="flex-1 overflow-auto border rounded-md my-2">
         <TableBody
           tableRef={tableRef as React.RefObject<HTMLTableElement>}
           columns={columns}
@@ -382,9 +369,6 @@ export default function SalesTable() {
           displayData={displayData}
           currentPage={currentPage}
           pageSize={pageSize}
-          handleSort={handleSort}
-          getSortIcon={getSortIcon}
-          handleResizeStart={handleResizeStart}
           getValueByColumnId={getValueByColumnId}
           handleStatusChange={handleStatusChange}
           handleEdit={handleEdit}
@@ -393,14 +377,17 @@ export default function SalesTable() {
         />
       </div>
 
+      {/* Pagination pinned to the bottom */}
       {sales && (
-        <TablePagination
-          currentPage={currentPage}
-          pageSize={pageSize}
-          totalCount={sales.count || 0}
-          hasNext={!!sales.next}
-          fetchSales={fetchSales}
-        />
+        <div className="sticky bottom-0 z-10 bg-white mt-2 border-t border-gray-200">
+          <TablePagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalCount={sales.count || 0}
+            hasNext={!!sales.next}
+            fetchSales={fetchSales}
+          />
+        </div>
       )}
     </div>
   );

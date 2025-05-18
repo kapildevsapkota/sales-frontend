@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,7 @@ import {
 } from "@/components/ui/table";
 import { TableColumnHeader } from "./TableColumnHeader";
 import { formatTimestamp } from "@/utils/formatters";
-import type {
-  SaleItem,
-  SalesResponse,
-  Column,
-  SortDirection,
-} from "@/types/sale";
+import type { SaleItem, SalesResponse, Column } from "@/types/sale";
 
 interface SalesTableProps {
   columns: Column[];
@@ -45,73 +40,8 @@ export function SalesTable({
   onViewPaymentImage,
   onPageChange,
 }: SalesTableProps) {
-  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
-  const [startX, setStartX] = useState(0);
-  const [startWidth, setStartWidth] = useState(0);
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   const router = useRouter();
-
-  // Column resize handlers
-  const handleResizeStart = (
-    e: React.MouseEvent,
-    columnId: string,
-    initialWidth: number
-  ) => {
-    setResizingColumn(columnId);
-    setStartX(e.clientX);
-    setStartWidth(initialWidth);
-    document.addEventListener("mousemove", handleResizeMove);
-    document.addEventListener("mouseup", handleResizeEnd);
-    e.preventDefault();
-  };
-
-  const handleResizeMove = useCallback(
-    (e: MouseEvent) => {
-      if (resizingColumn) {
-        const column = columns.find((col) => col.id === resizingColumn);
-        if (column) {
-          const newWidth = Math.max(50, startWidth + (e.clientX - startX));
-          console.log(newWidth);
-        }
-      }
-    },
-    [columns, resizingColumn, startWidth, startX]
-  );
-
-  const handleResizeEnd = useCallback(() => {
-    setResizingColumn(null);
-    document.removeEventListener("mousemove", handleResizeMove);
-    document.removeEventListener("mouseup", handleResizeEnd);
-  }, [handleResizeMove]);
-
-  // Clean up event listeners
-  useEffect(() => {
-    return () => {
-      document.removeEventListener("mousemove", handleResizeMove);
-      document.removeEventListener("mouseup", handleResizeEnd);
-    };
-  }, [handleResizeMove, handleResizeEnd]);
-
-  // Handle sort change
-  const handleSort = (columnId: string) => {
-    if (columnId === sortField) {
-      // Toggle direction if same field
-      if (sortDirection === "asc") {
-        setSortDirection("desc");
-      } else if (sortDirection === "desc") {
-        setSortField(null);
-        setSortDirection(null);
-      } else {
-        setSortDirection("asc");
-      }
-    } else {
-      // New field, set to ascending
-      setSortField(columnId);
-      setSortDirection("asc");
-    }
-  };
 
   // Function to handle sending order to WhatsApp
   const handleSendOrder = (sale: SaleItem) => {
@@ -297,14 +227,7 @@ Please process this order promptly! 🚀
               {columns
                 .filter((col) => col.visible)
                 .map((column) => (
-                  <TableColumnHeader
-                    key={column.id}
-                    column={column}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onSort={handleSort}
-                    onResizeStart={handleResizeStart}
-                  />
+                  <TableColumnHeader key={column.id} column={column} />
                 ))}
             </tr>
           </TableHeader>
