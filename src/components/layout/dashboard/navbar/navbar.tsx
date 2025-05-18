@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   X,
+  Users,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -56,6 +57,11 @@ const items: MenuItem[] = [
     label: "Create User",
     icon: UserPlus,
     href: "/admin/createUser",
+  },
+  {
+    label: "Sales Persons",
+    icon: Users,
+    href: "/admin/salesPersons",
   },
 ];
 
