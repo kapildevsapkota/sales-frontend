@@ -1,10 +1,9 @@
-import React from 'react'
-import EditUserPage from './EditUserPage'
+import EditUserPage from "./EditUserPage";
 
-function page({ params }: { params: { id: string } }) {
-  return (
-    <EditUserPage params={params} />
-  )
+export default async function Page({
+  params,
+}: {
+  params: { id: string }
+}) {
+  return <EditUserPage id={params.id} />;
 }
-
-export default page
