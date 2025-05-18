@@ -310,6 +310,7 @@ export default function SalesTable() {
 
       {showExportModal && (
         <ExportModal
+          open={showExportModal}
           exportDateRange={exportDateRange}
           setExportDateRange={setExportDateRange}
           handleExportCSV={handleExportCSV}
