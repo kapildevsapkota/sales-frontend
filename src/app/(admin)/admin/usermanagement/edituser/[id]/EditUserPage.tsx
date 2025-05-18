@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { UserPlus } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { Role } from "@/contexts/AuthContext";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   Form,
   FormControl,
@@ -28,25 +29,17 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Role } from "@/contexts/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface Distributor {
-  id: number;
-  name: string;
-  short_form: string;
-}
 
-interface Franchise {
+interface User {
   id: number;
-  name: string;
-  short_form: string | null;
-  distributor: number;
-}
-
-interface Factory {
-  id: number;
-  name: string;
-  short_form: string | null;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  role: Role;
 }
 
 const formSchema = z.object({
@@ -64,18 +57,17 @@ const formSchema = z.object({
   distributor: z.number().nullable(),
   franchise: z.number().nullable(),
   isActive: z.boolean(),
-  password: z.string().min(1, "Password is required"),
   factory: z.number().nullable(),
 });
 
-export default function CreateAccountForm() {
-  const { user } = useAuth();
+export default function EditUserPage({ params }: { params: { id: string } }) {
+  const phoneNumber = decodeURIComponent(params.id);
+  const { user: currentUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [distributors, setDistributors] = useState<Distributor[]>([]);
-  const [franchises, setFranchises] = useState<Franchise[]>([]);
-  const [factories, setFactories] = useState<Factory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -89,64 +81,76 @@ export default function CreateAccountForm() {
       email: "",
       phone_number: "",
       address: "",
-      password: "",
       factory: null,
     },
   });
 
   useEffect(() => {
-    const fetchDistributors = async () => {
+    const fetchUserData = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          throw new Error("Authentication token not found");
+        }
+
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/distributors/`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/${encodeURIComponent(phoneNumber)}/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+
         const data = await response.json();
-        setDistributors(data);
+        setUserData(data);
+
+        // Set form values
+        form.reset({
+          firstName: data.first_name,
+          lastName: data.last_name,
+          email: data.email,
+          phone_number: data.phone_number,
+          address: data.address,
+          role: data.role,
+        });
+
+        // Fetch related data based on user role
+        if (data.role === Role.Franchise || data.role === Role.SalesPerson) {
+          await (data.distributor);
+        }
       } catch (error) {
-        console.error("Error fetching distributors:", error);
+        console.error("Error fetching user data:", error);
+        setError(error instanceof Error ? error.message : "An error occurred");
+        toast({
+          title: "Error",
+          description: "Failed to fetch user data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
     };
-    fetchDistributors();
-  }, []);
 
-  const fetchFranchises = async (distributorId: number) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account/distributors/${distributorId}/franchises/`
-      );
-      const data = await response.json();
-      setFranchises(data);
-    } catch (error) {
-      console.error("Error fetching franchises:", error);
-    }
-  };
+    fetchUserData();
+    
+  }, [phoneNumber]);
 
-  useEffect(() => {
-    const fetchFactories = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/factories/`
-        );
-        const data = await response.json();
-        setFactories(data);
-      } catch (error) {
-        console.error("Error fetching factories:", error);
-      }
-    };
-    fetchFactories();
-  }, []);
+  
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
-      if (
-        !values.phone_number ||
-        !values.address ||
-        !values.role ||
-        !values.password
-      ) {
-        console.error("Missing required fields:", { values });
-        throw new Error("Please fill in all required fields");
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("Authentication token not found");
       }
 
       const formData = {
@@ -156,70 +160,41 @@ export default function CreateAccountForm() {
         phone_number: values.phone_number,
         address: values.address,
         role: values.role,
-        distributor: values.distributor,
-        franchise: values.franchise,
-        password: values.password,
-        is_active: values.isActive,
-        factory: values.factory,
       };
 
-      const token = localStorage.getItem("accessToken"); // Retrieve the token from local storage
-
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/${encodeURIComponent(phoneNumber)}/`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+            Authorization: `Bearer ${token}`,
           },
-          credentials: "include",
           body: JSON.stringify(formData),
         }
       );
 
-      const responseData = await response.json();
-
       if (!response.ok) {
-        throw new Error(
-          typeof responseData === "object"
-            ? JSON.stringify(responseData)
-            : "Failed to create user"
-        );
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update user");
       }
 
       toast({
         title: "Success",
-        description: "User account created successfully!",
+        description: "User updated successfully!",
         variant: "default",
       });
 
-      router.push("/admin");
+      router.push("/admin/usermanagement");
     } catch (error) {
-      console.error("Submission error:", error);
+      console.error("Update error:", error);
       toast({
         title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to create user",
+        description: error instanceof Error ? error.message : "Failed to update user",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getRoleOptions = () => {
-    if (!user) return [];
-
-    switch (user.role) {
-      case Role.SuperAdmin:
-        return [Role.Distributor, Role.Franchise, Role.Logistic];
-      case Role.Franchise:
-        return [Role.SalesPerson, Role.TreatmentStaff, Role.Packaging];
-      case Role.Distributor:
-        return [Role.Franchise];
-      default:
-        return [];
     }
   };
 
@@ -244,6 +219,13 @@ export default function CreateAccountForm() {
           showDistributor: false,
           showFranchise: true,
         };
+      case Role.Franchise:
+      case Role.SalesPerson:
+        return {
+          showFactory: false,
+          showDistributor: true,
+          showFranchise: true,
+        };
       default:
         return {
           showFactory: false,
@@ -253,22 +235,57 @@ export default function CreateAccountForm() {
     }
   };
 
+  if (loading && !userData) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading user data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <div className="mt-4">
+          <Button onClick={() => router.push("/admin/usermanagement")}>
+            Back to User Management
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive">
+          <AlertDescription>User not found</AlertDescription>
+        </Alert>
+        <div className="mt-4">
+          <Button onClick={() => router.push("/admin/usermanagement")}>
+            Back to User Management
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-center w-full bg-gray-50 py-8">
       <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <Card className="shadow-lg border border-gray-200 bg-white rounded-xl overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
             <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl font-bold text-white">
-              <UserPlus className="w-7 h-7" />
-              Create New Account
+              <Pencil className="w-7 h-7" />
+              Edit User: {userData.first_name} {userData.last_name}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 md:p-8">
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-8"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 {/* Personal Information Section */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
@@ -351,6 +368,7 @@ export default function CreateAccountForm() {
                               placeholder="+977 9812345678"
                               {...field}
                               className="h-11 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                              disabled
                             />
                           </FormControl>
                           <FormMessage className="text-red-500" />
@@ -406,6 +424,7 @@ export default function CreateAccountForm() {
                               form.setValue("factory", null);
                             }}
                             defaultValue={field.value}
+                            disabled={currentUser?.role !== Role.SuperAdmin}
                           >
                             <FormControl>
                               <SelectTrigger className="h-11 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
@@ -413,33 +432,13 @@ export default function CreateAccountForm() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="shadow-lg border-gray-200">
-                              {getRoleOptions().map((role) => (
+                              {Object.values(Role).map((role) => (
                                 <SelectItem key={role} value={role}>
                                   {role}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage className="text-red-500" />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium text-gray-700">
-                            Password
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter password"
-                              {...field}
-                              className="h-11 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
-                            />
-                          </FormControl>
                           <FormMessage className="text-red-500" />
                         </FormItem>
                       )}
@@ -464,103 +463,54 @@ export default function CreateAccountForm() {
                                   <SelectValue placeholder="Select a factory" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent className="shadow-lg border-gray-200">
-                                {factories.map((factory) => (
-                                  <SelectItem
-                                    key={factory.id}
-                                    value={factory.id.toString()}
-                                  >
-                                    {factory.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
+                             
                             </Select>
                             <FormMessage className="text-red-500" />
                           </FormItem>
                         )}
                       />
                     )}
-                    {showFieldsByRole(form.watch("role")).showDistributor && (
-                      <FormField
-                        control={form.control}
-                        name="distributor"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              Distributor
-                            </FormLabel>
-                            <Select
-                              onValueChange={(value) => {
-                                const numValue = Number(value);
-                                field.onChange(numValue);
-                                fetchFranchises(numValue);
-                                form.setValue("franchise", null);
-                                form.setValue("factory", null);
-                              }}
-                              value={field.value?.toString()}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="h-11 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                                  <SelectValue placeholder="Select a distributor" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="shadow-lg border-gray-200">
-                                {distributors.map((distributor) => (
-                                  <SelectItem
-                                    key={distributor.id}
-                                    value={distributor.id.toString()}
-                                  >
-                                    {distributor.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage className="text-red-500" />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    {showFieldsByRole(form.watch("role")).showFranchise && (
-                      <FormField
-                        control={form.control}
-                        name="franchise"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              Franchise
-                            </FormLabel>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(Number(value));
-                              }}
-                              value={field.value?.toString()}
-                              disabled={!form.watch("distributor")}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="h-11 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                                  <SelectValue placeholder="Select a franchise" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="shadow-lg border-gray-200">
-                                {franchises.map((franchise) => (
-                                  <SelectItem
-                                    key={franchise.id}
-                                    value={franchise.id.toString()}
-                                  >
-                                    {franchise.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage className="text-red-500" />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                   
+                    <FormField
+                      control={form.control}
+                      name="isActive"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700">
+                            Account Status
+                          </FormLabel>
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(value === "true")
+                            }
+                            value={field.value.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-11 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <SelectValue placeholder="Select account status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="shadow-lg border-gray-200">
+                              <SelectItem value="true">Active</SelectItem>
+                              <SelectItem value="false">Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage className="text-red-500" />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-6 border-t border-gray-100">
+                <div className="flex justify-between pt-6 border-t border-gray-100">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.push("/admin/usermanagement")}
+                    className="px-6 py-3 h-12 rounded-lg font-medium"
+                  >
+                    Cancel
+                  </Button>
                   <Button
                     type="submit"
                     className="px-10 py-3 h-12 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 transition-colors text-white shadow-md hover:shadow-lg text-base focus:ring-4 focus:ring-blue-200"
@@ -572,9 +522,9 @@ export default function CreateAccountForm() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Processing...
+                        Updating...
                       </span>
-                      : "Create Account"
+                      : "Update User"
                     }
                   </Button>
                 </div>

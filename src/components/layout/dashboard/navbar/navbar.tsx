@@ -53,9 +53,9 @@ const items: MenuItem[] = [
     href: "/admin/inventory",
   },
   {
-    label: "Create User",
+    label: "User Management",
     icon: UserPlus,
-    href: "/admin/createUser",
+    href: "/admin/usermanagement",
   },
 ];
 
