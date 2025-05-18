@@ -13,6 +13,7 @@ import { PaymentImageModal } from "./components/payment-image-modal";
 import { useTableColumns } from "./hooks/use-table-columns";
 import { useTableData } from "./hooks/use-table-data";
 import { useTableFilters } from "./hooks/use-table-filters";
+import { DateRange } from "react-day-picker";
 
 export default function SalesTable() {
   const [sales, setSales] = useState<SalesResponse | null>(null);
@@ -24,6 +25,8 @@ export default function SalesTable() {
   const [searchInput, setSearchInput] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [orderStatus, setOrderStatus] = useState("all");
+  const [deliveryType, setDeliveryType] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
@@ -32,22 +35,10 @@ export default function SalesTable() {
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Custom hooks
-  const {
-    columns,
-    toggleColumnVisibility,
-    showAllColumns,
-    hideAllColumns,
-    handleResizeStart,
-  } = useTableColumns();
+  const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
+    useTableColumns();
 
-  const {
-    sortField,
-    sortDirection,
-    handleSort,
-    sortData,
-    getValueByColumnId,
-    getSortIcon,
-  } = useTableData();
+  const { getValueByColumnId } = useTableData();
 
   const {
     showFilterForm,
@@ -86,6 +77,26 @@ export default function SalesTable() {
           url += `&order_status=${encodeURIComponent(orderStatus)}`;
         }
 
+        // Add delivery_type parameter if selected
+        if (deliveryType && deliveryType !== "all") {
+          url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
+        }
+
+        const formatDate = (date: Date): string => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
+        if (dateRange?.from) {
+          url += `&start_date=${formatDate(dateRange.from)}`;
+        }
+
+        if (dateRange?.to) {
+          url += `&end_date=${formatDate(dateRange.to)}`;
+        }
+
         const response = await axios.get<SalesResponse>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -104,7 +115,16 @@ export default function SalesTable() {
         setIsLoading(false);
       }
     },
-    [filterTerm, pageSize, applyFilters, showError, paymentMethod, orderStatus]
+    [
+      filterTerm,
+      pageSize,
+      applyFilters,
+      showError,
+      paymentMethod,
+      orderStatus,
+      deliveryType,
+      dateRange,
+    ]
   );
 
   // Update the handleGlobalSearch function
@@ -196,7 +216,6 @@ export default function SalesTable() {
         );
       }
 
-      // Apply client-side order status filter for 1-2 character searches
       if (
         orderStatus &&
         orderStatus !== "all" &&
@@ -208,25 +227,32 @@ export default function SalesTable() {
         );
       }
 
+      // Apply client-side delivery type filter for 1-2 character searches
+      if (
+        deliveryType &&
+        deliveryType !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.delivery_type === deliveryType
+        );
+      }
+
       // Apply filters
       const filtered = applyFilters(dataToSort);
 
-      // Apply sorting
-      const sorted = sortData(filtered, sortField, sortDirection);
-      setDisplayData(sorted);
+      setDisplayData(filtered);
     }
   }, [
     sales,
-    sortField,
-    sortDirection,
-    sortData,
     searchInput,
     applyFilters,
     paymentMethod,
     orderStatus,
+    deliveryType,
   ]);
 
-  // Load initial data
   useEffect(() => {
     fetchSales(currentPage);
   }, [fetchSales, currentPage]);
@@ -236,7 +262,6 @@ export default function SalesTable() {
     router.push(`/sales/orders/edit/${sale.id}`);
   };
 
-  // Add this function to handle status change
   const handleStatusChange = async (saleId: string, newStatus: string) => {
     try {
       const token = localStorage.getItem("accessToken");
@@ -252,14 +277,7 @@ export default function SalesTable() {
         }
       );
 
-      // Update the local state instead of refetching all sales
-      setDisplayData((prevData) =>
-        prevData.map((sale) =>
-          sale.id.toString() === saleId
-            ? { ...sale, order_status: newStatus }
-            : sale
-        )
-      );
+      fetchSales(currentPage);
     } catch (error) {
       console.error("Error updating order status:", error);
       showError("Failed to update order status");
@@ -270,7 +288,7 @@ export default function SalesTable() {
   const handleExportCSV = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const url = `https://sales.baliyoventures.com/api/sales/export-csv`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv`;
 
       const response = await axios.get(url, {
         headers: {
@@ -296,9 +314,10 @@ export default function SalesTable() {
   };
 
   return (
-    <div className="container-fluid px-2 py-2">
+    <div className="relative flex flex-col min-h-screen px-2 py-2">
       {/* Header Section */}
       <TableHeader
+        className="sticky top-[64px] z-10 py-2 bg-white"
         columns={columns}
         toggleColumnVisibility={toggleColumnVisibility}
         showAllColumns={showAllColumns}
@@ -317,10 +336,15 @@ export default function SalesTable() {
         setPaymentMethod={setPaymentMethod}
         orderStatus={orderStatus}
         setOrderStatus={setOrderStatus}
+        deliveryType={deliveryType}
+        setDeliveryType={setDeliveryType}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
       />
 
       {showExportModal && (
         <ExportModal
+          open={showExportModal}
           exportDateRange={exportDateRange}
           setExportDateRange={setExportDateRange}
           handleExportCSV={handleExportCSV}
@@ -336,7 +360,8 @@ export default function SalesTable() {
         />
       )}
 
-      <div className="overflow-x-auto border rounded-md h-[calc(100vh-180px)]">
+      {/* Table body should take all available space and be scrollable */}
+      <div className="flex-1 overflow-auto border rounded-md my-2">
         <TableBody
           tableRef={tableRef as React.RefObject<HTMLTableElement>}
           columns={columns}
@@ -344,9 +369,6 @@ export default function SalesTable() {
           displayData={displayData}
           currentPage={currentPage}
           pageSize={pageSize}
-          handleSort={handleSort}
-          getSortIcon={getSortIcon}
-          handleResizeStart={handleResizeStart}
           getValueByColumnId={getValueByColumnId}
           handleStatusChange={handleStatusChange}
           handleEdit={handleEdit}
@@ -355,14 +377,17 @@ export default function SalesTable() {
         />
       </div>
 
+      {/* Pagination pinned to the bottom */}
       {sales && (
-        <TablePagination
-          currentPage={currentPage}
-          pageSize={pageSize}
-          totalCount={sales.count || 0}
-          hasNext={!!sales.next}
-          fetchSales={fetchSales}
-        />
+        <div className="sticky bottom-0 z-10 bg-white mt-2 border-t border-gray-200">
+          <TablePagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalCount={sales.count || 0}
+            hasNext={!!sales.next}
+            fetchSales={fetchSales}
+          />
+        </div>
       )}
     </div>
   );

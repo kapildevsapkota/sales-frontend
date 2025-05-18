@@ -1,13 +1,5 @@
-import DashboardLayout from "@/components/layout/dashboard";
+import FranchiseLayout from "@/components/layout/dashboard/FranchiseLayout";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <DashboardLayout>
-      <div className="">{children}</div>
-    </DashboardLayout>
-  );
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <FranchiseLayout>{children}</FranchiseLayout>;
 }

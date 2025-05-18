@@ -8,7 +8,6 @@ import {
   type LucideIcon,
   LogOut,
   Menu,
-  X,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -23,6 +22,15 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface MenuItem {
   label: string;
@@ -62,7 +70,13 @@ const items: MenuItem[] = [
 export function AppHeader() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const isMobile = useIsMobile();
+  const [open, setOpen] = React.useState(false);
+
+  // Close Sheet on nav change
+  React.useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -71,25 +85,22 @@ export function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0  w-full border-b bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800">
+    <header className="sticky top-0 z-20  w-full border-b bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800">
       <div className=" px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Desktop Navigation */}
-          <div className="flex items-center">
-            <div className="flex-shrink-0 ">
-              <div className="flex items-center">
-                <Image
-                  src="/image.png"
-                  alt="Logo"
-                  width={40}
-                  height={40}
-                  className="h-9 w-9"
-                />
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 flex items-center gap-2">
+              <Image
+                src="/image.png"
+                alt="Logo"
+                width={40}
+                height={40}
+                className="h-9 w-9 rounded-lg shadow"
+              />
             </div>
-
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex md:space-x-1">
+            <nav className="hidden md:flex md:space-x-2 ml-6">
               {items.map((item) => (
                 <div key={item.label} className="relative px-1">
                   {item.items ? (
@@ -97,7 +108,7 @@ export function AppHeader() {
                       <CollapsibleTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="flex h-10 items-center gap-1.5 rounded-md px-3 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="flex h-10 items-center gap-1.5 rounded-md px-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
                           <item.icon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -113,7 +124,7 @@ export function AppHeader() {
                               key={subItem.href}
                               href={subItem.href}
                               className={cn(
-                                "flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800",
+                                "flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors",
                                 pathname === subItem.href &&
                                   "bg-blue-50 font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
                               )}
@@ -127,7 +138,7 @@ export function AppHeader() {
                   ) : (
                     <Button
                       variant="ghost"
-                      className="flex h-10 items-center gap-1.5 rounded-md px-3 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      className="flex h-10 items-center gap-1.5 rounded-md px-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       asChild
                     >
                       <Link
@@ -156,100 +167,109 @@ export function AppHeader() {
             </nav>
           </div>
 
-          {/* Mobile menu button and User menu */}
-          <div className="flex items-center">
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              size="sm"
-              className="hidden md:flex items-center gap-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              <LogOut className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              <span>Logout</span>
-            </Button>
+          {/* Desktop Logout */}
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            size="sm"
+            className="hidden md:flex items-center gap-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <LogOut className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <span>Logout</span>
+          </Button>
 
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-2 p-1"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                ) : (
-                  <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className={`md:hidden ${mobileMenuOpen ? "block" : "hidden"}`}>
-          <div className="space-y-1 pb-3 pt-2">
-            {items.map((item) => (
-              <div key={item.label} className="px-2">
-                {item.items ? (
-                  <Collapsible className="w-full">
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                      >
-                        <div className="flex items-center">
-                          <item.icon className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                          {item.label}
-                        </div>
-                        <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="space-y-1 pl-10 pt-2">
-                        {item.items.map((subItem) => (
+          {/* Mobile Sheet Trigger */}
+          {isMobile && (
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden ml-2 p-1"
+                  aria-label="Open menu"
+                >
+                  <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[80vw] max-w-xs">
+                <div className="flex flex-col h-full">
+                  <SheetHeader className="px-6 pt-6 pb-2 border-b">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src="/image.png" alt="Logo" />
+                        <AvatarFallback>SH</AvatarFallback>
+                      </Avatar>
+                      <SheetTitle className="text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
+                        SalesHub
+                      </SheetTitle>
+                    </div>
+                  </SheetHeader>
+                  <nav className="flex-1 flex flex-col gap-1 px-2 py-4">
+                    {items.map((item) => (
+                      <React.Fragment key={item.label}>
+                        {item.items ? (
+                          <Collapsible className="w-full">
+                            <CollapsibleTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="flex w-full items-center justify-between px-3 py-2 text-left text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-md"
+                              >
+                                <div className="flex items-center">
+                                  <item.icon className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                  {item.label}
+                                </div>
+                                <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <div className="space-y-1 pl-10 pt-2">
+                                {item.items.map((subItem) => (
+                                  <Link
+                                    key={subItem.href}
+                                    href={subItem.href}
+                                    className={cn(
+                                      "block px-3 py-2 text-base font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
+                                      pathname === subItem.href &&
+                                        "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                    )}
+                                  >
+                                    {subItem.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        ) : (
                           <Link
-                            key={subItem.href}
-                            href={subItem.href}
+                            href={item.href!}
                             className={cn(
-                              "block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800",
-                              pathname === subItem.href &&
-                                "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                              "flex items-center px-3 py-2 text-base font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
+                              pathname === item.href
+                                ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                                : "text-gray-700 dark:text-gray-300"
                             )}
                           >
-                            {subItem.label}
+                            <item.icon className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                            {item.label}
                           </Link>
-                        ))}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                ) : (
-                  <Link
-                    href={item.href!}
-                    className={cn(
-                      "flex items-center px-3 py-2 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-800",
-                      pathname === item.href
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-700 dark:text-gray-300"
-                    )}
-                  >
-                    <item.icon className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                    {item.label}
-                  </Link>
-                )}
-              </div>
-            ))}
-            <div className="px-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                className="flex w-full items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                <LogOut className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                Logout
-              </Button>
-            </div>
-          </div>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </nav>
+                  <div className="mt-auto border-t px-6 py-4">
+                    <Button
+                      onClick={handleLogout}
+                      variant="ghost"
+                      className="flex w-full items-center gap-2 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                      <LogOut className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      Logout
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>

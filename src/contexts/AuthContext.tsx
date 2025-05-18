@@ -23,6 +23,18 @@ export enum Role {
   Packaging = "Packaging",
 }
 
+export const roleMap = {
+  [Role.SalesPerson]: "SalesPerson",
+  [Role.Distributor]: "Distributor",
+  [Role.SuperAdmin]: "SuperAdmin",
+  [Role.Other]: "Other",
+  [Role.Franchise]: "Franchise",
+  [Role.Factory]: "Factory",
+  [Role.TreatmentStaff]: "TreatmentStaff",
+  [Role.Logistic]: "Logistic",
+  [Role.Packaging]: "Packaging",
+};
+
 interface User {
   id: number;
   username: string;
