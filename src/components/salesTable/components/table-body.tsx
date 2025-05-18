@@ -222,7 +222,7 @@ export function TableBody({
                       </div>
                     ) : column.id === "payment_method" ? (
                       <div className="flex items-center gap-2">
-                        <span>
+                        <div className="flex flex-col">
                           {sale.payment_method === "Cash on Delivery"
                             ? "COD"
                             : sale.payment_method === "Prepaid"
@@ -232,11 +232,11 @@ export function TableBody({
                             : sale.payment_method}
                           {sale.payment_method === "Prepaid" &&
                             sale.prepaid_amount && (
-                              <span className="ml-1 text-sm text-gray-500">
-                                (Rs. {sale.prepaid_amount.toLocaleString()})
+                              <span className="text-xs text-gray-500">
+                                Rs. {sale.prepaid_amount.toLocaleString()}
                               </span>
                             )}
-                        </span>
+                        </div>
                         {(sale.payment_method === "Prepaid" ||
                           sale.payment_method === "Office Visit") &&
                           sale.payment_screenshot && (

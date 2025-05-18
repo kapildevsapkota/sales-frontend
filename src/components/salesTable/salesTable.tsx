@@ -379,7 +379,7 @@ export default function SalesTable() {
 
       {/* Pagination pinned to the bottom */}
       {sales && (
-        <div className="sticky bottom-0 z-10 bg-white mt-2">
+        <div className="sticky bottom-0 z-10 bg-white mt-2 border-t border-gray-200">
           <TablePagination
             currentPage={currentPage}
             pageSize={pageSize}
