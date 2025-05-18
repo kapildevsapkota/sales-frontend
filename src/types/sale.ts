@@ -16,6 +16,7 @@ export interface SaleItem {
   prepaid_amount: number | null;
   remaining_amount: number | null;
   alternate_phone_number: string | null;
+  delivery_type: string;
 }
 
 interface OrderProduct {
@@ -47,8 +48,6 @@ export interface Column {
   visible: boolean;
   width: number;
   sortable: boolean;
-  
-  
 }
 
 export type SortDirection = "asc" | "desc" | null;

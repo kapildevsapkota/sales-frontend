@@ -24,6 +24,7 @@ export default function SalesTable() {
   const [searchInput, setSearchInput] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [orderStatus, setOrderStatus] = useState("all");
+  const [deliveryType, setDeliveryType] = useState("all");
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
@@ -86,6 +87,11 @@ export default function SalesTable() {
           url += `&order_status=${encodeURIComponent(orderStatus)}`;
         }
 
+        // Add delivery_type parameter if selected
+        if (deliveryType && deliveryType !== "all") {
+          url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
+        }
+
         const response = await axios.get<SalesResponse>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -104,7 +110,15 @@ export default function SalesTable() {
         setIsLoading(false);
       }
     },
-    [filterTerm, pageSize, applyFilters, showError, paymentMethod, orderStatus]
+    [
+      filterTerm,
+      pageSize,
+      applyFilters,
+      showError,
+      paymentMethod,
+      orderStatus,
+      deliveryType,
+    ]
   );
 
   // Update the handleGlobalSearch function
@@ -208,6 +222,18 @@ export default function SalesTable() {
         );
       }
 
+      // Apply client-side delivery type filter for 1-2 character searches
+      if (
+        deliveryType &&
+        deliveryType !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.delivery_type === deliveryType
+        );
+      }
+
       // Apply filters
       const filtered = applyFilters(dataToSort);
 
@@ -224,6 +250,7 @@ export default function SalesTable() {
     applyFilters,
     paymentMethod,
     orderStatus,
+    deliveryType,
   ]);
 
   // Load initial data
@@ -317,6 +344,8 @@ export default function SalesTable() {
         setPaymentMethod={setPaymentMethod}
         orderStatus={orderStatus}
         setOrderStatus={setOrderStatus}
+        deliveryType={deliveryType}
+        setDeliveryType={setDeliveryType}
       />
 
       {showExportModal && (

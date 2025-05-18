@@ -43,6 +43,8 @@ interface TableHeaderProps {
   setPaymentMethod: (value: string) => void;
   orderStatus: string;
   setOrderStatus: (value: string) => void;
+  deliveryType: string;
+  setDeliveryType: (value: string) => void;
 }
 
 export function TableHeader({
@@ -62,6 +64,8 @@ export function TableHeader({
   setPaymentMethod,
   orderStatus,
   setOrderStatus,
+  deliveryType,
+  setDeliveryType,
 }: TableHeaderProps) {
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
@@ -71,6 +75,20 @@ export function TableHeader({
   const handleOrderStatusChange = (value: string) => {
     setOrderStatus(value);
     fetchSales(1); // Fetch sales with the new filter
+  };
+
+  const handleDeliveryTypeChange = (value: string) => {
+    setDeliveryType(value);
+    fetchSales(1); // Fetch sales with the new filter
+  };
+
+  const handleClearFilters = () => {
+    setSearchInput("");
+    setFilterTerm("");
+    setPaymentMethod("all");
+    setOrderStatus("all");
+    setDeliveryType("all");
+    fetchSales(1);
   };
 
   return (
@@ -126,12 +144,12 @@ export function TableHeader({
         </div>
         <div className="relative w-full md:max-w-xl">
           <div className="flex flex-col md:flex-row items-center gap-2 w-full">
-            <div className="relative w-full">
+            <div className="relative w-full md:w-[400px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
                 type="text"
                 placeholder="Search sales..."
-                className="pl-10 pr-10 h-10 w-full rounded-md border border-gray-300"
+                className="pl-10 pr-10 h-10 w-[15rem] rounded-md border border-gray-300"
                 value={searchInput}
                 onChange={handleSearchInputChange}
               />
@@ -199,10 +217,44 @@ export function TableHeader({
               </Select>
             </div>
 
+            {/* Delivery Type Dropdown */}
+            <div className="w-full md:w-[180px]">
+              <Select
+                value={deliveryType}
+                onValueChange={handleDeliveryTypeChange}
+              >
+                <SelectTrigger className="h-10 w-full">
+                  <SelectValue placeholder="Delivery Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="Inside valley">Inside Valley</SelectItem>
+                  <SelectItem value="Outside valley">Outside Valley</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(searchInput ||
+              paymentMethod !== "all" ||
+              orderStatus !== "all" ||
+              deliveryType !== "all") && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto bg-red-100 hover:bg-red-200"
+                onClick={handleClearFilters}
+              >
+                Clear Filters
+              </Button>
+            )}
+
+            <div className="flex-1 md:ml-[27rem]"></div>
+
             <Button
               variant="outline"
               size="sm"
-              className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto"
+              className="flex items-center gap-1 whitespace-nowrap w-full md:w-auto bg-blue-400"
               onClick={() => setShowExportModal(true)}
             >
               <span>Export CSV</span>
