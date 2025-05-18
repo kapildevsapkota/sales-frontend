@@ -18,7 +18,7 @@ export enum Role {
   Other = "Other",
   Franchise = "Franchise",
   Factory = "Factory",
-  TreatmentStaff = "TreatmentStaff",
+  TreatmentStaff = "Treatment Staff",
   Logistic = "Logistic",
   Packaging = "Packaging",
 }
