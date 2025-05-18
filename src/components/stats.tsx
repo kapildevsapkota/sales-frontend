@@ -43,12 +43,6 @@ export function Stats() {
     fetchStats();
   }, []);
 
-  // Calculate percentage changes
-  const getPercentageChange = (current: number, previous: number) => {
-    if (!previous) return 0;
-    return ((current - previous) / previous) * 100;
-  };
-
   if (loading) {
     return (
       <div className="p-4">

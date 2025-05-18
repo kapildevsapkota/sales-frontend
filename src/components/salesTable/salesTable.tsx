@@ -35,22 +35,10 @@ export default function SalesTable() {
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Custom hooks
-  const {
-    columns,
-    toggleColumnVisibility,
-    showAllColumns,
-    hideAllColumns,
-    handleResizeStart,
-  } = useTableColumns();
+  const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
+    useTableColumns();
 
-  const {
-    sortField,
-    sortDirection,
-    handleSort,
-    sortData,
-    getValueByColumnId,
-    getSortIcon,
-  } = useTableData();
+  const { getValueByColumnId } = useTableData();
 
   const {
     showFilterForm,
@@ -254,21 +242,17 @@ export default function SalesTable() {
       // Apply filters
       const filtered = applyFilters(dataToSort);
 
-      // Apply sorting
-      const sorted = sortData(filtered, sortField, sortDirection);
-      setDisplayData(sorted);
+      setDisplayData(filtered);
     }
   }, [
     sales,
-    sortField,
-    sortDirection,
-    sortData,
     searchInput,
     applyFilters,
     paymentMethod,
     orderStatus,
     deliveryType,
   ]);
+
   useEffect(() => {
     fetchSales(currentPage);
   }, [fetchSales, currentPage]);
@@ -385,9 +369,6 @@ export default function SalesTable() {
           displayData={displayData}
           currentPage={currentPage}
           pageSize={pageSize}
-          handleSort={handleSort}
-          getSortIcon={getSortIcon}
-          handleResizeStart={handleResizeStart}
           getValueByColumnId={getValueByColumnId}
           handleStatusChange={handleStatusChange}
           handleEdit={handleEdit}

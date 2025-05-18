@@ -5,41 +5,36 @@ import type { Column } from "@/types/sale";
 
 export function useColumns() {
   const [columns, setColumns] = useState<Column[]>([
-    { id: "index", label: "#", visible: true, width: 50, sortable: true },
+    { id: "index", label: "#", visible: true, width: 50 },
     {
       id: "timestamp",
       label: "Timestamp",
       visible: true,
       width: 120,
-      sortable: true,
     },
     {
       id: "full_name",
       label: "Full Name",
       visible: true,
       width: 150,
-      sortable: true,
     },
     {
       id: "delivery_location",
       label: "Delivery Location",
       visible: true,
       width: 180,
-      sortable: true,
     },
     {
       id: "phone_number",
       label: "Phone number",
       visible: true,
       width: 130,
-      sortable: true,
     },
     {
       id: "alternate_phone_number",
       label: "Alternate Phone Number",
       visible: false,
       width: 150,
-      sortable: true,
     },
 
     {
@@ -47,35 +42,30 @@ export function useColumns() {
       label: "Oil Type",
       visible: true,
       width: 120,
-      sortable: true,
     },
     {
       id: "quantity",
       label: "Quantity",
       visible: true,
       width: 80,
-      sortable: true,
     },
     {
       id: "total_amount",
       label: "Total amount",
       visible: true,
       width: 120,
-      sortable: true,
     },
     {
       id: "remaining_amount",
       label: "Remaining Amount",
       visible: true,
       width: 120,
-      sortable: true,
     },
     {
       id: "payment_method",
       label: "Payment method",
       visible: true,
       width: 150,
-      sortable: true,
     },
 
     {
@@ -83,56 +73,48 @@ export function useColumns() {
       label: "Send Order",
       visible: true,
       width: 120,
-      sortable: false,
     },
     {
       id: "edit",
       label: "Edit",
       visible: true,
       width: 100,
-      sortable: false,
     },
     {
       id: "remarks",
       label: "Remarks [If Any]",
       visible: false,
       width: 150,
-      sortable: true,
     },
     {
       id: "convinced_by",
       label: "Convinced by",
       visible: false,
       width: 120,
-      sortable: true,
     },
     {
       id: "amount_paid",
       label: "Amount Paid",
       visible: false,
       width: 120,
-      sortable: true,
     },
     {
       id: "delivery_charge",
       label: "Delivery Charge",
       visible: false,
       width: 150,
-      sortable: true,
     },
     {
       id: "remaining",
       label: "Remaining",
       visible: false,
       width: 120,
-      sortable: true,
     },
     {
       id: "order_status",
       label: "Order Status",
       visible: true,
       width: 120,
-      sortable: true,
     },
   ]);
 

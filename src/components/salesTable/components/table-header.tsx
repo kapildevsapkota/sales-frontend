@@ -150,7 +150,7 @@ export function TableHeader({
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500 px-2 h-8 min-w-0"
+            className="flex items-center gap-1 whitespace-nowrap bg-yellow-400 hover:bg-yellow-500 px-2 h-8 min-w-0"
             onClick={() => setShowExportModal(true)}
           >
             <span>Export CSV</span>

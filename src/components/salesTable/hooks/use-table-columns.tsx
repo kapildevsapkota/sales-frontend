@@ -1,7 +1,6 @@
 "use client";
 import { Column } from "@/types/sale";
 import { useState, useCallback } from "react";
-import type React from "react";
 
 export function useTableColumns() {
   const [columns, setColumns] = useState<Column[]>([
@@ -98,10 +97,6 @@ export function useTableColumns() {
     },
   ]);
 
-  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
-  const [startX, setStartX] = useState(0);
-  const [startWidth, setStartWidth] = useState(0);
-
   // Toggle column visibility
   const toggleColumnVisibility = useCallback(
     (columnId: string) => {
@@ -124,53 +119,11 @@ export function useTableColumns() {
     setColumns(columns.map((col) => ({ ...col, visible: col.id === "index" })));
   }, [columns]);
 
-  // Column resize handlers
-  const handleResizeStart = useCallback(
-    (e: React.MouseEvent, columnId: string, initialWidth: number) => {
-      setResizingColumn(columnId);
-      setStartX(e.clientX);
-      setStartWidth(initialWidth);
-      document.addEventListener("mousemove", handleResizeMove);
-      document.addEventListener("mouseup", handleResizeEnd);
-      e.preventDefault();
-    },
-    []
-  );
-
-  const handleResizeMove = useCallback(
-    (e: MouseEvent) => {
-      if (resizingColumn) {
-        const column = columns.find((col) => col.id === resizingColumn);
-        if (column) {
-          const newWidth = Math.max(50, startWidth + (e.clientX - startX));
-          setColumns(
-            columns.map((col) =>
-              col.id === resizingColumn ? { ...col, width: newWidth } : col
-            )
-          );
-        }
-      }
-    },
-    [columns, resizingColumn, startWidth, startX]
-  );
-
-  const handleResizeEnd = useCallback(() => {
-    setResizingColumn(null);
-    document.removeEventListener("mousemove", handleResizeMove);
-    document.removeEventListener("mouseup", handleResizeEnd);
-  }, [handleResizeMove]);
-
   return {
     columns,
     setColumns,
     toggleColumnVisibility,
     showAllColumns,
     hideAllColumns,
-    resizingColumn,
-    startX,
-    startWidth,
-    handleResizeStart,
-    handleResizeMove,
-    handleResizeEnd,
   };
 }
