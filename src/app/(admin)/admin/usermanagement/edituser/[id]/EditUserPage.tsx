@@ -81,7 +81,7 @@ export default function EditUserPage({ id }: EditUserPageProps) {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL;
         const response = await fetch(
-          `${baseUrl}/api/account/users/${id}/`,
+          `${baseUrl}/api/account/users/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -126,7 +126,7 @@ export default function EditUserPage({ id }: EditUserPageProps) {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(
-        `${baseUrl}/api/account/users/${id}/`,
+        `${baseUrl}/api/account/users/${id}`,
         {
           method: "PUT",
           headers: {
@@ -245,26 +245,6 @@ export default function EditUserPage({ id }: EditUserPageProps) {
                 required
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select
-                value={userData.role}
-                onValueChange={(value: Role) =>
-                  setUserData({ ...userData, role: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="MANAGER">Manager</SelectItem>
-                  <SelectItem value="USER">User</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="flex gap-4 pt-4">
               <Button
                 type="button"
