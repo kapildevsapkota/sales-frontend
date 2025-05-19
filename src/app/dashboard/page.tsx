@@ -22,7 +22,7 @@ export default function DashboardPage() {
         } else if (user.role === Role.Franchise) {
           router.push("/admin");
         } else if (user.role === Role.Packaging) {
-          router.push("/admin");
+          router.push("/packaging/dashboard");
         }
       }, 3000);
 

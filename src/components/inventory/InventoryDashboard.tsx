@@ -68,9 +68,6 @@ const InventoryDashboard = () => {
     if (userRole === Role.Factory) {
       return true;
     }
-    if (userRole === Role.Packaging) {
-      return tab.id === "franchise" || tab.id === "activity-log";
-    }
     return false;
   });
 
