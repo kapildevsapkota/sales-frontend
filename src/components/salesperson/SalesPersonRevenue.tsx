@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Line,
   LineChart,
@@ -12,6 +11,7 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { format } from "date-fns";
 
 // Define the type for revenue data
 interface RevenueData {
@@ -23,29 +23,42 @@ interface RevenueData {
 export function SalesPersonRevenue({
   timeframe,
   phoneNumber,
+  date,
 }: {
   timeframe: string;
   phoneNumber: string;
+  date: Date | undefined;
 }) {
   const [data, setData] = useState<RevenueData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRevenueData = async () => {
+      setLoading(true);
       try {
+        // Build query parameters
+        let queryParams = `filter=${timeframe}`;
+
+        // Add date filter if it exists
+        if (date) {
+          queryParams += `&date=${format(date, "yyyy-MM-dd")}`;
+        }
+
         const response = await api.get(
-          `/api/sales/salesperson/${phoneNumber}/revenue/?filter=${timeframe}`
+          `/api/sales/salesperson/${phoneNumber}/revenue/?${queryParams}`
         );
         console.log("sales person revenue", response.data);
-
         // Update this line to access `.data` instead of `.revenue_data`
         setData(response.data.data);
       } catch (error) {
         console.error("Error fetching salesperson revenue:", error);
+        setData([]);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchRevenueData();
-  }, [timeframe, phoneNumber]);
+  }, [timeframe, phoneNumber, date]);
 
   // Transform data for the chart based on the timeframe
   const chartData = data.map((item) => ({
@@ -53,6 +66,24 @@ export function SalesPersonRevenue({
     sales: item.total_revenue,
     orders: item.order_count,
   }));
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[250px]">
+        <p className="text-gray-500">Loading chart data...</p>
+      </div>
+    );
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[250px]">
+        <p className="text-gray-500">
+          No data available for the selected criteria
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[250px] sm:h-[300px] w-full min-w-0 overflow-x-auto">

@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Table,
   TableBody,
@@ -8,6 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Timeframe } from "@/components/dashboard/types";
+import { format } from "date-fns";
 
 interface ProductSale {
   product_name: string;
@@ -16,15 +17,23 @@ interface ProductSale {
 
 interface ProductsSoldProps {
   product_sales: ProductSale[];
+  timeframe: Timeframe;
+  date: Date | undefined;
 }
 
-export function ProductsSold({ product_sales }: ProductsSoldProps) {
+export function ProductsSold({
+  product_sales,
+  timeframe,
+  date,
+}: ProductsSoldProps) {
   return (
     <div className="space-y-4 w-full mt-5">
-      <div className="flex items-center justify-between py-2">
+      <div className="flex items-center py-2 gap-2">
         <div className="text-lg font-semibold text-gray-900">Products Sold</div>
+        <div className="text-sm text-gray-500">
+          {timeframe} {date && `(${format(date, "MMM d, yyyy")})`}
+        </div>
       </div>
-
       <div className="rounded-lg border overflow-x-auto">
         <Table className="h-[150px]">
           <TableHeader>

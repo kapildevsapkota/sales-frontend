@@ -1,42 +1,35 @@
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Timeframe } from "@/components/dashboard/types";
-import { useState } from "react";
 import { SalesPersonRevenue } from "./SalesPersonRevenue";
+import { format } from "date-fns";
 
 interface SalesPersonSalesOverviewProps {
   phoneNumber: string;
+  timeframe: Timeframe;
+  date: Date | undefined;
 }
 
 export function SalesPersonSalesOverview({
   phoneNumber,
+  timeframe,
+  date,
 }: SalesPersonSalesOverviewProps) {
-  const [timeframe, setTimeframe] = useState<Timeframe>("daily");
-
   return (
     <div className="col-span-full lg:col-span-4 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0 overflow-x-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4">
-        <div>
-          <div className="text-lg font-semibold text-gray-900">
-            Sales Overview
-          </div>
-          <div className="text-sm text-gray-500">Monthly sales performance</div>
+      <div className="flex items-center mb-4 gap-2">
+        <div className="text-lg font-semibold text-gray-900">
+          Sales Overview
         </div>
-        <Tabs
-          defaultValue={timeframe}
-          onValueChange={(value) => setTimeframe(value as Timeframe)}
-          className="w-full sm:w-auto mt-4 sm:mt-0"
-        >
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="daily">Daily</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="yearly">Yearly</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="text-sm text-gray-500">
+          {timeframe} {date && `(${format(date, "MMM d, yyyy")})`}
+        </div>
       </div>
       <div className="overflow-x-auto w-full min-w-[320px]">
-        {/* Pass phoneNumber and timeframe */}
-        <SalesPersonRevenue timeframe={timeframe} phoneNumber={phoneNumber} />
+        {/* Pass phoneNumber, timeframe and date */}
+        <SalesPersonRevenue
+          timeframe={timeframe}
+          phoneNumber={phoneNumber}
+          date={date}
+        />
       </div>
     </div>
   );
