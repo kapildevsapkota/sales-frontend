@@ -62,14 +62,11 @@ const InventoryDashboard = () => {
         tab.id === "activity-log"
       );
     }
-    if (userRole === Role.Franchise) {
+    if (userRole === Role.Franchise || userRole === Role.Packaging) {
       return tab.id === "franchise" || tab.id === "activity-log";
     }
     if (userRole === Role.Factory) {
       return true;
-    }
-    if (userRole === Role.Packaging) {
-      return tab.id === "franchise" || tab.id === "activity-log";
     }
     return false;
   });

@@ -14,6 +14,9 @@ import { useTableColumns } from "./hooks/use-table-columns";
 import { useTableData } from "./hooks/use-table-data";
 import { useTableFilters } from "./hooks/use-table-filters";
 import { DateRange } from "react-day-picker";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { ErrorDialog } from "@/components/ErrorDialog";
 
 export default function SalesTable() {
   const [sales, setSales] = useState<SalesResponse | null>(null);
@@ -30,6 +33,8 @@ export default function SalesTable() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorDialogMessage, setErrorDialogMessage] = useState("");
   const router = useRouter();
   const tableRef = useRef<HTMLTableElement>(null);
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -50,7 +55,9 @@ export default function SalesTable() {
 
   // Function to show error messages
   const showError = useCallback((message: string) => {
-    console.error(message);
+    console.log("showError called with:", message);
+    setErrorDialogMessage(message);
+    setErrorDialogOpen(true);
   }, []);
 
   const fetchSales = useCallback(
@@ -264,20 +271,32 @@ export default function SalesTable() {
 
   const handleStatusChange = async (saleId: string, newStatus: string) => {
     try {
-      const token = localStorage.getItem("accessToken");
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`;
-
-      await axios.patch(
-        url,
-        { order_status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      fetchSales(currentPage);
+      await api
+        .patch(`/api/sales/orders/${saleId}/`, { order_status: newStatus })
+        .then((res) => {
+          setDisplayData((prevData) =>
+            prevData.map((sale) =>
+              sale.id.toString() === saleId
+                ? { ...sale, order_status: newStatus }
+                : sale
+            )
+          );
+          setSales((prevSales) => {
+            if (!prevSales) return prevSales;
+            return {
+              ...prevSales,
+              results: prevSales.results.map((sale) =>
+                sale.id.toString() === saleId
+                  ? { ...sale, order_status: newStatus }
+                  : sale
+              ),
+            };
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          showError("Failed to update order status");
+        });
     } catch (error) {
       console.error("Error updating order status:", error);
       showError("Failed to update order status");
@@ -309,7 +328,7 @@ export default function SalesTable() {
       setShowExportModal(false);
     } catch (error) {
       console.error("Error exporting CSV:", error);
-      alert("Failed to export CSV. Please try again.");
+      showError("Failed to export CSV. Please try again.");
     }
   };
 
@@ -389,6 +408,13 @@ export default function SalesTable() {
           />
         </div>
       )}
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        open={errorDialogOpen}
+        message={errorDialogMessage}
+        onClose={() => setErrorDialogOpen(false)}
+      />
     </div>
   );
 }
