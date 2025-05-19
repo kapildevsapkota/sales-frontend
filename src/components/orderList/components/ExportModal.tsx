@@ -20,7 +20,7 @@ export function ExportModal({ onClose }: ExportModalProps) {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const url = `${process.env.NEXT_PUBLIC_API_URL}api/sales/export-csv`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv`;
 
       const response = await axios.get(url, {
         headers: {

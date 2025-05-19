@@ -1,172 +1,394 @@
 "use client";
-
+import { useState, useEffect, useCallback, useRef } from "react";
 import type React from "react";
 
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { useColumns } from "@/hooks/useColumns";
-import { useSalesData } from "@/hooks/useSalesData";
-import type { SalesResponse } from "@/types/sale";
-import { SearchBar } from "../orderList/components/SearchBar";
-import { ExportModal } from "../orderList/components/ExportModal";
-import { PaymentImageModal } from "../orderList/components/PaymentImageModal";
-import { SalesTable } from "../orderList/components/SalesTable";
-import { ColumnSelector } from "../orderList/components/ColumnSelector";
-import type { DateRange } from "react-day-picker";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import type { SaleItem, SalesResponse } from "@/types/sale";
+import { TableHeader } from "./components/table-header";
+import { TableBody } from "./components/table-body";
+import { TablePagination } from "./components/table-pagination";
+import { ExportModal } from "./components/export-modal";
+import { PaymentImageModal } from "./components/payment-image-modal";
+import { useTableColumns } from "./hooks/use-table-columns";
+import { useTableData } from "./hooks/use-table-data";
+import { useTableFilters } from "./hooks/use-table-filters";
+import { DateRange } from "react-day-picker";
 
-export default function SaleTable() {
+export default function SalesTable() {
+  const [sales, setSales] = useState<SalesResponse | null>(null);
+  const [displayData, setDisplayData] = useState<SaleItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [filterTerm, setFilterTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("all");
+  const [orderStatus, setOrderStatus] = useState("all");
+  const [deliveryType, setDeliveryType] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
-  const [searchInput, setSearchInput] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [exportDateRange, setExportDateRange] = useState<
-    [Date | undefined, Date | undefined]
-  >([undefined, undefined]);
+  const router = useRouter();
+  const tableRef = useRef<HTMLTableElement>(null);
+  const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
+  // Custom hooks
   const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
-    useColumns();
+    useTableColumns();
+
+  const { getValueByColumnId } = useTableData();
 
   const {
-    sales,
-    displayData,
-    isLoading,
-    currentPage,
-    pageSize,
+    showFilterForm,
+    setShowFilterForm,
+    exportDateRange,
+    setExportDateRange,
+    applyFilters,
+  } = useTableFilters();
 
-    fetchSales,
-    setFilterTerm,
-    setSales,
-    setDisplayData,
-  } = useSalesData();
+  // Function to show error messages
+  const showError = useCallback((message: string) => {
+    console.error(message);
+  }, []);
 
-  // Handle search input change
+  const fetchSales = useCallback(
+    async (page = 1, size: number = pageSize) => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem("accessToken");
+
+        // Build URL with search and payment_method params
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/?page=${page}&page_size=${size}`;
+
+        // Add search parameter if present
+        if (filterTerm) {
+          url += `&search=${encodeURIComponent(filterTerm)}`;
+        }
+
+        // Add payment_method parameter if selected
+        if (paymentMethod && paymentMethod !== "all") {
+          url += `&payment_method=${encodeURIComponent(paymentMethod)}`;
+        }
+
+        // Add order_status parameter if selected
+        if (orderStatus && orderStatus !== "all") {
+          url += `&order_status=${encodeURIComponent(orderStatus)}`;
+        }
+
+        // Add delivery_type parameter if selected
+        if (deliveryType && deliveryType !== "all") {
+          url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
+        }
+
+        const formatDate = (date: Date): string => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
+        if (dateRange?.from) {
+          url += `&start_date=${formatDate(dateRange.from)}`;
+        }
+
+        if (dateRange?.to) {
+          url += `&end_date=${formatDate(dateRange.to)}`;
+        }
+
+        const response = await axios.get<SalesResponse>(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setSales(response.data);
+        setCurrentPage(page);
+        setPageSize(size);
+
+        applyFilters(response.data.results || []);
+      } catch (error) {
+        console.error("Error fetching sales data:", error);
+        showError("Failed to fetch sales data");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      filterTerm,
+      pageSize,
+      applyFilters,
+      showError,
+      paymentMethod,
+      orderStatus,
+      deliveryType,
+      dateRange,
+    ]
+  );
+
+  // Update the handleGlobalSearch function
+  const handleGlobalSearch = useCallback(
+    (searchTerm: string) => {
+      if (!sales?.results) return;
+
+      const filtered = sales.results.filter((sale) => {
+        const searchableFields = [
+          sale.full_name,
+          sale.delivery_address,
+          sale.city,
+          sale.phone_number,
+          sale.remarks,
+          sale.order_products[0]?.product.name,
+          sale.payment_method,
+          `${sale.sales_person.first_name} ${sale.sales_person.last_name}`,
+          sale.total_amount.toString(),
+        ];
+
+        return searchableFields.some((field) =>
+          field?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+
+      setDisplayData(filtered);
+    },
+    [sales]
+  );
+
   const handleSearchInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setSearchInput(value);
-
-      // If search is cleared, reset to original data
-      if (value.length === 0 && paymentMethod === "all") {
-        setFilterTerm("");
-        fetchSales(1);
-      }
-      // For backend search, we'll let the SearchBar component handle the API call
-    },
-    [fetchSales, setFilterTerm, paymentMethod]
-  );
-
-  // Handle search results from backend
-  const handleSearchResults = useCallback(
-    (data: SalesResponse) => {
-      if (data && data.results) {
-        setDisplayData(data.results);
-
-        if (data.count !== undefined) {
-          setSales((prevSales) => ({
-            ...prevSales,
-            results: data.results,
-            count: data.count,
-            next: data.next,
-            previous: data.previous,
-          }));
+      clearTimeout(searchTimeout.current);
+      searchTimeout.current = setTimeout(() => {
+        if (value.length >= 3) {
+          // If search term is 3 or more characters, fetch from API
+          setFilterTerm(value);
+          fetchSales(1);
+        } else if (value.length === 0) {
+          // If search is cleared, reset to original data
+          setFilterTerm("");
+          fetchSales(1);
+        } else {
+          // For 1-2 characters, just filter the current data
+          handleGlobalSearch(value);
         }
-      }
+      }, 300);
     },
-    [setDisplayData, setSales]
+    [fetchSales, handleGlobalSearch]
   );
 
-  // Handle payment image view
-  const handleViewPaymentImage = (imageUrl: string) => {
-    setSelectedPaymentImage(imageUrl);
-    setShowPaymentImageModal(true);
-  };
+  // Update the sorting effect
+  useEffect(() => {
+    if (sales?.results) {
+      let dataToSort = [...sales.results];
 
-  // Load initial data
+      // Apply search filter if there's a search term
+      if (searchInput && searchInput.length < 3) {
+        dataToSort = dataToSort.filter((sale) => {
+          const searchableFields = [
+            sale.full_name,
+            sale.delivery_address,
+            sale.city,
+            sale.phone_number,
+            sale.remarks,
+            sale.order_products[0]?.product.name,
+            sale.payment_method,
+            `${sale.sales_person.first_name} ${sale.sales_person.last_name}`,
+            sale.total_amount.toString(),
+          ];
+
+          return searchableFields.some((field) =>
+            field?.toLowerCase().includes(searchInput.toLowerCase())
+          );
+        });
+      }
+
+      // Apply client-side payment method filter for 1-2 character searches
+      if (
+        paymentMethod &&
+        paymentMethod !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.payment_method === paymentMethod
+        );
+      }
+
+      if (
+        orderStatus &&
+        orderStatus !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.order_status === orderStatus
+        );
+      }
+
+      // Apply client-side delivery type filter for 1-2 character searches
+      if (
+        deliveryType &&
+        deliveryType !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.delivery_type === deliveryType
+        );
+      }
+
+      // Apply filters
+      const filtered = applyFilters(dataToSort);
+
+      setDisplayData(filtered);
+    }
+  }, [
+    sales,
+    searchInput,
+    applyFilters,
+    paymentMethod,
+    orderStatus,
+    deliveryType,
+  ]);
+
   useEffect(() => {
     fetchSales(currentPage);
   }, [fetchSales, currentPage]);
 
+  // Add this function to handle edit
+  const handleEdit = (sale: SaleItem) => {
+    router.push(`/sales/orders/edit/${sale.id}`);
+  };
+
+  const handleStatusChange = async (saleId: string, newStatus: string) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`;
+
+      await axios.patch(
+        url,
+        { order_status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      fetchSales(currentPage);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      showError("Failed to update order status");
+    }
+  };
+
+  // Function to handle CSV export
+  const handleExportCSV = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv`;
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob", // Important for downloading files
+      });
+
+      // Create a link element to trigger the download
+      const urlObject = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = urlObject;
+      link.setAttribute("download", `sales_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setShowExportModal(false);
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      alert("Failed to export CSV. Please try again.");
+    }
+  };
+
   return (
-    <div className="container-fluid px-2 py-2">
+    <div className="relative flex flex-col min-h-screen px-2 py-2">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
-        {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
-          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
-            <ColumnSelector
-              columns={columns}
-              toggleColumnVisibility={toggleColumnVisibility}
-              showAllColumns={showAllColumns}
-              hideAllColumns={hideAllColumns}
-            />
-            <div className="text-xs text-gray-500 whitespace-nowrap">
-              {sales?.results.length
-                ? `${sales.results.length} of ${sales.count} entries`
-                : ""}
-            </div>
-          </div>
+      <TableHeader
+        className="sticky top-[64px] z-10 py-2 bg-white"
+        columns={columns}
+        toggleColumnVisibility={toggleColumnVisibility}
+        showAllColumns={showAllColumns}
+        hideAllColumns={hideAllColumns}
+        salesCount={sales?.count || 0}
+        resultsCount={sales?.results?.length || 0}
+        searchInput={searchInput}
+        handleSearchInputChange={handleSearchInputChange}
+        setSearchInput={setSearchInput}
+        setFilterTerm={setFilterTerm}
+        fetchSales={fetchSales}
+        showFilterForm={showFilterForm}
+        setShowFilterForm={setShowFilterForm}
+        setShowExportModal={setShowExportModal}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
+        orderStatus={orderStatus}
+        setOrderStatus={setOrderStatus}
+        deliveryType={deliveryType}
+        setDeliveryType={setDeliveryType}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+      />
 
-          <div className="w-full">
-            <SearchBar
-              searchInput={searchInput}
-              handleSearchInputChange={handleSearchInputChange}
-              clearSearch={() => {
-                setSearchInput("");
-                setFilterTerm("");
-                fetchSales(1);
-              }}
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              onSearchResults={handleSearchResults}
-              dateRange={dateRange}
-              setDateRange={setDateRange}
-            />
-          </div>
-        </div>
-
-        {/* Export CSV Button */}
-        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1 whitespace-nowrap"
-            onClick={() => setShowExportModal(true)}
-          >
-            Export CSV
-          </Button>
-        </div>
-      </div>
-
-      {/* Export CSV Modal */}
       {showExportModal && (
         <ExportModal
+          open={showExportModal}
           exportDateRange={exportDateRange}
           setExportDateRange={setExportDateRange}
-          onClose={() => setShowExportModal(false)}
+          handleExportCSV={handleExportCSV}
+          setShowExportModal={setShowExportModal}
         />
       )}
 
       {/* Payment Image Modal */}
       {showPaymentImageModal && (
         <PaymentImageModal
-          imageUrl={selectedPaymentImage}
-          onClose={() => setShowPaymentImageModal(false)}
+          selectedPaymentImage={selectedPaymentImage}
+          setShowPaymentImageModal={setShowPaymentImageModal}
         />
       )}
 
-      {/* Table Section */}
-      <SalesTable
-        columns={columns}
-        sales={sales}
-        displayData={displayData}
-        isLoading={isLoading}
-        currentPage={currentPage}
-        pageSize={pageSize}
-        onViewPaymentImage={handleViewPaymentImage}
-        onPageChange={(page) => fetchSales(page)}
-      />
+      {/* Table body should take all available space and be scrollable */}
+      <div className="flex-1 overflow-auto border rounded-md my-2">
+        <TableBody
+          tableRef={tableRef as React.RefObject<HTMLTableElement>}
+          columns={columns}
+          isLoading={isLoading}
+          displayData={displayData}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          getValueByColumnId={getValueByColumnId}
+          handleStatusChange={handleStatusChange}
+          handleEdit={handleEdit}
+          setSelectedPaymentImage={setSelectedPaymentImage}
+          setShowPaymentImageModal={setShowPaymentImageModal}
+        />
+      </div>
+
+      {/* Pagination pinned to the bottom */}
+      {sales && (
+        <div className="sticky bottom-0 z-10 bg-white mt-2 border-t border-gray-200">
+          <TablePagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalCount={sales.count || 0}
+            hasNext={!!sales.next}
+            fetchSales={fetchSales}
+          />
+        </div>
+      )}
     </div>
   );
 }

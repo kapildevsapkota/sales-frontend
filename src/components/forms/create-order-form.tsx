@@ -28,6 +28,7 @@ import {
   CreditCardIcon,
   UploadIcon,
   TrashIcon,
+  TruckIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -59,6 +60,28 @@ interface ProductInfo {
   quantity: number;
 }
 
+enum DeliveryType {
+  Inside = "Inside valley",
+  Outside = "Outside valley",
+}
+
+interface DuplicateOrderError {
+  error: string;
+  status: string | number;
+  existing_order: {
+    order_id: string;
+    created_at: string;
+    salesperson: {
+      name: string;
+      phone: string;
+    };
+    location: {
+      franchise: string;
+      distributor: string;
+    };
+  };
+}
+
 export default function CreateOrderForm({
   orderId,
   isEditMode = false,
@@ -75,6 +98,8 @@ export default function CreateOrderForm({
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
   const [forceOrderDialogOpen, setForceOrderDialogOpen] = useState(false);
   const [forceOrderErrorMsg, setForceOrderErrorMsg] = useState("");
+  const [duplicateOrderError, setDuplicateOrderError] =
+    useState<DuplicateOrderError | null>(null);
   const [pendingForceOrderData, setPendingForceOrderData] =
     useState<OrderFormValues | null>(null);
 
@@ -98,6 +123,7 @@ export default function CreateOrderForm({
       .number()
       .min(0, "Prepaid amount must be at least 0")
       .optional(),
+    delivery_type: z.nativeEnum(DeliveryType),
   });
 
   type OrderFormValues = z.infer<typeof orderSchema>;
@@ -119,6 +145,7 @@ export default function CreateOrderForm({
       payment_method: PaymentMethod.CashOnDelivery,
       payment_screenshot: undefined,
       prepaid_amount: 0,
+      delivery_type: DeliveryType.Inside,
     },
   });
 
@@ -175,7 +202,7 @@ export default function CreateOrderForm({
         try {
           const authToken = localStorage.getItem("accessToken");
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${orderId}/update`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${orderId}/update`,
             {
               headers: {
                 Authorization: `Bearer ${authToken}`,
@@ -308,6 +335,7 @@ export default function CreateOrderForm({
       formData.append("remarks", data.remarks || "");
       formData.append("order_products", JSON.stringify(orderProducts));
       formData.append("delivery_charge", data.delivery_charge.toString());
+      formData.append("delivery_type", data.delivery_type);
       formData.append(
         "prepaid_amount",
         data.payment_method === "Office Visit"
@@ -329,7 +357,7 @@ export default function CreateOrderForm({
       if (isEditMode && orderId) {
         // Send PATCH request for edit mode
         response = await api.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${orderId}/update/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${orderId}/update/`,
           formData,
           {
             headers: {
@@ -341,7 +369,7 @@ export default function CreateOrderForm({
       } else {
         // Send POST request for create mode
         response = await api.post(
-          `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/`,
           formData,
           {
             headers: {
@@ -363,24 +391,22 @@ export default function CreateOrderForm({
       }
     } catch (error) {
       const err = error as AxiosError;
-      if (err.response?.status === 403) {
-        // Show force order dialog
+      if (err.response?.status === 403 || err.response?.status === 400) {
         let errorMsg = "Order could not be placed.";
+        let duplicateError: DuplicateOrderError | null = null;
         if (err.response.data) {
           if (
-            Array.isArray(err.response.data) &&
-            err.response.data.length > 0
-          ) {
-            errorMsg = err.response.data[0];
-          } else if (
             typeof err.response.data === "object" &&
             err.response.data !== null &&
-            "error" in err.response.data
+            "error" in err.response.data &&
+            "existing_order" in err.response.data
           ) {
-            errorMsg = err.response.data.error as string;
+            duplicateError = err.response.data as DuplicateOrderError;
+            errorMsg = duplicateError.error;
           }
         }
         setForceOrderErrorMsg(errorMsg);
+        setDuplicateOrderError(duplicateError);
         setPendingForceOrderData(data);
         setForceOrderDialogOpen(true);
         return;
@@ -440,6 +466,14 @@ export default function CreateOrderForm({
 
   // Add this wrapper for react-hook-form
   const handleFormSubmit = (data: OrderFormValues) => onSubmit(data);
+
+  // Add a function to reset all dialog-related state
+  const handleCloseForceOrderDialog = () => {
+    setForceOrderDialogOpen(false);
+    setForceOrderErrorMsg("");
+    setDuplicateOrderError(null);
+    setPendingForceOrderData(null);
+  };
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -780,15 +814,64 @@ export default function CreateOrderForm({
                   name="remarks"
                   render={({ field }) => (
                     <FormItem className="mb-6">
-                      <FormLabel className="text-sm font-medium">
-                        Additional Remarks
-                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Add any special instructions or notes here"
                           className="min-h-[120px] border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
                           {...field}
                         />
+                      </FormControl>
+                      <FormMessage className="text-red-500 text-xs mt-1" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* inside or outside delivery */}
+              <div className="mb-8">
+                <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold text-green-700">
+                  Inside or Outside Delivery
+                </h2>
+                <FormField
+                  control={form.control}
+                  name="delivery_type"
+                  render={({ field }) => (
+                    <FormItem className="mb-6">
+                      <FormLabel className="text-sm font-medium flex items-center">
+                        Delivery Type{" "}
+                        <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                          {Object.values(DeliveryType).map((type) => (
+                            <label
+                              key={type}
+                              className={`flex items-center p-4 rounded-md cursor-pointer transition-colors border
+                                ${
+                                  field.value === type
+                                    ? "bg-green-50 border-green-200 ring-2 ring-green-200"
+                                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                                }`}
+                            >
+                              <input
+                                type="radio"
+                                value={type}
+                                checked={field.value === type}
+                                onChange={() => field.onChange(type)}
+                                className="mr-3 h-4 w-4 text-green-600 focus:ring-green-500"
+                              />
+                              <div className="flex items-center">
+                                <TruckIcon
+                                  size={18}
+                                  className="mr-2 text-gray-600"
+                                />
+                                <span className="text-sm font-medium">
+                                  {type}
+                                </span>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
                       </FormControl>
                       <FormMessage className="text-red-500 text-xs mt-1" />
                     </FormItem>
@@ -1044,12 +1127,51 @@ export default function CreateOrderForm({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Duplicate Order Detected</DialogTitle>
-            <DialogDescription>{forceOrderErrorMsg}</DialogDescription>
+            <DialogDescription>
+              {duplicateOrderError
+                ? duplicateOrderError.error
+                : forceOrderErrorMsg}
+            </DialogDescription>
+            {duplicateOrderError && (
+              <div className="space-y-2 text-left mt-2">
+                <div className="border rounded p-3 bg-gray-50">
+                  <div>
+                    <span className="font-medium">Order ID:</span>{" "}
+                    {duplicateOrderError.existing_order.order_id}
+                  </div>
+                  <div>
+                    <span className="font-medium">Created At:</span>{" "}
+                    {new Date(
+                      duplicateOrderError.existing_order.created_at
+                    ).toLocaleString()}
+                  </div>
+                  <div>
+                    <span className="font-medium">Salesperson:</span>{" "}
+                    {duplicateOrderError.existing_order.salesperson.name} (
+                    <a
+                      href={`tel:${duplicateOrderError.existing_order.salesperson.phone}`}
+                      className="text-blue-600 underline"
+                    >
+                      {duplicateOrderError.existing_order.salesperson.phone}
+                    </a>
+                    )
+                  </div>
+                  <div>
+                    <span className="font-medium">Franchise:</span>{" "}
+                    {duplicateOrderError.existing_order.location.franchise}
+                  </div>
+                  <div>
+                    <span className="font-medium">Distributor:</span>{" "}
+                    {duplicateOrderError.existing_order.location.distributor}
+                  </div>
+                </div>
+              </div>
+            )}
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setForceOrderDialogOpen(false)}
+              onClick={handleCloseForceOrderDialog}
               disabled={loading}
             >
               Cancel
@@ -1059,8 +1181,8 @@ export default function CreateOrderForm({
                 setForceOrderDialogOpen(false);
                 if (pendingForceOrderData) {
                   await onSubmit(pendingForceOrderData, true);
-                  setPendingForceOrderData(null);
                 }
+                handleCloseForceOrderDialog();
               }}
               disabled={loading}
               className="h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold"

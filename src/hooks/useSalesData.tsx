@@ -28,7 +28,7 @@ export function useSalesData() {
         // Add sorting parameters to API request if supported by backend
         const url = `${
           process.env.NEXT_PUBLIC_API_URL
-        }api/sales/orders/?page=${page}&page_size=${size}&search=${encodeURIComponent(
+        }/api/sales/orders/?page=${page}&page_size=${size}&search=${encodeURIComponent(
           filterTerm
         )}`;
 

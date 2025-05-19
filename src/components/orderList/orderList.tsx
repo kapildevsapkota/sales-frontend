@@ -35,7 +35,6 @@ export default function OrderList() {
     isLoading,
     currentPage,
     pageSize,
-
     fetchSales,
     setFilterTerm,
     setSales,
@@ -131,7 +130,6 @@ export default function OrderList() {
           </div>
         </div>
 
-        {/* Export CSV Button */}
         <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-normal">
           <Button
             variant="outline"
@@ -153,7 +151,6 @@ export default function OrderList() {
         />
       )}
 
-      {/* Payment Image Modal */}
       {showPaymentImageModal && (
         <PaymentImageModal
           imageUrl={selectedPaymentImage}
@@ -161,7 +158,6 @@ export default function OrderList() {
         />
       )}
 
-      {/* Table Section */}
       <SalesTable
         columns={columns}
         sales={sales}

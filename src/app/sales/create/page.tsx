@@ -14,13 +14,14 @@ export default function CreateOrderPage() {
     async function fetchProducts() {
       try {
         const accessToken = localStorage.getItem("accessToken");
+        console.log("Access Token:", accessToken);
 
         if (!accessToken) {
           throw new Error("No access token found");
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}api/sales/products`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/products`,
           {
             cache: "no-store",
             headers: {

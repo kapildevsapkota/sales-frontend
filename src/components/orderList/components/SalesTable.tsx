@@ -2,18 +2,12 @@
 
 import type React from "react";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Table,
   TableBody,
@@ -23,13 +17,7 @@ import {
 } from "@/components/ui/table";
 import { TableColumnHeader } from "./TableColumnHeader";
 import { formatTimestamp } from "@/utils/formatters";
-import type {
-  SaleItem,
-  SalesResponse,
-  Column,
-  SortDirection,
-} from "@/types/sale";
-import axios from "axios";
+import type { SaleItem, SalesResponse, Column } from "@/types/sale";
 
 interface SalesTableProps {
   columns: Column[];
@@ -52,73 +40,8 @@ export function SalesTable({
   onViewPaymentImage,
   onPageChange,
 }: SalesTableProps) {
-  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
-  const [startX, setStartX] = useState(0);
-  const [startWidth, setStartWidth] = useState(0);
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   const router = useRouter();
-
-  // Column resize handlers
-  const handleResizeStart = (
-    e: React.MouseEvent,
-    columnId: string,
-    initialWidth: number
-  ) => {
-    setResizingColumn(columnId);
-    setStartX(e.clientX);
-    setStartWidth(initialWidth);
-    document.addEventListener("mousemove", handleResizeMove);
-    document.addEventListener("mouseup", handleResizeEnd);
-    e.preventDefault();
-  };
-
-  const handleResizeMove = useCallback(
-    (e: MouseEvent) => {
-      if (resizingColumn) {
-        const column = columns.find((col) => col.id === resizingColumn);
-        if (column) {
-          const newWidth = Math.max(50, startWidth + (e.clientX - startX));
-          console.log(newWidth);
-        }
-      }
-    },
-    [columns, resizingColumn, startWidth, startX]
-  );
-
-  const handleResizeEnd = useCallback(() => {
-    setResizingColumn(null);
-    document.removeEventListener("mousemove", handleResizeMove);
-    document.removeEventListener("mouseup", handleResizeEnd);
-  }, [handleResizeMove]);
-
-  // Clean up event listeners
-  useEffect(() => {
-    return () => {
-      document.removeEventListener("mousemove", handleResizeMove);
-      document.removeEventListener("mouseup", handleResizeEnd);
-    };
-  }, [handleResizeMove, handleResizeEnd]);
-
-  // Handle sort change
-  const handleSort = (columnId: string) => {
-    if (columnId === sortField) {
-      // Toggle direction if same field
-      if (sortDirection === "asc") {
-        setSortDirection("desc");
-      } else if (sortDirection === "desc") {
-        setSortField(null);
-        setSortDirection(null);
-      } else {
-        setSortDirection("asc");
-      }
-    } else {
-      // New field, set to ascending
-      setSortField(columnId);
-      setSortDirection("asc");
-    }
-  };
 
   // Function to handle sending order to WhatsApp
   const handleSendOrder = (sale: SaleItem) => {
@@ -129,7 +52,9 @@ export function SalesTable({
 *Customer Details:*
 👤 Name: ${sale.full_name}
 📱 Phone: ${sale.phone_number}
+📱 AltPhone: ${sale.alternate_phone_number}
 📍 Location: ${sale.delivery_address}, ${sale.city}
+
 
 *Order Details:*
 🛒 Products: ${sale.order_products
@@ -172,44 +97,6 @@ Please process this order promptly! 🚀
   // Add this function to handle edit
   const handleEdit = (sale: SaleItem) => {
     router.push(`/sales/orders/edit/${sale.id}`);
-  };
-
-  // Function to get color based on order status
-  const getOrderStatusColor = (status: string) => {
-    switch (status) {
-      case "Delivered":
-        return "bg-green-500"; // Green for delivered
-      case "Pending":
-        return "bg-yellow-500"; // Yellow for pending
-      case "Cancelled":
-        return "bg-red-500"; // Red for cancelled
-      default:
-        return "bg-gray-500"; // Default color
-    }
-  };
-
-  // Add this function to handle status change
-  const handleStatusChange = async (saleId: string, newStatus: string) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      const url = `${process.env.NEXT_PUBLIC_API_URL}api/sales/orders/${saleId}/`;
-
-      await axios.patch(
-        url,
-        { order_status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Optionally, refetch sales data or update local state
-      // This would need to be handled via a callback to the parent component
-    } catch (error) {
-      console.error("Error updating order status:", error);
-      // showError("Failed to update order status");
-    }
   };
 
   // Get value by column ID
@@ -271,17 +158,7 @@ Please process this order promptly! 🚀
         );
       case "delivery_charge":
         return Number.parseFloat(sale.delivery_charge);
-      case "order_status":
-        return (
-          <span
-            className={
-              getOrderStatusColor(sale.order_status) +
-              " text-white rounded-full w-4 h-4 mr-2"
-            }
-          >
-            {/* Color indicator */}
-          </span>
-        );
+
       case "send_order":
         return (
           <Button
@@ -350,14 +227,7 @@ Please process this order promptly! 🚀
               {columns
                 .filter((col) => col.visible)
                 .map((column) => (
-                  <TableColumnHeader
-                    key={column.id}
-                    column={column}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onSort={handleSort}
-                    onResizeStart={handleResizeStart}
-                  />
+                  <TableColumnHeader key={column.id} column={column} />
                 ))}
             </tr>
           </TableHeader>
@@ -402,45 +272,7 @@ Please process this order promptly! 🚀
                           (currentPage - 1) * pageSize + index + 1
                         ) : column.id === "order_status" ? (
                           <div className="flex items-center">
-                            <Select
-                              value={sale.order_status}
-                              onValueChange={(value) =>
-                                handleStatusChange(String(sale.id), value)
-                              }
-                            >
-                              <SelectTrigger className="w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
-                                <SelectValue placeholder="Change Status" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
-                                <SelectItem value="Pending">
-                                  <span
-                                    className={
-                                      getOrderStatusColor("Pending") +
-                                      " rounded-full w-4 h-4 inline-block mr-2"
-                                    }
-                                  ></span>
-                                  Pending
-                                </SelectItem>
-                                <SelectItem value="Delivered">
-                                  <span
-                                    className={
-                                      getOrderStatusColor("Delivered") +
-                                      " rounded-full w-4 h-4 inline-block mr-2"
-                                    }
-                                  ></span>
-                                  Delivered
-                                </SelectItem>
-                                <SelectItem value="Cancelled">
-                                  <span
-                                    className={
-                                      getOrderStatusColor("Cancelled") +
-                                      " rounded-full w-4 h-4 inline-block mr-2"
-                                    }
-                                  ></span>
-                                  Cancelled
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                            {sale.order_status}
                           </div>
                         ) : (
                           getValueByColumnId(sale, column.id)

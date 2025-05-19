@@ -1,16 +1,15 @@
 "use client";
+import { Column } from "@/types/sale";
+import { useState, useCallback } from "react";
 
-import { useState } from "react";
-import type { Column } from "@/types/sale";
-
-export function useColumns() {
+export function useTableColumns() {
   const [columns, setColumns] = useState<Column[]>([
     { id: "index", label: "#", visible: true, width: 50 },
     {
       id: "timestamp",
       label: "Timestamp",
       visible: true,
-      width: 120,
+      width: 10,
     },
     {
       id: "full_name",
@@ -22,75 +21,49 @@ export function useColumns() {
       id: "delivery_location",
       label: "Delivery Location",
       visible: true,
-      width: 180,
+      width: 120,
     },
     {
       id: "phone_number",
-      label: "Phone number",
+      label: "Phone",
       visible: true,
-      width: 130,
+      width: 50,
     },
     {
-      id: "alternate_phone_number",
-      label: "Alternate Phone Number",
-      visible: false,
+      id: "product_sold",
+      label: "Product Sold",
+      visible: true,
       width: 150,
-    },
-
-    {
-      id: "oil_type",
-      label: "Oil Type",
-      visible: true,
-      width: 120,
-    },
-    {
-      id: "quantity",
-      label: "Quantity",
-      visible: true,
-      width: 80,
     },
     {
       id: "total_amount",
-      label: "Total amount",
+      label: "Total",
       visible: true,
-      width: 120,
+      width: 50,
     },
     {
       id: "remaining_amount",
-      label: "Remaining Amount",
+      label: "Remaining",
       visible: true,
-      width: 120,
+      width: 50,
     },
     {
       id: "payment_method",
-      label: "Payment method",
+      label: "Payment",
       visible: true,
-      width: 150,
-    },
-
-    {
-      id: "send_order",
-      label: "Send Order",
-      visible: true,
-      width: 120,
-    },
-    {
-      id: "edit",
-      label: "Edit",
-      visible: true,
-      width: 100,
+      width: 40,
     },
     {
       id: "remarks",
       label: "Remarks [If Any]",
       visible: false,
-      width: 150,
+      width: 50,
     },
     {
       id: "convinced_by",
-      label: "Convinced by",
-      visible: false,
-      width: 120,
+      label: "Sold by",
+      visible: true,
+      width: 100,
     },
     {
       id: "amount_paid",
@@ -102,40 +75,49 @@ export function useColumns() {
       id: "delivery_charge",
       label: "Delivery Charge",
       visible: false,
-      width: 150,
+      width: 50,
     },
     {
-      id: "remaining",
-      label: "Remaining",
-      visible: false,
-      width: 120,
+      id: "delivery_type",
+      label: "Delivery Type",
+      visible: true,
+      width: 50,
     },
     {
       id: "order_status",
       label: "Order Status",
       visible: true,
-      width: 120,
+      width: 50,
+    },
+    {
+      id: "edit",
+      label: "Edit",
+      visible: true,
+      width: 100,
     },
   ]);
 
   // Toggle column visibility
-  const toggleColumnVisibility = (columnId: string) => {
-    setColumns(
-      columns.map((col) =>
-        col.id === columnId ? { ...col, visible: !col.visible } : col
-      )
-    );
-  };
+  const toggleColumnVisibility = useCallback(
+    (columnId: string) => {
+      setColumns(
+        columns.map((col) =>
+          col.id === columnId ? { ...col, visible: !col.visible } : col
+        )
+      );
+    },
+    [columns]
+  );
 
   // Show all columns
-  const showAllColumns = () => {
+  const showAllColumns = useCallback(() => {
     setColumns(columns.map((col) => ({ ...col, visible: true })));
-  };
+  }, [columns]);
 
   // Hide all columns except the first one
-  const hideAllColumns = () => {
+  const hideAllColumns = useCallback(() => {
     setColumns(columns.map((col) => ({ ...col, visible: col.id === "index" })));
-  };
+  }, [columns]);
 
   return {
     columns,

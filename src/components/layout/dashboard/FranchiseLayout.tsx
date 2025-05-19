@@ -5,12 +5,10 @@ import { AppHeader } from "./navbar/navbar";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-export default function DashboardLayout({
+export default function FranchiseLayout({
   children,
-  roles,
 }: {
   children: React.ReactNode;
-  roles: Role[];
 }) {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
@@ -19,7 +17,7 @@ export default function DashboardLayout({
     return <div>Loading...</div>;
   }
 
-  if (!roles.includes(user?.role as Role)) {
+  if (user?.role !== Role.Franchise && user?.role !== Role.Distributor) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-gray-50">
         <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center gap-6 max-w-md w-full">
