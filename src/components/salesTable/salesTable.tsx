@@ -15,7 +15,6 @@ import { useTableData } from "./hooks/use-table-data";
 import { useTableFilters } from "./hooks/use-table-filters";
 import { DateRange } from "react-day-picker";
 import { api } from "@/lib/api";
-import { toast } from "sonner";
 import { ErrorDialog } from "@/components/ErrorDialog";
 
 export default function SalesTable() {
@@ -273,7 +272,7 @@ export default function SalesTable() {
     try {
       await api
         .patch(`/api/sales/orders/${saleId}/`, { order_status: newStatus })
-        .then((res) => {
+        .then(() => {
           setDisplayData((prevData) =>
             prevData.map((sale) =>
               sale.id.toString() === saleId
