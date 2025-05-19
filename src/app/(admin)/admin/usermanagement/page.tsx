@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, UserPlus, Pencil, Trash2, AlertCircle } from "lucide-react";
@@ -65,7 +66,6 @@ export default function UserManagementPage() {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -81,17 +81,14 @@ export default function UserManagementPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error fetching users:", error);
-      setError(
+      const msg =
         error?.response?.data?.detail ||
-          error.message ||
-          "Failed to fetch users"
-      );
+        error.message ||
+        "Failed to fetch users";
+      setError(msg);
       toast({
         title: "Error",
-        description:
-          error?.response?.data?.detail ||
-          error.message ||
-          "Failed to fetch users",
+        description: msg,
         variant: "destructive",
       });
     } finally {
@@ -101,7 +98,6 @@ export default function UserManagementPage() {
 
   useEffect(() => {
     fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreateUser = () => {
@@ -131,7 +127,7 @@ export default function UserManagementPage() {
         description: "User deleted successfully!",
         variant: "default",
       });
-      setUsers(users.filter((user) => user.phone_number !== selectedUserPhone));
+      setUsers(users.filter((u) => u.phone_number !== selectedUserPhone));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Deletion error:", error);
@@ -194,7 +190,6 @@ export default function UserManagementPage() {
             </div>
           ) : users.length > 0 ? (
             <>
-              {/* Mobile View - Checklist Style */}
               {isMobile ? (
                 <div className="space-y-3 md:hidden">
                   {users.map((user) => (
@@ -202,7 +197,18 @@ export default function UserManagementPage() {
                       <div className="flex items-start gap-3">
                         <div className="flex-1">
                           <div className="font-medium">
-                            {user.first_name} {user.last_name}
+                            {user.role === "SalesPerson" ? (
+                              <Link
+                                href={`/admin/salespersons/${user.phone_number}`}
+                                className="text-blue-600 hover:underline"
+                              >
+                                {user.first_name} {user.last_name}
+                              </Link>
+                            ) : (
+                              <span>
+                                {user.first_name} {user.last_name}
+                              </span>
+                            )}
                           </div>
                           <div className="text-sm">
                             Phone: {user.phone_number}
@@ -247,7 +253,6 @@ export default function UserManagementPage() {
                   ))}
                 </div>
               ) : (
-                /* Desktop View - Table */
                 <div className="hidden md:block rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -263,14 +268,25 @@ export default function UserManagementPage() {
                       {users.map((user) => (
                         <TableRow key={user.id}>
                           <TableCell className="font-medium">
-                            {user.first_name} {user.last_name}
+                            {user.role === "SalesPerson" ? (
+                              <Link
+                                href={`/admin/salesPersons/${user.phone_number}`}
+                                className="hover:underline"
+                              >
+                                {user.first_name} {user.last_name}
+                              </Link>
+                            ) : (
+                              <span>
+                                {user.first_name} {user.last_name}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell>{user.phone_number}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{user.role}</Badge>
                           </TableCell>
                           <TableCell>{user.franchise || "-"}</TableCell>
-                          <TableCell className="">
+                          <TableCell>
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
@@ -311,7 +327,6 @@ export default function UserManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -321,15 +336,8 @@ export default function UserManagementPage() {
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              user
-              {selectedUserName && (
-                <span>
-                  {" "}
-                  <strong>{selectedUserName}</strong>
-                </span>
-              )}{" "}
-              with phone number <strong>{selectedUserPhone}</strong> and remove
-              all associated data.
+              user {selectedUserName && <strong>{selectedUserName}</strong>}{" "}
+              with phone number <strong>{selectedUserPhone}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
