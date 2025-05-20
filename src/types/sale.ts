@@ -1,4 +1,6 @@
 export interface SaleItem {
+  logistics_name: string;
+  logistics: string;
   id: number;
   created_at: string;
   full_name: string;

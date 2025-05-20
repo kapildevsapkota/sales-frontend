@@ -1,6 +1,7 @@
 "use client";
 import { Eye } from "lucide-react";
 import type React from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +32,12 @@ interface TableBodyProps {
   setShowPaymentImageModal: (show: boolean) => void;
 }
 
+interface Logistics {
+  id: number;
+  name: string;
+  phone_number: string | null;
+}
+
 export function TableBody({
   tableRef,
   columns,
@@ -44,6 +51,36 @@ export function TableBody({
   setSelectedPaymentImage,
   setShowPaymentImageModal,
 }: TableBodyProps) {
+  const [logistics, setLogistics] = useState<Logistics[]>([]);
+  const [isLoadingLogistics, setIsLoadingLogistics] = useState(true);
+
+  // Fetch logistics options from the API
+  useEffect(() => {
+    const fetchLogistics = async () => {
+      try {
+        const response = await fetch(
+          "https://sales.baliyoventures.com/api/account/logistics/",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch logistics");
+        }
+        const data = await response.json();
+        setLogistics(data);
+      } catch (error) {
+        console.error("Error fetching logistics:", error);
+      } finally {
+        setIsLoadingLogistics(false);
+      }
+    };
+
+    fetchLogistics();
+  }, []);
+
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
     switch (status) {
@@ -61,6 +98,32 @@ export function TableBody({
         return "bg-orange-500"; // Orange for return pending
       default:
         return "bg-gray-500"; // Default color
+    }
+  };
+
+  const handleLogisticsChange = async (saleId: string, logisticsId: string) => {
+    try {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+          body: JSON.stringify({ logistics: logisticsId }),
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Logistics updated:", data);
+          // Optionally, update the state or refetch data
+        })
+        .catch((error) => {
+          console.error("Error updating logistics:", error);
+        });
+    } catch (error) {
+      console.error("Error updating logistics:", error);
     }
   };
 
@@ -217,6 +280,39 @@ export function TableBody({
                               ></span>
                               Return Pending
                             </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : column.id === "logistics_name" ? (
+                      <div className="flex items-center">
+                        <Select
+                          value={
+                            sale.logistics_name
+                              ? logistics
+                                  .find((l) => l.name === sale.logistics_name)
+                                  ?.id.toString()
+                              : ""
+                          }
+                          onValueChange={(value) =>
+                            handleLogisticsChange(String(sale.id), value)
+                          }
+                        >
+                          <SelectTrigger className="w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
+                            <SelectValue placeholder="Change Logistics" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
+                            {isLoadingLogistics ? (
+                              <SelectItem value="">Loading...</SelectItem>
+                            ) : (
+                              logistics.map((logistic) => (
+                                <SelectItem
+                                  key={logistic.id}
+                                  value={logistic.id.toString() || "default"} // Ensure value is not an empty string
+                                >
+                                  {logistic.name || "Unnamed Logistic"}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                       </div>

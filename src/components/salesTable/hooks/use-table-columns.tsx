@@ -23,6 +23,7 @@ export function useTableColumns() {
       visible: true,
       width: 120,
     },
+
     {
       id: "phone_number",
       label: "Phone",
@@ -76,6 +77,12 @@ export function useTableColumns() {
       label: "Delivery Charge",
       visible: false,
       width: 50,
+    },
+    {
+      id: "logistics_name",
+      label: "Logistics",
+      visible: true,
+      width: 120,
     },
     {
       id: "delivery_type",

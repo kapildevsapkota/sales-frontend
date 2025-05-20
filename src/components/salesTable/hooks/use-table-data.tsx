@@ -59,6 +59,8 @@ export function useTableData() {
           ).toLocaleString()}`;
         case "delivery_type":
           return sale.delivery_type;
+        case "logistics_name":
+          return sale.logistics_name as string;
         case "order_status":
           return sale.order_status;
         default:
