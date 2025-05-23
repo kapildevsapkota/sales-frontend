@@ -231,6 +231,9 @@ export default function CreateOrderForm({
           form.setValue("payment_method", data.payment_method);
           form.setValue("total_amount", parseFloat(data.total_amount));
 
+          // ADD THIS LINE to fix the delivery_type issue:
+          form.setValue("delivery_type", data.delivery_type as DeliveryType);
+
           // Set selected oil types and quantities
           const selectedTypes = data.order_products.map(
             (item: { product: { name: string } }) => item.product.name
@@ -880,6 +883,7 @@ export default function CreateOrderForm({
               </div>
 
               {/* Payment Information Section */}
+              {/* Payment Information Section */}
               <div className="mb-8">
                 <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold text-green-700">
                   Payment Information
@@ -900,11 +904,11 @@ export default function CreateOrderForm({
                             <label
                               key={method}
                               className={`flex items-center p-4 rounded-md cursor-pointer transition-colors border
-                                ${
-                                  field.value === method
-                                    ? "bg-green-50 border-green-200 ring-2 ring-green-200"
-                                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                                }`}
+                  ${
+                    field.value === method
+                      ? "bg-green-50 border-green-200 ring-2 ring-green-200"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
                             >
                               <input
                                 type="radio"
@@ -931,7 +935,8 @@ export default function CreateOrderForm({
                   )}
                 />
 
-                {paymentMethod === PaymentMethod.Prepaid && (
+                {(paymentMethod === PaymentMethod.Prepaid ||
+                  paymentMethod === PaymentMethod.Indrive) && (
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -939,7 +944,9 @@ export default function CreateOrderForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            Prepaid Amount{" "}
+                            {paymentMethod === PaymentMethod.Prepaid
+                              ? "Prepaid Amount"
+                              : "Indrive Amount"}
                             <span className="text-red-500 ml-1">*</span>
                           </FormLabel>
                           <FormControl>
@@ -986,69 +993,74 @@ export default function CreateOrderForm({
                         </div>
                       </FormControl>
                       <p className="text-xs text-gray-500 mt-1">
-                        Remaining = Total Amount - Prepaid Amount
+                        Remaining = Total Amount -{" "}
+                        {paymentMethod === PaymentMethod.Prepaid
+                          ? "Prepaid"
+                          : "Indrive"}{" "}
+                        Amount
                       </p>
                     </FormItem>
                   </div>
                 )}
 
                 {/* Payment Screenshot Upload */}
-                {paymentMethod !== PaymentMethod.CashOnDelivery && (
-                  <div className="mt-6">
-                    <FormField
-                      control={form.control}
-                      name="payment_screenshot"
-                      render={({}) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            Payment Screenshot
-                          </FormLabel>
-                          <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 bg-gray-50 px-6 pt-5 pb-6">
-                            {!previewImage ? (
-                              <div className="space-y-1 text-center">
-                                <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-                                <div className="flex text-sm text-gray-600">
-                                  <label className="relative cursor-pointer rounded-md bg-white font-medium text-green-600 hover:text-green-500">
-                                    <span>Upload a file</span>
-                                    <input
-                                      id="file-upload"
-                                      type="file"
-                                      className="sr-only"
-                                      onChange={handleFileUpload}
-                                    />
-                                  </label>
-                                  <p className="pl-1">or drag and drop</p>
+                {paymentMethod !== PaymentMethod.CashOnDelivery &&
+                  paymentMethod !== PaymentMethod.OfficeVisit && (
+                    <div className="mt-6">
+                      <FormField
+                        control={form.control}
+                        name="payment_screenshot"
+                        render={({}) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">
+                              Payment Screenshot
+                            </FormLabel>
+                            <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 bg-gray-50 px-6 pt-5 pb-6">
+                              {!previewImage ? (
+                                <div className="space-y-1 text-center">
+                                  <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
+                                  <div className="flex text-sm text-gray-600">
+                                    <label className="relative cursor-pointer rounded-md bg-white font-medium text-green-600 hover:text-green-500">
+                                      <span>Upload a file</span>
+                                      <input
+                                        id="file-upload"
+                                        type="file"
+                                        className="sr-only"
+                                        onChange={handleFileUpload}
+                                      />
+                                    </label>
+                                    <p className="pl-1">or drag and drop</p>
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    PNG, JPG, GIF up to 10MB
+                                  </p>
                                 </div>
-                                <p className="text-xs text-gray-500">
-                                  PNG, JPG, GIF up to 10MB
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="relative">
-                                <Image
-                                  src={previewImage}
-                                  width={100}
-                                  height={100}
-                                  alt="Payment Screenshot"
-                                  className="h-32 rounded border object-contain"
-                                />
-                                <Button
-                                  type="button"
-                                  onClick={removeFile}
-                                  variant="destructive"
-                                  size="sm"
-                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                                >
-                                  <TrashIcon size={14} />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
+                              ) : (
+                                <div className="relative">
+                                  <Image
+                                    src={previewImage}
+                                    width={100}
+                                    height={100}
+                                    alt="Payment Screenshot"
+                                    className="h-32 rounded border object-contain"
+                                  />
+                                  <Button
+                                    type="button"
+                                    onClick={removeFile}
+                                    variant="destructive"
+                                    size="sm"
+                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                                  >
+                                    <TrashIcon size={14} />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
               </div>
 
               {/* Submit Button */}

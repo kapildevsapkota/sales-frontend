@@ -16,6 +16,7 @@ import { useTableFilters } from "./hooks/use-table-filters";
 import { DateRange } from "react-day-picker";
 import { api } from "@/lib/api";
 import { ErrorDialog } from "@/components/ErrorDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SalesTable() {
   const [sales, setSales] = useState<SalesResponse | null>(null);
@@ -28,6 +29,7 @@ export default function SalesTable() {
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [orderStatus, setOrderStatus] = useState("all");
   const [deliveryType, setDeliveryType] = useState("all");
+  const [logistic, setLogistic] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
@@ -37,6 +39,7 @@ export default function SalesTable() {
   const router = useRouter();
   const tableRef = useRef<HTMLTableElement>(null);
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+  const { user } = useAuth();
 
   // Custom hooks
   const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
@@ -65,7 +68,7 @@ export default function SalesTable() {
         setIsLoading(true);
         const token = localStorage.getItem("accessToken");
 
-        // Build URL with search and payment_method params
+        // Build URL with search and filters
         let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/?page=${page}&page_size=${size}`;
 
         // Add search parameter if present
@@ -86,6 +89,11 @@ export default function SalesTable() {
         // Add delivery_type parameter if selected
         if (deliveryType && deliveryType !== "all") {
           url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
+        }
+
+        // Add logistic parameter if selected and user is Packaging
+        if (logistic && logistic !== "all" && user?.role === "Packaging") {
+          url += `&logistics=${encodeURIComponent(logistic)}`;
         }
 
         const formatDate = (date: Date): string => {
@@ -129,7 +137,9 @@ export default function SalesTable() {
       paymentMethod,
       orderStatus,
       deliveryType,
+      logistic,
       dateRange,
+      user,
     ]
   );
 
@@ -210,7 +220,7 @@ export default function SalesTable() {
         });
       }
 
-      // Apply client-side payment method filter for 1-2 character searches
+      // Apply client-side filters for 1-2 character searches
       if (
         paymentMethod &&
         paymentMethod !== "all" &&
@@ -233,7 +243,6 @@ export default function SalesTable() {
         );
       }
 
-      // Apply client-side delivery type filter for 1-2 character searches
       if (
         deliveryType &&
         deliveryType !== "all" &&
@@ -257,6 +266,7 @@ export default function SalesTable() {
     paymentMethod,
     orderStatus,
     deliveryType,
+    logistic,
   ]);
 
   useEffect(() => {
@@ -301,12 +311,19 @@ export default function SalesTable() {
       showError("Failed to update order status");
     }
   };
+  // Updated handleExportCSV function in your main SalesTable component
 
-  // Function to handle CSV export
   const handleExportCSV = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv`;
+
+      // Build the URL with query parameters
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv/`;
+
+      // If user is Packaging role and a specific logistic is selected, add logistics query parameter
+      if (user?.role === "Packaging" && logistic && logistic !== "all") {
+        url += `?logistics=${logistic}`;
+      }
 
       const response = await axios.get(url, {
         headers: {
@@ -319,7 +336,15 @@ export default function SalesTable() {
       const urlObject = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = urlObject;
-      link.setAttribute("download", `sales_export.csv`);
+
+      // Update filename to include logistic name if specific logistic is selected
+      let filename = "sales_export.csv";
+      if (user?.role === "Packaging" && logistic && logistic !== "all") {
+        // You might want to get the logistic name for the filename
+        filename = `sales_export_logistic_${logistic}.csv`;
+      }
+
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -356,6 +381,8 @@ export default function SalesTable() {
         setOrderStatus={setOrderStatus}
         deliveryType={deliveryType}
         setDeliveryType={setDeliveryType}
+        logistic={logistic}
+        setLogistic={setLogistic}
         dateRange={dateRange}
         setDateRange={setDateRange}
       />

@@ -1,9 +1,11 @@
 "use client";
 import { Search, ChevronDown, Eye, EyeOff } from "lucide-react";
 import type React from "react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   DropdownMenu,
@@ -23,9 +25,24 @@ import {
 } from "@/components/ui/select";
 
 import type { Column } from "@/types/sale";
-import { useEffect } from "react";
 import DateRangePicker from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
+import axios from "axios";
+
+interface Logistic {
+  id: number;
+  name: string;
+  phone_number: string | null;
+}
+
+interface ExportFilters {
+  searchInput: string;
+  paymentMethod: string;
+  orderStatus: string;
+  deliveryType: string;
+  logistic: string;
+  dateRange: DateRange | undefined;
+}
 
 interface TableHeaderProps {
   columns: Column[];
@@ -41,13 +58,15 @@ interface TableHeaderProps {
   fetchSales: (page: number) => void;
   showFilterForm: boolean;
   setShowFilterForm: (value: boolean) => void;
-  setShowExportModal: (value: boolean) => void;
+  setShowExportModal: (value: boolean, filters?: ExportFilters) => void;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
   orderStatus: string;
   setOrderStatus: (value: string) => void;
   deliveryType: string;
   setDeliveryType: (value: string) => void;
+  logistic: string;
+  setLogistic: (value: string) => void;
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
   className?: string;
@@ -72,16 +91,49 @@ export function TableHeader({
   setOrderStatus,
   deliveryType,
   setDeliveryType,
+  logistic,
+  setLogistic,
   dateRange,
   setDateRange,
   className = "",
 }: TableHeaderProps) {
+  const [logistics, setLogistics] = useState<Logistic[]>([]);
+  const { user } = useAuth();
+
+  // Fetch logistics data on component mount - only for Packaging role
+  useEffect(() => {
+    const fetchLogistics = async () => {
+      if (user?.role !== "Packaging") return;
+
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await axios.get<Logistic[]>(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/logistics/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setLogistics(response.data);
+      } catch (error) {
+        console.error("Error fetching logistics:", error);
+      }
+    };
+
+    fetchLogistics();
+  }, [user]);
+
   useEffect(() => {
     fetchSales(1);
-  }, [paymentMethod, orderStatus, deliveryType, dateRange]);
+  }, [paymentMethod, orderStatus, deliveryType, logistic, dateRange]);
 
   const handleDeliveryTypeChange = (value: string) => {
     setDeliveryType(value);
+  };
+
+  const handleLogisticChange = (value: string) => {
+    setLogistic(value);
   };
 
   const handleClearFilters = () => {
@@ -90,8 +142,30 @@ export function TableHeader({
     setPaymentMethod("all");
     setOrderStatus("all");
     setDeliveryType("all");
+    if (user?.role === "Packaging") {
+      setLogistic("all");
+    }
     setDateRange(undefined);
     fetchSales(1);
+  };
+
+  const handleExportClick = () => {
+    const currentFilters: ExportFilters = {
+      searchInput,
+      paymentMethod,
+      orderStatus,
+      deliveryType,
+      logistic,
+      dateRange,
+    };
+    setShowExportModal(true, currentFilters);
+  };
+
+  // Get logistic name for display
+  const getLogisticName = (logisticId: string) => {
+    if (logisticId === "all") return "All Logistics";
+    const logisticItem = logistics.find((l) => l.id.toString() === logisticId);
+    return logisticItem ? logisticItem.name : "Unknown";
   };
 
   return (
@@ -145,15 +219,25 @@ export function TableHeader({
         </div>
         <div className="text-xs text-gray-500 whitespace-nowrap min-w-0 truncate">
           {resultsCount ? `${resultsCount} of ${salesCount} entries` : ""}
+          {user?.role === "Packaging" && logistic !== "all" && (
+            <span className="ml-2 text-blue-600 font-medium">
+              ({getLogisticName(logistic)})
+            </span>
+          )}
         </div>
         <div className="flex-1 flex justify-end min-w-0">
           <Button
             variant="outline"
             size="sm"
             className="flex items-center gap-1 whitespace-nowrap bg-yellow-400 hover:bg-yellow-500 px-2 h-8 min-w-0"
-            onClick={() => setShowExportModal(true)}
+            onClick={handleExportClick}
           >
-            <span>Export CSV</span>
+            <span>
+              Export CSV
+              {user?.role === "Packaging" &&
+                logistic !== "all" &&
+                ` (${getLogisticName(logistic)})`}
+            </span>
           </Button>
         </div>
       </div>
@@ -229,6 +313,41 @@ export function TableHeader({
             </SelectContent>
           </Select>
         </div>
+        {user?.role === "Packaging" && logistics.length > 0 && (
+          <div className="flex gap-1 min-w-0">
+            {logistics.map((logisticOption) => (
+              <Button
+                key={logisticOption.id}
+                variant={
+                  logistic === logisticOption.id.toString()
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                className={`h-8 px-3 text-xs whitespace-nowrap ${
+                  logistic === logisticOption.id.toString()
+                    ? "bg-blue-500 hover:bg-blue-600 text-white"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() =>
+                  handleLogisticChange(logisticOption.id.toString())
+                }
+              >
+                {logisticOption.name}
+              </Button>
+            ))}
+            {logistic !== "all" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 text-xs whitespace-nowrap hover:bg-gray-100"
+                onClick={() => handleLogisticChange("all")}
+              >
+                All
+              </Button>
+            )}
+          </div>
+        )}
         <div className="min-w-0">
           <DateRangePicker
             className="w-full h-8 text-xs"
@@ -240,6 +359,7 @@ export function TableHeader({
           paymentMethod !== "all" ||
           orderStatus !== "all" ||
           deliveryType !== "all" ||
+          (user?.role === "Packaging" && logistic !== "all") ||
           dateRange !== undefined) && (
           <Button
             variant="outline"

@@ -12,6 +12,7 @@ export enum PaymentMethod {
   CashOnDelivery = "Cash on Delivery",
   Prepaid = "Prepaid",
   OfficeVisit = "Office Visit",
+  Indrive = "Indrive"
 }
 
 export enum OrderStatus {

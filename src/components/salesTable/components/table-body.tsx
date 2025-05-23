@@ -302,7 +302,7 @@ export function TableBody({
                           </SelectTrigger>
                           <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
                             {isLoadingLogistics ? (
-                              <SelectItem value="">Loading...</SelectItem>
+                              <SelectItem value="id">Loading...</SelectItem>
                             ) : (
                               logistics.map((logistic) => (
                                 <SelectItem
