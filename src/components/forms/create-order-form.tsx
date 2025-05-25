@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { Role, useAuth } from "@/contexts/AuthContext";
 
 interface CreateOrderFormProps {
   products: Product[];
@@ -102,6 +103,7 @@ export default function CreateOrderForm({
     useState<DuplicateOrderError | null>(null);
   const [pendingForceOrderData, setPendingForceOrderData] =
     useState<OrderFormValues | null>(null);
+  const { user } = useAuth();
 
   const router = useRouter();
 
@@ -388,7 +390,11 @@ export default function CreateOrderForm({
           `Order ${isEditMode ? "updated" : "submitted"} successfully!`
         );
         form.reset();
-        router.push("/sales/dashboard");
+        if (user?.role === Role.SalesPerson) {
+          router.push("/sales/orders");
+        } else {
+          router.push("/admin/salesList");
+        }
       } else {
         throw new Error(`Failed to ${isEditMode ? "update" : "submit"} order`);
       }
