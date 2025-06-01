@@ -103,6 +103,9 @@ export function TableBody({
 
   const handleLogisticsChange = async (saleId: string, logisticsId: string) => {
     try {
+      // If logisticsId is 'none', set it to null
+      const logisticsValue = logisticsId === "none" ? null : logisticsId;
+
       await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`,
         {
@@ -111,7 +114,7 @@ export function TableBody({
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
-          body: JSON.stringify({ logistics: logisticsId }),
+          body: JSON.stringify({ logistics: logisticsValue }),
         }
       )
         .then((response) => response.json())
@@ -304,14 +307,19 @@ export function TableBody({
                             {isLoadingLogistics ? (
                               <SelectItem value="id">Loading...</SelectItem>
                             ) : (
-                              logistics.map((logistic) => (
-                                <SelectItem
-                                  key={logistic.id}
-                                  value={logistic.id.toString() || "default"} // Ensure value is not an empty string
-                                >
-                                  {logistic.name || "Unnamed Logistic"}
+                              <>
+                                <SelectItem value="none">
+                                  Change Logistic
                                 </SelectItem>
-                              ))
+                                {logistics.map((logistic) => (
+                                  <SelectItem
+                                    key={logistic.id}
+                                    value={logistic.id.toString() || "default"} // Ensure value is not an empty string
+                                  >
+                                    {logistic.name || "Unnamed Logistic"}
+                                  </SelectItem>
+                                ))}
+                              </>
                             )}
                           </SelectContent>
                         </Select>
