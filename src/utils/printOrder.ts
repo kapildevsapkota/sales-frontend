@@ -41,11 +41,6 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
             margin: 0;
             padding: 0;
           }
-          .header {
-            text-align: center;
-            margin-bottom: 10px;
-            font-weight: bold;
-          }
           .order {
             border: 1px dashed #000;
             padding: 8px 5px 0 5px;
@@ -81,10 +76,6 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
         </style>
       </head>
       <body>
-        <div class="header">
-          <h2>Baliyo Venture</h2>
-          <p>Processing Orders</p>
-        </div>
         ${processingOrders
           .map(
             (order, idx) => `
