@@ -19,12 +19,11 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
         <style>
           @media print {
             @page {
-              size: 120mm 80mm landscape; /* Landscape: width 120mm, height 80mm */
+              size: 80mm 120mm; /* Adjust height to match your label */
               margin: 0;
             }
             body {
-              width: 120mm;
-              height: 80mm;
+              width: 80mm;
               margin: 0;
               padding: 0;
             }
@@ -38,8 +37,7 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           body {
             font-family: Arial, sans-serif;
             font-size: 12px;
-            width: 120mm;
-            height: 80mm;
+            width: 80mm;
             margin: 0;
             padding: 0;
           }
@@ -50,14 +48,9 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           }
           .order {
             border: 1px dashed #000;
-            padding: 8px 5px;
+            padding: 8px 5px 0 5px;
             margin: 0;
-            min-width: 120mm;
-            min-height: 80mm;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
           }
           .order-header {
             font-weight: bold;
@@ -72,6 +65,8 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           .order-total {
             text-align: right;
             font-weight: bold;
+            margin-bottom: 0;
+            padding-bottom: 0;
           }
           .footer {
             text-align: center;
