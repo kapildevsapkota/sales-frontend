@@ -19,16 +19,21 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
         <style>
           @media print {
             @page {
-              size: 80mm 120mm; /* Adjust height to match your label */
+              size: 3in 4in;
               margin: 0;
             }
             body {
-              width: 80mm;
+              width: 3in;
               margin: 0;
               padding: 0;
             }
             .order {
+              width: 3in;
+              height: 4in;
+              min-height: 4in;
+              max-height: 4in;
               page-break-after: always;
+              box-sizing: border-box;
             }
             .order:last-child {
               page-break-after: auto;
@@ -37,9 +42,14 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           body {
             font-family: Arial, sans-serif;
             font-size: 12px;
-            width: 80mm;
+            width: 3in;
             margin: 0;
             padding: 0;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
           }
           .order {
             border: 1px dashed #000;
@@ -60,8 +70,6 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           .order-total {
             text-align: right;
             font-weight: bold;
-            margin-bottom: 0;
-            padding-bottom: 0;
           }
           .footer {
             text-align: center;
@@ -84,6 +92,10 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
               ? "page-break-after: auto;"
               : "page-break-after: always;"
           }">
+            <div class="header">
+              <h2>Baliyo Venture</h2>
+              <p>Processing Orders</p>
+            </div>
             <div class="order-header">
               Order #: ${order.id}<br>
               Date: ${new Date(order.created_at).toLocaleDateString()}<br>
