@@ -385,6 +385,7 @@ export default function SalesTable() {
         setLogistic={setLogistic}
         dateRange={dateRange}
         setDateRange={setDateRange}
+        sales={sales?.results || []}
       />
 
       {showExportModal && (

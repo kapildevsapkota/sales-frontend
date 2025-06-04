@@ -2,6 +2,7 @@
 import { Search, ChevronDown, Eye, EyeOff } from "lucide-react";
 import type React from "react";
 import { useState, useEffect } from "react";
+import type { SaleItem } from "@/types/sale";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import type { Column } from "@/types/sale";
 import DateRangePicker from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import axios from "axios";
+import { printOrders } from "@/utils/printOrder";
 
 interface Logistic {
   id: number;
@@ -70,6 +72,7 @@ interface TableHeaderProps {
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
   className?: string;
+  sales: SaleItem[];
 }
 
 export function TableHeader({
@@ -96,6 +99,7 @@ export function TableHeader({
   dateRange,
   setDateRange,
   className = "",
+  sales,
 }: TableHeaderProps) {
   const [logistics, setLogistics] = useState<Logistic[]>([]);
   const { user } = useAuth();
@@ -159,6 +163,14 @@ export function TableHeader({
       dateRange,
     };
     setShowExportModal(true, currentFilters);
+  };
+
+  const handlePrintOrders = async () => {
+    try {
+      await printOrders({ orders: sales });
+    } catch (error) {
+      console.error("Error printing orders:", error);
+    }
   };
 
   // Get logistic name for display
@@ -225,7 +237,17 @@ export function TableHeader({
             </span>
           )}
         </div>
-        <div className="flex-1 flex justify-end min-w-0">
+        <div className="flex-1 flex justify-end min-w-0 gap-2">
+          {user?.role === "Packaging" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500 px-2 h-8 min-w-0"
+              onClick={handlePrintOrders}
+            >
+              Print Order
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"

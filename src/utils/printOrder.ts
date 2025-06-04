@@ -1,0 +1,128 @@
+import { SaleItem } from "@/types/sale";
+
+interface PrintOrderOptions {
+  orders: SaleItem[];
+  printerName?: string;
+}
+
+export const printOrders = async ({
+  orders,
+}: // printerName = "deli dl-740c",
+PrintOrderOptions) => {
+  // Filter only processing orders
+  const processingOrders = orders.filter(
+    (order) => order.order_status === "Processing"
+  );
+
+  // Create print content
+  const printContent = `
+    <html>
+      <head>
+        <style>
+          @page {
+            size: 80mm 297mm;
+            margin: 0;
+          }
+          body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            width: 80mm;
+            margin: 0;
+            padding: 5mm;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+          }
+          .order {
+            border-top: 1px dashed #000;
+            padding: 5px 0;
+            margin-bottom: 10px;
+          }
+          .order-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          .order-details {
+            margin-bottom: 5px;
+          }
+          .order-items {
+            margin: 5px 0;
+          }
+          .order-total {
+            text-align: right;
+            font-weight: bold;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2>Baliyo Venture</h2>
+          <p>Processing Orders</p>
+        </div>
+        ${processingOrders
+          .map(
+            (order) => `
+          <div class="order">
+            <div class="order-header">
+              Order #: ${order.id}<br>
+              Date: ${new Date(order.created_at).toLocaleDateString()}<br>
+              Time: ${new Date(order.created_at).toLocaleTimeString()}
+            </div>
+            <div class="order-details">
+              Customer: ${order.full_name}<br>
+              Phone: ${order.phone_number}<br>
+              Address: ${order.delivery_address}, ${order.city}<br>
+              Payment: ${order.payment_method}<br>
+              Delivery: ${order.delivery_type}
+            </div>
+            <div class="order-items">
+              ${order.order_products
+                .map(
+                  (item) => `
+                ${item.quantity}x ${item.product.name} - Rs.${
+                    (item.quantity * Number(order.total_amount)) /
+                    order.order_products.reduce((sum, p) => sum + p.quantity, 0)
+                  }
+              `
+                )
+                .join("<br>")}
+            </div>
+            <div class="order-total">
+              Total: Rs.${order.total_amount}
+            </div>
+          </div>
+        `
+          )
+          .join("")}
+        <div class="footer">
+          Printed on: ${new Date().toLocaleString()}
+        </div>
+      </body>
+    </html>
+  `;
+
+  // Create a new window for printing
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    throw new Error("Failed to open print window");
+  }
+
+  // Write content to the window
+  printWindow.document.write(printContent);
+  printWindow.document.close();
+
+  // Wait for content to load
+  printWindow.onload = () => {
+    // Print the window
+    printWindow.print();
+    // Close the window after printing
+    printWindow.close();
+  };
+};
