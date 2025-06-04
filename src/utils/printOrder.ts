@@ -22,8 +22,9 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
               size: 3in 4in;
               margin: 0;
             }
-            body {
+            html, body {
               width: 3in;
+              height: 4in;
               margin: 0;
               padding: 0;
             }
@@ -32,17 +33,21 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
               height: 4in;
               min-height: 4in;
               max-height: 4in;
-              page-break-after: always;
+              margin: 0;
+              padding: 0;
               box-sizing: border-box;
+              page-break-after: always;
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-start;
             }
             .order:last-child {
               page-break-after: auto;
             }
           }
-          body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
+          html, body {
             width: 3in;
+            height: 4in;
             margin: 0;
             padding: 0;
           }
@@ -53,9 +58,14 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           }
           .order {
             border: 1px dashed #000;
-            padding: 8px 5px 0 5px;
-            margin: 0;
             box-sizing: border-box;
+            margin: 0;
+            padding: 0 5px;
+            width: 3in;
+            height: 4in;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
           }
           .order-header {
             font-weight: bold;
@@ -70,11 +80,6 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           .order-total {
             text-align: right;
             font-weight: bold;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 10px;
           }
           @media print {
             .no-print {
@@ -127,9 +132,6 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
         `
           )
           .join("")}
-        <div class="footer">
-          Printed on: ${new Date().toLocaleString()}
-        </div>
         <div class="no-print" style="text-align: center; margin-top: 20px;">
           <button onclick="window.print()">Print</button>
         </div>
