@@ -19,13 +19,19 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
         <style>
           @media print {
             @page {
-              size: 80mm 297mm;
+              size: 80mm 120mm; /* Adjust height to match your label */
               margin: 0;
             }
             body {
               width: 80mm;
               margin: 0;
-              padding: 5mm;
+              padding: 0;
+            }
+            .order {
+              page-break-after: always;
+            }
+            .order:last-child {
+              page-break-after: auto;
             }
           }
           body {
@@ -33,7 +39,7 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
             font-size: 12px;
             width: 80mm;
             margin: 0;
-            padding: 5mm;
+            padding: 0;
           }
           .header {
             text-align: center;
@@ -41,10 +47,11 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
             font-weight: bold;
           }
           .order {
-            border-top: 1px dashed #000;
-            padding: 5px 0;
-            margin-bottom: 10px;
-            page-break-inside: avoid;
+            border: 1px dashed #000;
+            padding: 8px 5px;
+            margin: 0;
+            min-height: 100mm; /* Adjust to match your label height */
+            box-sizing: border-box;
           }
           .order-header {
             font-weight: bold;
@@ -79,8 +86,12 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
         </div>
         ${processingOrders
           .map(
-            (order) => `
-          <div class="order">
+            (order, idx) => `
+          <div class="order" style="${
+            idx === processingOrders.length - 1
+              ? "page-break-after: auto;"
+              : "page-break-after: always;"
+          }">
             <div class="order-header">
               Order #: ${order.id}<br>
               Date: ${new Date(order.created_at).toLocaleDateString()}<br>
@@ -134,7 +145,6 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
 
   // Wait for content to load
   printWindow.onload = () => {
-    // Don't automatically print, let user click the print button
-    // This gives better control over printer selection on Windows
+    // User clicks print button for best compatibility
   };
 };
