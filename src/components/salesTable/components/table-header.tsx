@@ -37,6 +37,12 @@ interface Logistic {
   phone_number: string | null;
 }
 
+interface SalesPerson {
+  id: number;
+  first_name: string;
+  last_name: string;
+}
+
 interface ExportFilters {
   searchInput: string;
   paymentMethod: string;
@@ -73,6 +79,8 @@ interface TableHeaderProps {
   setDateRange: (range: DateRange | undefined) => void;
   className?: string;
   sales: SaleItem[];
+  salesperson: string;
+  setSalesperson: (value: string) => void;
 }
 
 export function TableHeader({
@@ -100,8 +108,11 @@ export function TableHeader({
   setDateRange,
   className = "",
   sales,
+  salesperson,
+  setSalesperson,
 }: TableHeaderProps) {
   const [logistics, setLogistics] = useState<Logistic[]>([]);
+  const [salespersons, setSalespersons] = useState<SalesPerson[]>([]);
   const { user } = useAuth();
 
   // Fetch logistics data on component mount - only for Packaging role
@@ -128,6 +139,28 @@ export function TableHeader({
     fetchLogistics();
   }, [user]);
 
+  // Fetch salespersons data on component mount
+  useEffect(() => {
+    const fetchSalespersons = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await axios.get<SalesPerson[]>(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/salespersons/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setSalespersons(response.data);
+      } catch (error) {
+        console.error("Error fetching salespersons:", error);
+      }
+    };
+
+    fetchSalespersons();
+  }, []);
+
   useEffect(() => {
     fetchSales(1);
   }, [paymentMethod, orderStatus, deliveryType, logistic, dateRange]);
@@ -146,6 +179,7 @@ export function TableHeader({
     setPaymentMethod("all");
     setOrderStatus("all");
     setDeliveryType("all");
+    setSalesperson("all");
     if (user?.role === "Packaging") {
       setLogistic("all");
     }
@@ -332,6 +366,21 @@ export function TableHeader({
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="Inside valley">Inside</SelectItem>
               <SelectItem value="Outside valley">Outside</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-[120px] min-w-0">
+          <Select value={salesperson} onValueChange={setSalesperson}>
+            <SelectTrigger className="h-8 w-full text-xs">
+              <SelectValue placeholder="Salesperson" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              {salespersons.map((person) => (
+                <SelectItem key={person.id} value={person.id.toString()}>
+                  {`${person.first_name} ${person.last_name}`}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

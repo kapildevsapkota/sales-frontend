@@ -138,7 +138,7 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
       
         ${processingOrders
           .map(
-            (order, idx) => `
+            (order) => `
           <div class="order">
             <div class="order-header">
               Order #: ${order.id}<br>
@@ -164,7 +164,7 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
               <div>Items:</div>
               ${order.order_products
                 .map((item) => {
-                  let productName = item.product.name.toLowerCase();
+                  const productName = item.product.name.toLowerCase();
                   let displayName = item.product.name;
                   if (
                     productName.includes("dandruff") &&
@@ -192,7 +192,7 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
                   ) {
                     displayName = "SS";
                   }
-                  return `<div>${item.quantity}x <b>${displayName}</b></div>`;
+                  return `<div>${item.quantity}x${displayName}</div>`;
                 })
                 .join("")}
             </div>
