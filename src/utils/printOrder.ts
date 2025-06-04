@@ -103,6 +103,8 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
           }
           .order-items {
             margin: 5px 0;
+            font-weight: bold;
+            text-align: center;
           }
           .order-total {
             text-align: right;
@@ -117,6 +119,18 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
             .no-print {
               display: none;
             }
+          }
+          .order-items.flex-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            text-align: center;
+          }
+          .order-items.flex-row > div {
+            margin-bottom: 0;
           }
         </style>
       </head>
@@ -144,7 +158,10 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
                 order.payment_method
               }</span>
             </div>
-            <div class="order-items">
+            <div class="order-items${
+              order.order_products.length > 2 ? " flex-row" : ""
+            }">
+              <div>Items:</div>
               ${order.order_products
                 .map((item) => {
                   let productName = item.product.name.toLowerCase();
@@ -175,15 +192,19 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
                   ) {
                     displayName = "SS";
                   }
-                  return `<div>${item.quantity}x ${displayName} - Rs.${
-                    (item.quantity * Number(order.total_amount)) /
-                    order.order_products.reduce((sum, p) => sum + p.quantity, 0)
-                  }</div>`;
+                  return `<div>${item.quantity}x <b>${displayName}</b></div>`;
                 })
                 .join("")}
             </div>
             <div class="order-total">
-              Total: Rs.${order.total_amount}
+              ${
+                order.prepaid_amount &&
+                Number(order.total_amount) - Number(order.prepaid_amount) > 0
+                  ? `<br>Total: Rs.${
+                      Number(order.total_amount) - Number(order.prepaid_amount)
+                    }`
+                  : ""
+              }
             </div>
           </div>
         `
