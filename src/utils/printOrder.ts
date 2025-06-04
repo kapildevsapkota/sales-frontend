@@ -2,13 +2,9 @@ import { SaleItem } from "@/types/sale";
 
 interface PrintOrderOptions {
   orders: SaleItem[];
-  printerName?: string;
 }
 
-export const printOrders = async ({
-  orders,
-}: // printerName = "deli dl-740c",
-PrintOrderOptions) => {
+export const printOrders = async ({ orders }: PrintOrderOptions) => {
   // Filter only processing orders
   const processingOrders = orders.filter(
     (order) => order.order_status === "Processing"
@@ -16,12 +12,21 @@ PrintOrderOptions) => {
 
   // Create print content
   const printContent = `
+    <!DOCTYPE html>
     <html>
       <head>
+        <title>Print Orders</title>
         <style>
-          @page {
-            size: 80mm 297mm;
-            margin: 0;
+          @media print {
+            @page {
+              size: 80mm 297mm;
+              margin: 0;
+            }
+            body {
+              width: 80mm;
+              margin: 0;
+              padding: 5mm;
+            }
           }
           body {
             font-family: Arial, sans-serif;
@@ -39,6 +44,7 @@ PrintOrderOptions) => {
             border-top: 1px dashed #000;
             padding: 5px 0;
             margin-bottom: 10px;
+            page-break-inside: avoid;
           }
           .order-header {
             font-weight: bold;
@@ -58,6 +64,11 @@ PrintOrderOptions) => {
             text-align: center;
             margin-top: 10px;
             font-size: 10px;
+          }
+          @media print {
+            .no-print {
+              display: none;
+            }
           }
         </style>
       </head>
@@ -104,6 +115,9 @@ PrintOrderOptions) => {
         <div class="footer">
           Printed on: ${new Date().toLocaleString()}
         </div>
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+          <button onclick="window.print()">Print</button>
+        </div>
       </body>
     </html>
   `;
@@ -120,9 +134,7 @@ PrintOrderOptions) => {
 
   // Wait for content to load
   printWindow.onload = () => {
-    // Print the window
-    printWindow.print();
-    // Close the window after printing
-    printWindow.close();
+    // Don't automatically print, let user click the print button
+    // This gives better control over printer selection on Windows
   };
 };
