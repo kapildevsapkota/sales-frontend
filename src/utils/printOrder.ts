@@ -153,7 +153,7 @@ export const printOrders = async ({ orders }: PrintOrderOptions) => {
               }</span><br>
               Address: <span style="font-weight: bold;">${
                 order.delivery_address
-              }</span>, ${order.city}<br>
+              }, ${order.city}</span><br>
               Payment: <span style="font-weight: bold;">${
                 order.payment_method
               }</span>
