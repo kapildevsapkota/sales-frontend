@@ -1,4 +1,24 @@
 export interface SaleItem {
+  id: number;
+  product_name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Sale {
+  id: number;
+  customer_name: string;
+  customer_phone: string;
+  customer_address: string;
+  payment_method: string;
+  delivery_type: string;
+  order_status: string;
+  created_at: string;
+  total_amount: number;
+  items: SaleItem[];
+}
+
+export interface SaleItem {
   logistics_name: string;
   logistics: string;
   id: number;

@@ -30,6 +30,7 @@ export default function SalesTable() {
   const [orderStatus, setOrderStatus] = useState("all");
   const [deliveryType, setDeliveryType] = useState("all");
   const [logistic, setLogistic] = useState("all");
+  const [salesperson, setSalesperson] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
@@ -91,6 +92,11 @@ export default function SalesTable() {
           url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
         }
 
+        // Add salesperson parameter if selected
+        if (salesperson && salesperson !== "all") {
+          url += `&sales_person=${encodeURIComponent(salesperson)}`;
+        }
+
         // Add logistic parameter if selected and user is Packaging
         if (logistic && logistic !== "all" && user?.role === "Packaging") {
           url += `&logistics=${encodeURIComponent(logistic)}`;
@@ -140,6 +146,7 @@ export default function SalesTable() {
       logistic,
       dateRange,
       user,
+      salesperson,
     ]
   );
 
@@ -254,6 +261,17 @@ export default function SalesTable() {
         );
       }
 
+      if (
+        salesperson &&
+        salesperson !== "all" &&
+        searchInput &&
+        searchInput.length < 3
+      ) {
+        dataToSort = dataToSort.filter(
+          (sale) => sale.sales_person.id.toString() === salesperson
+        );
+      }
+
       // Apply filters
       const filtered = applyFilters(dataToSort);
 
@@ -267,6 +285,7 @@ export default function SalesTable() {
     orderStatus,
     deliveryType,
     logistic,
+    salesperson,
   ]);
 
   useEffect(() => {
@@ -385,6 +404,9 @@ export default function SalesTable() {
         setLogistic={setLogistic}
         dateRange={dateRange}
         setDateRange={setDateRange}
+        sales={sales?.results || []}
+        salesperson={salesperson}
+        setSalesperson={setSalesperson}
       />
 
       {showExportModal && (
