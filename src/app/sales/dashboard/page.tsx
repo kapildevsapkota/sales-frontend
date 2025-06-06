@@ -6,6 +6,7 @@ import { ShoppingBag, FileText, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stats } from "@/components/stats";
 import { useAuth } from "@/contexts/AuthContext";
+import { DashboardSalesOverview } from "@/components/dashboard/DashboardSalesOverview";
 
 export default function SalesDashboard() {
   const router = useRouter();
@@ -80,8 +81,11 @@ export default function SalesDashboard() {
           </Card>
         </motion.div>
       </div>
-      <div className="mt-14">
+      <div className="mt-10">
         <Stats />
+        <div className="mt-8">
+          <DashboardSalesOverview />
+        </div>
       </div>
     </div>
   );

@@ -107,7 +107,7 @@ export function Stats() {
   ];
 
   return (
-    <div className="w-full min-h-[calc(100vh-64px)] py-10">
+    <div className="w-full">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold tracking-tight text-primary">
