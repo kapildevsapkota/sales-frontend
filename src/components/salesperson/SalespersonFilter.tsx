@@ -10,21 +10,22 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 interface SalespersonFilterProps {
   timeframe: Timeframe;
   setTimeframe: (value: Timeframe) => void;
-  date: Date | undefined;
-  setDate: (date: Date | undefined) => void;
+  dateRange: DateRange | undefined;
+  setDateRange: (range: DateRange | undefined) => void;
 }
 
 export function SalespersonFilter({
   timeframe,
   setTimeframe,
-  date,
-  setDate,
+  dateRange,
+  setDateRange,
 }: SalespersonFilterProps) {
-  const isFiltered = date !== undefined || timeframe !== "daily";
+  const isFiltered = dateRange !== undefined || timeframe !== "daily";
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
@@ -42,26 +43,38 @@ export function SalespersonFilter({
         </TabsList>
       </Tabs>
 
-      {/* Date Picker */}
+      {/* Date Range Picker */}
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             className={cn(
-              "w-full sm:w-[240px] justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              "w-full sm:w-[300px] justify-start text-left font-normal",
+              !dateRange && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PPP") : <span>Pick a date</span>}
+            {dateRange?.from ? (
+              dateRange.to ? (
+                <>
+                  {format(dateRange.from, "LLL dd, y")} -{" "}
+                  {format(dateRange.to, "LLL dd, y")}
+                </>
+              ) : (
+                format(dateRange.from, "LLL dd, y")
+              )
+            ) : (
+              <span>Pick a date range</span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0 bg-white border" align="start">
           <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
+            mode="range"
+            selected={dateRange}
+            onSelect={setDateRange}
             initialFocus
+            numberOfMonths={2}
           />
         </PopoverContent>
       </Popover>
@@ -72,7 +85,7 @@ export function SalespersonFilter({
           variant="ghost"
           className="text-sm bg-red-500 hover:bg-red-600"
           onClick={() => {
-            setDate(undefined);
+            setDateRange(undefined);
             setTimeframe("daily"); // reset to default
           }}
         >

@@ -11,7 +11,6 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { format } from "date-fns";
 
 // Define the type for revenue data
 interface RevenueData {
@@ -23,11 +22,9 @@ interface RevenueData {
 export function SalesPersonRevenue({
   timeframe,
   phoneNumber,
-  date,
 }: {
   timeframe: string;
   phoneNumber: string;
-  date: Date | undefined;
 }) {
   const [data, setData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,19 +33,13 @@ export function SalesPersonRevenue({
     const fetchRevenueData = async () => {
       setLoading(true);
       try {
-        // Build query parameters
-        let queryParams = `filter=${timeframe}`;
-
-        // Add date filter if it exists
-        if (date) {
-          queryParams += `&date=${format(date, "yyyy-MM-dd")}`;
-        }
+        // Build query parameters - only use timeframe, ignore dateRange
+        const queryParams = `filter=${timeframe}`;
 
         const response = await api.get(
           `/api/sales/salesperson/${phoneNumber}/revenue/?${queryParams}`
         );
         console.log("sales person revenue", response.data);
-        // Update this line to access `.data` instead of `.revenue_data`
         setData(response.data.data);
       } catch (error) {
         console.error("Error fetching salesperson revenue:", error);
@@ -58,7 +49,7 @@ export function SalesPersonRevenue({
       }
     };
     fetchRevenueData();
-  }, [timeframe, phoneNumber, date]);
+  }, [timeframe, phoneNumber]); // Remove dateRange from dependencies
 
   // Transform data for the chart based on the timeframe
   const chartData = data.map((item) => ({
