@@ -4,6 +4,7 @@ import { DashboardTopSalesPersons } from "@/components/dashboard/DashboardTopSal
 import { DashboardTopProducts } from "@/components/dashboard/DashboardTopProducts";
 import { DashboardRevenueByCategory } from "@/components/dashboard/DashboardRevenueByCategory";
 import { InventoryBanner } from "@/components/dashboard/inventory-banner";
+import { DashboardBarchart } from "@/components/dashboard/DashboardBarchart";
 
 export const DashboardContent: React.FC = () => {
   return (
@@ -17,6 +18,10 @@ export const DashboardContent: React.FC = () => {
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
         <DashboardSalesOverview />
         <DashboardTopSalesPersons />
+      </div>
+
+      <div>
+        <DashboardBarchart />
       </div>
 
       {/* Top Products and Revenue by Category */}

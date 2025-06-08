@@ -20,13 +20,7 @@ interface RevenueData {
   cancelled_count: number;
 }
 
-export function SalesPersonRevenue({
-  timeframe,
-  phoneNumber,
-}: {
-  timeframe: string;
-  phoneNumber: string;
-}) {
+export function DashboardBarChart({ timeframe }: { timeframe: string }) {
   const [data, setData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredBar, setHoveredBar] = useState<string | null>(null);
@@ -37,7 +31,7 @@ export function SalesPersonRevenue({
       try {
         const queryParams = `filter=${timeframe}`;
         const response = await api.get(
-          `/api/sales/salesperson/${phoneNumber}/revenue/?${queryParams}`
+          `/api/sales/revenue-with-cancelled/?${queryParams}`
         );
         console.log("sales person revenue", response.data);
         setData(response.data.data);
@@ -49,7 +43,7 @@ export function SalesPersonRevenue({
       }
     };
     fetchRevenueData();
-  }, [timeframe, phoneNumber]);
+  }, [timeframe]);
 
   // Transform data for the chart
   const chartData = data.map((item) => ({

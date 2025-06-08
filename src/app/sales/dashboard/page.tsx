@@ -6,7 +6,7 @@ import { ShoppingBag, FileText, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stats } from "@/components/stats";
 import { useAuth } from "@/contexts/AuthContext";
-import { DashboardSalesOverview } from "@/components/dashboard/DashboardSalesOverview";
+import { DashboardBarchart } from "@/components/dashboard/DashboardBarchart";
 
 export default function SalesDashboard() {
   const router = useRouter();
@@ -84,7 +84,7 @@ export default function SalesDashboard() {
       <div className="mt-10">
         <Stats />
         <div className="mt-8">
-          <DashboardSalesOverview />
+          <DashboardBarchart />
         </div>
       </div>
     </div>
