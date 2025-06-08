@@ -27,7 +27,7 @@ export function DashboardBarchart() {
           </TabsList>
         </Tabs>
       </div>
-      <div className="overflow-x-auto w-full min-w-[320px]">
+      <div className="overflow-x-auto w-full ">
         <DashboardBarChart timeframe={timeframe} />
       </div>
     </div>
