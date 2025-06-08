@@ -24,9 +24,21 @@ interface RevenueData {
   cancelled_orders?: Record<string, unknown>;
 }
 
+// Define proper types for Recharts tooltip payload
+interface TooltipPayloadItem {
+  value: number;
+  dataKey: string;
+  payload: RevenueData & {
+    name: string;
+    orders: number;
+    cancelled: number;
+  };
+  color?: string;
+}
+
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: any[];
+  payload?: TooltipPayloadItem[];
   label?: string;
 }
 
@@ -208,7 +220,7 @@ export function SalesPersonRevenue({
   }, [timeframe, phoneNumber]);
 
   // Transform data for the stacked chart
-  const chartData = data.map((item, index) => ({
+  const chartData = data.map((item) => ({
     name: item.period,
     orders: item.order_count,
     cancelled: item.cancelled_count,

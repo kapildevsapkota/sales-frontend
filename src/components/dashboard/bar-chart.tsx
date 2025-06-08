@@ -24,9 +24,21 @@ interface RevenueData {
   cancelled_orders?: Record<string, unknown>;
 }
 
+// Define proper types for Recharts tooltip payload
+interface TooltipPayloadItem {
+  value: number;
+  dataKey: string;
+  payload: RevenueData & {
+    name: string;
+    orders: number;
+    cancelled: number;
+  };
+  color?: string;
+}
+
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: any[];
+  payload?: TooltipPayloadItem[];
   label?: string;
 }
 
@@ -202,7 +214,7 @@ export function DashboardBarChart({ timeframe }: { timeframe: string }) {
   }, [timeframe]);
 
   // Transform data for the stacked chart
-  const chartData = data.map((item, index) => ({
+  const chartData = data.map((item) => ({
     name: item.period,
     orders: item.order_count,
     cancelled: item.cancelled_count,
@@ -303,7 +315,7 @@ export function DashboardBarChart({ timeframe }: { timeframe: string }) {
             name="Active Orders"
             radius={[0, 0, 0, 0]}
           >
-            {chartData.map((entry, index) => (
+            {chartData.map((_entry, index) => (
               <Cell
                 key={`cell-orders-${index}`}
                 fill={activeIndex === index ? "#16a34a" : "#22c55e"}
@@ -318,7 +330,7 @@ export function DashboardBarChart({ timeframe }: { timeframe: string }) {
             name="Cancelled Orders"
             radius={[4, 4, 0, 0]}
           >
-            {chartData.map((entry, index) => (
+            {chartData.map((_entry, index) => (
               <Cell
                 key={`cell-cancelled-${index}`}
                 fill={activeIndex === index ? "#dc2626" : "#ef4444"}

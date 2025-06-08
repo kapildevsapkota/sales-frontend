@@ -5,31 +5,11 @@ import {
   Package,
   ShoppingCart,
   Users,
-  XCircle,
   AlertTriangle,
 } from "lucide-react";
 import { Statistics } from "@/components/dashboard/types";
 import { useEffect } from "react";
 import { useState } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-
-const COLORS = {
-  primary: "#3B82F6",
-  success: "#10B981",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-  purple: "#8B5CF6",
-  teal: "#14B8A6",
-  orange: "#F97316",
-  pink: "#EC4899",
-};
 
 export function DashboardStatsPanels({}) {
   const [statistics, setStatistics] = useState<Statistics | null>(null);
@@ -52,32 +32,6 @@ export function DashboardStatsPanels({}) {
 
     fetchStatistics();
   }, []);
-
-  // Prepare chart data
-  const cancelledOrdersData = statistics
-    ? [
-        {
-          name: "Cancelled",
-          value: statistics.cancelled_orders.cancelled,
-          amount: statistics.cancelled_amount.cancelled,
-        },
-        {
-          name: "Returned by Customer",
-          value: statistics.cancelled_orders.returned_by_customer,
-          amount: statistics.cancelled_amount.returned_by_customer,
-        },
-        {
-          name: "Returned by Dash",
-          value: statistics.cancelled_orders.returned_by_dash,
-          amount: statistics.cancelled_amount.returned_by_dash,
-        },
-        {
-          name: "Return Pending",
-          value: statistics.cancelled_orders.return_pending,
-          amount: statistics.cancelled_amount.return_pending,
-        },
-      ].filter((item) => item.value > 0)
-    : [];
 
   const formatCurrency = (value: number) => `Rs. ${value.toLocaleString()}`;
   const formatNumber = (value: number) => value.toLocaleString();
@@ -376,7 +330,7 @@ export function DashboardStatsPanels({}) {
 
               <div className="p-4 bg-white rounded-lg border text-center">
                 <div className="text-sm font-semibold text-gray-600">
-                  Today's Contribution
+                  Today&apos;s Contribution
                 </div>
                 <div className="text-2xl font-bold text-teal-600">
                   {statistics
