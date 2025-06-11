@@ -3,7 +3,7 @@ import { SalesChart } from "@/components/dashboard/sales-chart";
 import { Timeframe } from "@/components/dashboard/types";
 import { useState } from "react";
 
-export function DashboardSalesOverview() {
+export function DashboardSalesOverview({ id }: { id?: string }) {
   const [timeframe, setTimeframe] = useState<Timeframe>("daily");
 
   return (
@@ -29,7 +29,7 @@ export function DashboardSalesOverview() {
         </Tabs>
       </div>
       <div className="overflow-x-auto w-full min-w-[320px]">
-        <SalesChart timeframe={timeframe} />
+        <SalesChart timeframe={timeframe} id={id} />
       </div>
     </div>
   );

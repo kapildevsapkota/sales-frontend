@@ -12,14 +12,14 @@ interface InventoryCheckResponse {
   total_low_items: number;
 }
 
-export const InventoryBanner: React.FC = () => {
+export const InventoryBanner: React.FC<{ id?: string }> = ({ id }) => {
   const [data, setData] = useState<InventoryCheckResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api
-      .get("api/sales/inventory-check")
+      .get(`/api/sales/inventory-check/${id ? `?franchise=${id}` : ""}`)
       .then((res) => setData(res.data))
       .catch(() => setError("Failed to fetch inventory status."))
       .finally(() => setLoading(false));

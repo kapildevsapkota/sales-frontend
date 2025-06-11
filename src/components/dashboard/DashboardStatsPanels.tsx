@@ -11,14 +11,16 @@ import { Statistics } from "@/components/dashboard/types";
 import { useEffect } from "react";
 import { useState } from "react";
 
-export function DashboardStatsPanels({}) {
+export function DashboardStatsPanels({ id }: { id?: string }) {
   const [statistics, setStatistics] = useState<Statistics | null>(null);
 
   useEffect(() => {
     const fetchStatistics = async () => {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        "https://sales.baliyoventures.com/api/sales/statistics/",
+        `https://sales.baliyoventures.com/api/sales/statistics/${
+          id ? `?franchise=${id}` : ""
+        }`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -29,7 +29,7 @@ interface SalesResponse {
   results: Salesperson[];
 }
 
-export function RecentSales() {
+export function RecentSales({ id }: { id?: string }) {
   const [salespersons, setSalespersons] = useState<Salesperson[]>([]);
   const [filter, setFilter] = useState<"all" | "daily" | "weekly" | "monthly">(
     "daily"
@@ -42,7 +42,9 @@ export function RecentSales() {
       try {
         const token = localStorage.getItem("accessToken");
         const response = await fetch(
-          `https://sales.baliyoventures.com/api/sales/top-salespersons/?filter=${filter}`,
+          `https://sales.baliyoventures.com/api/sales/top-salespersons/?filter=${filter}${
+            id ? `&franchise=${id}` : ""
+          }`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -1,6 +1,6 @@
 import { TopProducts } from "@/components/dashboard/top-products";
 
-export function DashboardTopProducts() {
+export function DashboardTopProducts({ id }: { id?: string }) {
   return (
     <div className="col-span-full lg:col-span-3 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0">
       <div className="mb-4">
@@ -9,7 +9,7 @@ export function DashboardTopProducts() {
           Your best selling products this month
         </div>
       </div>
-      <TopProducts />
+      <TopProducts id={id} />
     </div>
   );
 }

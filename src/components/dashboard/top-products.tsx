@@ -11,7 +11,7 @@ interface Product {
   total_amount: number;
 }
 
-export function TopProducts() {
+export function TopProducts({ id }: { id?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [timeRange, setTimeRange] = useState<"weekly" | "monthly">("weekly");
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +22,9 @@ export function TopProducts() {
       try {
         const token = localStorage.getItem("accessToken");
         const response = await fetch(
-          `https://sales.baliyoventures.com/api/sales/top-products/?filter=${timeRange}`,
+          `https://sales.baliyoventures.com/api/sales/top-products/?filter=${timeRange}${
+            id ? `&franchise=${id}` : ""
+          }`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

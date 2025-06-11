@@ -13,7 +13,7 @@ interface Product {
   percentage: number; // Include percentage if needed
 }
 
-export function RevenueChart() {
+export function RevenueChart({ id }: { id?: string }) {
   const [data, setData] = useState<Product[]>([]); // State to hold revenue data
   const [timeRange, setTimeRange] = useState<"weekly" | "monthly">("weekly");
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +24,9 @@ export function RevenueChart() {
       try {
         const token = localStorage.getItem("accessToken"); // Get the access token from local storage
         const response = await fetch(
-          `https://sales.baliyoventures.com/api/sales/revenue-by-product/?filter=${timeRange}`,
+          `https://sales.baliyoventures.com/api/sales/revenue-by-product/?filter=${timeRange}${
+            id ? `&franchise=${id}` : ""
+          }`,
           {
             headers: {
               Authorization: `Bearer ${token}`, // Set the authorization header

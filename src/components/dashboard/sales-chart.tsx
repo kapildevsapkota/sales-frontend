@@ -19,14 +19,22 @@ interface RevenueData {
   order_count: number;
 }
 
-export function SalesChart({ timeframe }: { timeframe: string }) {
+export function SalesChart({
+  timeframe,
+  id,
+}: {
+  timeframe: string;
+  id?: string;
+}) {
   const [data, setData] = useState<RevenueData[]>([]); // State to hold revenue data
 
   useEffect(() => {
     const fetchRevenueData = async () => {
       const token = localStorage.getItem("accessToken"); // Get the access token from local storage
       const response = await fetch(
-        `https://sales.baliyoventures.com/api/sales/revenue/?filter=${timeframe}`,
+        `https://sales.baliyoventures.com/api/sales/revenue/?filter=${timeframe}${
+          id ? `&franchise=${id}` : ""
+        }`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Set the authorization header

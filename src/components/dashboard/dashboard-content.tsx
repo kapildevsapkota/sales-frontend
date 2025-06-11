@@ -6,28 +6,28 @@ import { DashboardRevenueByCategory } from "@/components/dashboard/DashboardReve
 import { InventoryBanner } from "@/components/dashboard/inventory-banner";
 import { DashboardBarchart } from "@/components/dashboard/DashboardBarchart";
 
-export const DashboardContent: React.FC = () => {
+export const DashboardContent: React.FC<{ id?: string }> = ({ id }) => {
   return (
     <div className="container mx-auto space-y-6  sm:p-4 md:p-6 ">
-      <InventoryBanner />
+      <InventoryBanner id={id} />
 
       {/* Modern Stat Panels */}
-      <DashboardStatsPanels />
+      <DashboardStatsPanels id={id} />
 
       {/* Sales Overview and Top Sales Persons */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
-        <DashboardSalesOverview />
-        <DashboardTopSalesPersons />
+        <DashboardSalesOverview id={id} />
+        <DashboardTopSalesPersons id={id} />
       </div>
 
       <div>
-        <DashboardBarchart />
+        <DashboardBarchart id={id} />
       </div>
 
       {/* Top Products and Revenue by Category */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
-        <DashboardTopProducts />
-        <DashboardRevenueByCategory />
+        <DashboardTopProducts id={id} />
+        <DashboardRevenueByCategory id={id} />
       </div>
     </div>
   );

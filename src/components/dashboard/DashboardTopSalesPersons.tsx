@@ -1,6 +1,6 @@
 import { RecentSales } from "@/components/dashboard/recent-sales";
 
-export function DashboardTopSalesPersons() {
+export function DashboardTopSalesPersons({ id }: { id?: string }) {
   return (
     <div className="col-span-full lg:col-span-3 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0">
       <div className="mb-4">
@@ -9,7 +9,7 @@ export function DashboardTopSalesPersons() {
         </div>
         <div className="text-sm text-gray-500">Sales by persons</div>
       </div>
-      <RecentSales />
+      <RecentSales id={id} />
     </div>
   );
 }

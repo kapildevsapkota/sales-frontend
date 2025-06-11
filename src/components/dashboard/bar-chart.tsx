@@ -188,7 +188,13 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
-export function DashboardBarChart({ timeframe }: { timeframe: string }) {
+export function DashboardBarChart({
+  timeframe,
+  id,
+}: {
+  timeframe: string;
+  id?: string;
+}) {
   const [data, setData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -199,7 +205,9 @@ export function DashboardBarChart({ timeframe }: { timeframe: string }) {
       try {
         const queryParams = `filter=${timeframe}`;
         const response = await api.get(
-          `/api/sales/revenue-with-cancelled/?${queryParams}`
+          `/api/sales/revenue-with-cancelled/?${queryParams}${
+            id ? `&franchise=${id}` : ""
+          }`
         );
         console.log("sales person revenue", response.data);
         setData(response.data.data);
@@ -211,7 +219,7 @@ export function DashboardBarChart({ timeframe }: { timeframe: string }) {
       }
     };
     fetchRevenueData();
-  }, [timeframe]);
+  }, [timeframe, id]);
 
   // Transform data for the stacked chart
   const chartData = data.map((item) => ({

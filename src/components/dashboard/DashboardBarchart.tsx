@@ -3,7 +3,7 @@ import { Timeframe } from "@/components/dashboard/types";
 import { useState } from "react";
 import { DashboardBarChart } from "./bar-chart";
 
-export function DashboardBarchart() {
+export function DashboardBarchart({ id }: { id?: string }) {
   const [timeframe, setTimeframe] = useState<Timeframe>("daily");
 
   return (
@@ -28,7 +28,7 @@ export function DashboardBarchart() {
         </Tabs>
       </div>
       <div className="overflow-x-auto w-full ">
-        <DashboardBarChart timeframe={timeframe} />
+        <DashboardBarChart timeframe={timeframe} id={id} />
       </div>
     </div>
   );
