@@ -12,6 +12,8 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 // Define the type for revenue data
 interface RevenueData {
@@ -191,9 +193,11 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 export function DashboardBarChart({
   timeframe,
   id,
+  dateRange,
 }: {
   timeframe: string;
   id?: string;
+  dateRange?: DateRange;
 }) {
   const [data, setData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,11 +207,23 @@ export function DashboardBarChart({
     const fetchRevenueData = async () => {
       setLoading(true);
       try {
-        const queryParams = `filter=${timeframe}`;
+        const params = new URLSearchParams();
+        params.append("filter", timeframe);
+
+        if (id) {
+          params.append("franchise", id);
+        }
+
+        // Add date parameters when dateRange is selected
+        if (dateRange?.from) {
+          params.append("start_date", format(dateRange.from, "yyyy-MM-dd"));
+        }
+        if (dateRange?.to && dateRange.to !== dateRange.from) {
+          params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
+        }
+
         const response = await api.get(
-          `/api/sales/revenue-with-cancelled/?${queryParams}${
-            id ? `&franchise=${id}` : ""
-          }`
+          `/api/sales/revenue-with-cancelled/?${params.toString()}`
         );
         console.log("sales person revenue", response.data);
         setData(response.data.data);
@@ -219,7 +235,7 @@ export function DashboardBarChart({
       }
     };
     fetchRevenueData();
-  }, [timeframe, id]);
+  }, [timeframe, id, dateRange]);
 
   // Transform data for the stacked chart
   const chartData = data.map((item) => ({

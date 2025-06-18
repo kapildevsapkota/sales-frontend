@@ -46,6 +46,7 @@ export function RecentSales({ id }: { id?: string }) {
       try {
         const token = localStorage.getItem("accessToken");
 
+        // Build URL with proper parameter handling
         const params = new URLSearchParams();
         params.append("filter", filter);
 
@@ -53,14 +54,17 @@ export function RecentSales({ id }: { id?: string }) {
           params.append("franchise", id);
         }
 
+        // Add date parameters when dateRange is selected
         if (dateRange?.from) {
-          params.append("date", format(dateRange.from, "yyyy-MM-dd"));
+          params.append("start_date", format(dateRange.from, "yyyy-MM-dd")); // this is your "start date"
         }
         if (dateRange?.to && dateRange.to !== dateRange.from) {
           params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
         }
 
         const url = `https://sales.baliyoventures.com/api/sales/top-salespersons/?${params.toString()}`;
+
+        console.log("Fetching URL:", url); // Debug log to see the actual URL being called
 
         const response = await fetch(url, {
           headers: {
@@ -88,10 +92,6 @@ export function RecentSales({ id }: { id?: string }) {
     setDateRange(newDateRange);
   };
 
-  const clearDateFilter = () => {
-    setDateRange(undefined);
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-48 sm:h-64 text-base sm:text-lg">
@@ -102,14 +102,13 @@ export function RecentSales({ id }: { id?: string }) {
 
   return (
     <div className="space-y-8">
-      {/* Filter Buttons + Date Picker */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 flex-wrap">
-        <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4 w-full">
+        <div>
           {(["all", "daily", "weekly", "monthly"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
+              className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
                 filter === f
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted hover:bg-muted/80"
@@ -119,18 +118,8 @@ export function RecentSales({ id }: { id?: string }) {
             </button>
           ))}
         </div>
-        {/* Date Range Picker and Clear Button */}
-        <div className="flex items-center gap-2 mt-2 sm:mt-0">
+        <div className="mb-4">
           <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
-          {dateRange && (
-            <button
-              onClick={clearDateFilter}
-              className="text-sm text-gray-500 hover:text-red-500"
-              title="Clear date filter"
-            >
-              ✕
-            </button>
-          )}
         </div>
       </div>
 
