@@ -7,6 +7,9 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+import DateRangePicker from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 
 // Define the type for a product sale
 interface ProductSale {
@@ -35,22 +38,44 @@ export function RecentSales({ id }: { id?: string }) {
     "daily"
   );
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   useEffect(() => {
     const fetchSalespersons = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("accessToken");
-        const response = await fetch(
-          `https://sales.baliyoventures.com/api/sales/top-salespersons/?filter=${filter}${
-            id ? `&franchise=${id}` : ""
-          }`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+
+        // Build URL with proper parameter handling
+        const params = new URLSearchParams();
+        params.append("filter", filter);
+
+        if (id) {
+          params.append("franchise", id);
+        }
+
+        // Add date parameters when dateRange is selected
+        if (dateRange?.from) {
+          params.append("date", format(dateRange.from, "yyyy-MM-dd"));
+        }
+        if (dateRange?.to) {
+          params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
+        }
+
+        const url = `https://sales.baliyoventures.com/api/sales/top-salespersons/?${params.toString()}`;
+
+        console.log("Fetching URL:", url); // Debug log to see the actual URL being called
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data: SalesResponse = await response.json();
         setSalespersons(data.results);
       } catch (error) {
@@ -61,7 +86,11 @@ export function RecentSales({ id }: { id?: string }) {
     };
 
     fetchSalespersons();
-  }, [filter]);
+  }, [filter, dateRange, id]);
+
+  const handleDateRangeChange = (newDateRange: DateRange | undefined) => {
+    setDateRange(newDateRange);
+  };
 
   if (loading) {
     return (
@@ -87,6 +116,17 @@ export function RecentSales({ id }: { id?: string }) {
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
+      </div>
+      <div className="mb-4">
+        <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
+        {/* Debug info - remove this in production */}
+        {dateRange && (
+          <div className="text-xs text-gray-500 mt-2">
+            Selected range:{" "}
+            {dateRange.from && format(dateRange.from, "yyyy-MM-dd")}
+            {dateRange.to && ` to ${format(dateRange.to, "yyyy-MM-dd")}`}
+          </div>
+        )}
       </div>
       <div className="w-full bg-white rounded-2xl shadow-sm p-4">
         <Accordion type="single" collapsible className="w-full">

@@ -136,11 +136,7 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
             <Users className="h-6 w-6 text-purple-500" />
           </div>
           <div className="text-3xl font-bold text-gray-900">
-            {statistics
-              ? formatNumber(
-                  statistics.all_time_orders - statistics.cancelled_orders_count
-                )
-              : "--"}
+            {statistics ? formatNumber(statistics.all_time_orders) : "--"}
           </div>
           <div className="text-xs text-green-600 font-medium">
             <Users className="inline mr-1 h-3 w-3" />
@@ -156,8 +152,12 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
           </div>
           <div className="text-xs text-gray-500 mt-1">
             Total:{" "}
-            {statistics ? formatNumber(statistics.all_time_orders) : "--"} |
-            Cancelled:{" "}
+            {statistics
+              ? formatNumber(
+                  statistics.all_time_orders + statistics.cancelled_orders_count
+                )
+              : "--"}{" "}
+            | Cancelled:{" "}
             {statistics
               ? formatNumber(statistics.cancelled_orders_count)
               : "--"}
@@ -173,12 +173,7 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
             <Package className="h-6 w-6 text-yellow-500" />
           </div>
           <div className="text-3xl font-bold text-gray-900">
-            {statistics
-              ? formatCurrency(
-                  statistics.all_time_sales -
-                    statistics.all_time_cancelled_sales
-                )
-              : "--"}
+            {statistics ? formatCurrency(statistics.all_time_sales) : "--"}
           </div>
           <div className="text-xs text-green-600 font-medium">
             <Package className="inline mr-1 h-3 w-3" />
@@ -194,8 +189,13 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
           </div>
           <div className="text-xs text-gray-500 mt-1">
             Gross:{" "}
-            {statistics ? formatCurrency(statistics.all_time_sales) : "--"} |
-            Lost:{" "}
+            {statistics
+              ? formatCurrency(
+                  statistics.all_time_sales +
+                    statistics.all_time_cancelled_sales
+                )
+              : "--"}{" "}
+            | Lost:{" "}
             {statistics
               ? formatCurrency(statistics.all_time_cancelled_sales)
               : "--"}

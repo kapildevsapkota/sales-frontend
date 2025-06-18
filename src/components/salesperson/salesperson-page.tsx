@@ -30,6 +30,7 @@ interface SalesStats {
   total_cancelled_orders: number;
   total_cancelled_amount: string;
   product_sales: ProductSale[];
+  cancelled_product_sales: ProductSale[];
 }
 
 export function SalesPersonPage() {
@@ -108,6 +109,9 @@ export function SalesPersonPage() {
         // If no date range is selected, use the initial stats
         if (!queryParams) {
           setFilteredProductSales(userStats?.product_sales || []);
+          setFilteredCancelledProductSales(
+            userStats?.cancelled_product_sales || []
+          );
           setFilteredStats({
             total_orders: userStats?.total_orders || 0,
             total_amount: userStats?.total_amount || "0",
@@ -121,6 +125,7 @@ export function SalesPersonPage() {
           `/api/sales/salesperson/${phoneNumber}/statistics/?${queryParams}`
         );
         setFilteredProductSales(response.data.product_sales);
+        setFilteredCancelledProductSales(response.data.cancelled_product_sales);
         setFilteredStats({
           total_orders: response.data.total_orders,
           total_amount: response.data.total_amount,
@@ -132,6 +137,7 @@ export function SalesPersonPage() {
         // Fallback to the original stats if available
         if (userStats) {
           setFilteredProductSales(userStats.product_sales);
+          setFilteredCancelledProductSales(userStats.cancelled_product_sales);
           setFilteredStats({
             total_orders: userStats.total_orders,
             total_amount: userStats.total_amount,
