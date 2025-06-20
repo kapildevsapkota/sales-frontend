@@ -8,7 +8,12 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["sales.baliyoventures.com", "127.0.0.1"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "sales.baliyoventures.com",
+      },
+    ],
   },
 };
 

@@ -7,7 +7,7 @@ export function useTableColumns() {
     { id: "index", label: "#", visible: true, width: 50 },
     {
       id: "timestamp",
-      label: "Timestamp",
+      label: "Time",
       visible: true,
       width: 10,
     },
@@ -16,6 +16,12 @@ export function useTableColumns() {
       label: "Full Name",
       visible: true,
       width: 150,
+    },
+    {
+      id: "dash_location_name",
+      label: "Dash Location",
+      visible: true,
+      width: 350,
     },
     {
       id: "delivery_location",

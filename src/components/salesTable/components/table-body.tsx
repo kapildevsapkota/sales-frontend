@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import type { Column, SaleItem } from "@/types/sale";
 import { JSX } from "react";
+import { DashLocationCell } from "./DashLocationCell";
 
 interface TableBodyProps {
   tableRef: React.RefObject<HTMLTableElement>;
@@ -176,12 +177,12 @@ export function TableBody({
           ))
         ) : displayData.length > 0 ? (
           displayData.map((sale, index) => (
-            <tr key={index} className={index % 2 === 0 ? "" : "bg-gray-50"}>
+            <tr key={sale.id} className={index % 2 === 0 ? "" : "bg-gray-50"}>
               {columns
                 .filter((col) => col.visible)
                 .map((column) => (
                   <td
-                    key={`${index}-${column.id}`}
+                    key={`${sale.id}-${column.id}`}
                     className="border p-2"
                     style={{
                       width: `${column.width}px`,
@@ -392,6 +393,11 @@ export function TableBody({
                           </div>
                         ))}
                       </div>
+                    ) : column.id === "dash_location_name" ? (
+                      <DashLocationCell
+                        key={`${sale.id}-${sale.dash_location_name || ""}`}
+                        sale={sale}
+                      />
                     ) : (
                       getValueByColumnId(sale, column.id)
                     )}

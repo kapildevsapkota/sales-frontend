@@ -1,10 +1,3 @@
-export interface SaleItem {
-  id: number;
-  product_name: string;
-  quantity: number;
-  price: number;
-}
-
 export interface Sale {
   id: number;
   customer_name: string;
@@ -18,7 +11,14 @@ export interface Sale {
   items: SaleItem[];
 }
 
+export interface DashLocation {
+  id: number;
+  name: string;
+  coverage_areas: string[];
+}
+
 export interface SaleItem {
+  dash_location_name: string;
   logistics_name: string;
   logistics: string;
   id: number;

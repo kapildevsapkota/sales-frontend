@@ -8,9 +8,9 @@ export function useTableData() {
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   // Format timestamp helper function
-  const formatTimestamp = (dateString: string): string => {
+  const formatTimestamp = (dateString: string): JSX.Element => {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid date";
+    if (isNaN(date.getTime())) return <>Invalid date</>;
 
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -20,7 +20,13 @@ export function useTableData() {
       minute: "2-digit",
     });
 
-    return `${day}/${month}/${year} ${time}`;
+    return (
+      <>
+        {day}/{month}/{year}
+        <br />
+        {time}
+      </>
+    );
   };
 
   // Get value by column ID
@@ -33,6 +39,8 @@ export function useTableData() {
           return formatTimestamp(sale.created_at);
         case "full_name":
           return sale.full_name;
+        case "dash_location_name":
+          return sale.dash_location_name || "N/A";
         case "delivery_location":
           return `${sale.delivery_address}, ${sale.city}`;
         case "phone_number":
