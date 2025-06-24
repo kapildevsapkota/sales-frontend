@@ -330,6 +330,40 @@ export default function SalesTable() {
       showError("Failed to update order status");
     }
   };
+
+  // Handle location update for a sale
+  const handleLocationUpdate = (
+    saleId: number,
+    location: { id: number; name: string }
+  ) => {
+    setDisplayData((prevData) =>
+      prevData.map((sale) =>
+        sale.id === saleId
+          ? {
+              ...sale,
+              dash_location_id: location.id,
+              dash_location_name: location.name,
+            }
+          : sale
+      )
+    );
+    setSales((prevSales) => {
+      if (!prevSales) return prevSales;
+      return {
+        ...prevSales,
+        results: prevSales.results.map((sale) =>
+          sale.id === saleId
+            ? {
+                ...sale,
+                dash_location_id: location.id,
+                dash_location_name: location.name,
+              }
+            : sale
+        ),
+      };
+    });
+  };
+
   // Updated handleExportCSV function in your main SalesTable component
 
   const handleExportCSV = async () => {
@@ -441,6 +475,7 @@ export default function SalesTable() {
           handleEdit={handleEdit}
           setSelectedPaymentImage={setSelectedPaymentImage}
           setShowPaymentImageModal={setShowPaymentImageModal}
+          onLocationUpdate={handleLocationUpdate}
         />
       </div>
 

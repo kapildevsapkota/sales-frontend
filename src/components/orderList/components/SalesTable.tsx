@@ -44,7 +44,7 @@ export function SalesTable({
   const router = useRouter();
 
   // Function to handle sending order to WhatsApp
-  const handleSendOrder = (sale: SaleItem) => {
+  const handleSendOrder = (sale: SaleItem, isDash: boolean) => {
     // Format the order details
     const orderDetails = `
 *New Order Alert!* 🚀
@@ -79,9 +79,21 @@ ${
 Please process this order promptly! 🚀
     `.trim();
 
+    const orderDetailsForDashGroup = `
+*New Order Alert!* 🚀
+
+*Customer Details:*
+👤 Name: ${sale.full_name}
+📱 Phone: ${sale.phone_number}
+📱 AltPhone: ${sale.alternate_phone_number}
+📍 Location: ${sale.delivery_address}, ${sale.city}
+
+Tracking Code: ${sale.dash_tracking_code}
+`.trim();
+
     // Copy to clipboard
     navigator.clipboard
-      .writeText(orderDetails)
+      .writeText(isDash ? orderDetailsForDashGroup : orderDetails)
       .then(() => {
         // Show success message
         alert(
@@ -107,7 +119,15 @@ Please process this order promptly! 🚀
       case "timestamp":
         return formatTimestamp(sale.created_at);
       case "full_name":
-        return sale.full_name;
+        return (
+          <>
+            <span className="font-bold">{sale.full_name}</span>
+            <br />
+            <span className="text-gray-500 text-sm">
+              {sale.dash_tracking_code}
+            </span>
+          </>
+        );
       case "delivery_location":
         return `${sale.delivery_address}, ${sale.city}`;
       case "phone_number":
@@ -161,28 +181,52 @@ Please process this order promptly! 🚀
 
       case "send_order":
         return (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleSendOrder(sale)}
-            className="flex items-center gap-1"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-1"
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendOrder(sale, false)}
+              className="flex items-center gap-1"
             >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            Send Order
-          </Button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              Send Order
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendOrder(sale, true)}
+              className="flex items-center gap-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              Send Order to Dash
+            </Button>
+          </>
         );
       case "edit":
         return (

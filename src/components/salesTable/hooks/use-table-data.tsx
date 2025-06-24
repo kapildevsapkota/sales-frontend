@@ -38,7 +38,13 @@ export function useTableData() {
         case "timestamp":
           return formatTimestamp(sale.created_at);
         case "full_name":
-          return sale.full_name;
+          return (
+            <>
+              {sale.full_name}
+              <br />
+              {sale.dash_tracking_code}
+            </>
+          );
         case "dash_location_name":
           return sale.dash_location_name || "N/A";
         case "delivery_location":

@@ -31,6 +31,10 @@ interface TableBodyProps {
   handleEdit: (sale: SaleItem) => void;
   setSelectedPaymentImage: (url: string) => void;
   setShowPaymentImageModal: (show: boolean) => void;
+  onLocationUpdate?: (
+    saleId: number,
+    location: { id: number; name: string }
+  ) => void;
 }
 
 interface Logistics {
@@ -51,6 +55,7 @@ export function TableBody({
   handleEdit,
   setSelectedPaymentImage,
   setShowPaymentImageModal,
+  onLocationUpdate,
 }: TableBodyProps) {
   const [logistics, setLogistics] = useState<Logistics[]>([]);
   const [isLoadingLogistics, setIsLoadingLogistics] = useState(true);
@@ -397,6 +402,7 @@ export function TableBody({
                       <DashLocationCell
                         key={`${sale.id}-${sale.dash_location_name || ""}`}
                         sale={sale}
+                        onLocationUpdate={onLocationUpdate}
                       />
                     ) : (
                       getValueByColumnId(sale, column.id)
