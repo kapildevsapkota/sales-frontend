@@ -154,7 +154,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
               <div className="text-center">
                 <div className="text-gray-600">Total Orders</div>
                 <div className="font-semibold text-lg">
-                  {(data.order_count || 0) + (data.cancelled_count || 0)}
+                  {(data.order_count || 0) - (data.cancelled_count || 0)}
                 </div>
               </div>
               <div className="text-center">
