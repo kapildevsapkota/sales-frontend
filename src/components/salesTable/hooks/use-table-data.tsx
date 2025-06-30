@@ -51,6 +51,8 @@ export function useTableData() {
           return `${sale.delivery_address}, ${sale.city}`;
         case "phone_number":
           return sale.phone_number;
+        case "alternate_phone_number":
+          return sale.alternate_phone_number || "N/A";
         case "remarks":
           return sale.remarks;
         case "product_sold":

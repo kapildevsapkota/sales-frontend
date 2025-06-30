@@ -37,6 +37,12 @@ export function useTableColumns() {
       width: 50,
     },
     {
+      id: "alternate_phone_number",
+      label: "Alternate Phone",
+      visible: true,
+      width: 50,
+    },
+    {
       id: "product_sold",
       label: "Product Sold",
       visible: true,
