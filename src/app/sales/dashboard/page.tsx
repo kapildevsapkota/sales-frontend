@@ -2,15 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ShoppingBag, FileText, LogOut } from "lucide-react";
+import { ShoppingBag, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stats } from "@/components/stats";
-import { useAuth } from "@/contexts/AuthContext";
 import { DashboardBarchart } from "@/components/dashboard/DashboardBarchart";
+import { UserProfileDropdown } from "@/components/ui/user-profile-dropdown";
 
 export default function SalesDashboard() {
   const router = useRouter();
-  const { logout } = useAuth();
 
   const handleCreateOrder = () => {
     router.push("/sales/create");
@@ -26,14 +25,7 @@ export default function SalesDashboard() {
         <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-teal-400 bg-clip-text text-transparent drop-shadow-lg">
           Sales Dashboard
         </h1>
-        <button
-          onClick={() => logout()}
-          className="flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
-          aria-label="Logout"
-        >
-          <LogOut className="h-5 w-5" />
-          <span className="font-medium">Logout</span>
-        </button>
+        <UserProfileDropdown />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <motion.div

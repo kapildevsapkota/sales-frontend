@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   Users,
+  Key,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { UserProfileDropdown } from "@/components/ui/user-profile-dropdown";
 
 interface MenuItem {
   label: string;
@@ -173,16 +175,10 @@ export function AppHeader() {
             </nav>
           </div>
 
-          {/* Desktop Logout */}
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            size="sm"
-            className="hidden md:flex items-center gap-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            <LogOut className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <span>Logout</span>
-          </Button>
+          {/* Desktop User Profile Dropdown */}
+          <div className="hidden md:flex">
+            <UserProfileDropdown />
+          </div>
 
           {/* Mobile Sheet Trigger */}
           {isMobile && (
@@ -262,7 +258,17 @@ export function AppHeader() {
                       </React.Fragment>
                     ))}
                   </nav>
-                  <div className="mt-auto border-t px-6 py-4">
+                  <div className="mt-auto border-t px-6 py-4 space-y-2">
+                    <Link href="/change-password">
+                      <Button
+                        variant="ghost"
+                        className="flex w-full items-center gap-2 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        <Key className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        Change Password
+                      </Button>
+                    </Link>
+
                     <Button
                       onClick={handleLogout}
                       variant="ghost"

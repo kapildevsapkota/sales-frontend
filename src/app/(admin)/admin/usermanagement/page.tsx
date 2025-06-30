@@ -120,7 +120,7 @@ export default function UserManagementPage() {
     setLoading(true);
     try {
       await api.delete(
-        `/account/users/${encodeURIComponent(selectedUserPhone)}/`
+        `/api/account/users/${encodeURIComponent(selectedUserPhone)}/`
       );
       toast({
         title: "Success",
