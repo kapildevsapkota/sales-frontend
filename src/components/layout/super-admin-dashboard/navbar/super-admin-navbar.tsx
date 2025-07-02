@@ -6,10 +6,8 @@ import {
   Building2,
   ChevronDown,
   type LucideIcon,
-  LogOut,
   Menu,
   Crown,
-  UserCog,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -38,6 +36,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { UserProfileDropdown } from "@/components/ui/user-profile-dropdown";
 
 interface MenuItem {
   label: string;
@@ -95,19 +94,13 @@ const superAdminItems: MenuItem[] = [
 
 export function SuperAdminHeader() {
   const pathname = usePathname();
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const [open, setOpen] = React.useState(false);
 
   // Close Sheet on nav change
   React.useEffect(() => {
     setOpen(false);
   }, [pathname]);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    logout();
-    window.location.href = "/login";
-  };
 
   return (
     <header className="sticky top-0 z-20 w-full border-b bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg">
@@ -202,21 +195,9 @@ export function SuperAdminHeader() {
 
           {/* User Info and Desktop Logout */}
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 text-white">
-              <UserCog className="h-4 w-4 text-purple-200" />
-              <span className="text-sm font-medium">
-                {user?.username || "Super Admin"}
-              </span>
+            <div className="hidden md:flex">
+              <UserProfileDropdown />
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              size="sm"
-              className="hidden md:flex items-center gap-2 text-white hover:bg-white/10 border border-white/20"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </Button>
 
             {/* Mobile Sheet Trigger */}
             <Sheet open={open} onOpenChange={setOpen}>
@@ -318,14 +299,10 @@ export function SuperAdminHeader() {
                         System Administrator
                       </p>
                     </div>
-                    <Button
-                      onClick={handleLogout}
-                      variant="outline"
-                      className="flex w-full items-center gap-2 text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      Logout
-                    </Button>
+                    <UserProfileDropdown
+                      variant="compact"
+                      className="w-full justify-center"
+                    />
                   </div>
                 </div>
               </SheetContent>
