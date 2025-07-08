@@ -306,7 +306,7 @@ export function SalesPersonPage() {
             <SalesPersonSalesOverview
               phoneNumber={phoneNumber}
               timeframe={timeframe}
-              dateRange={undefined}
+              dateRange={dateRange}
             />
           </div>
 

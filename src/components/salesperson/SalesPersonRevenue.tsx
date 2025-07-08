@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { DateRange } from "react-day-picker";
 
 // Define the type for revenue data
 interface RevenueData {
@@ -188,12 +189,21 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
+function formatDateLocal(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function SalesPersonRevenue({
   timeframe,
   phoneNumber,
+  dateRange,
 }: {
   timeframe: string;
   phoneNumber: string;
+  dateRange: DateRange | undefined;
 }) {
   const [data, setData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,7 +213,13 @@ export function SalesPersonRevenue({
     const fetchRevenueData = async () => {
       setLoading(true);
       try {
-        const queryParams = `filter=${timeframe}`;
+        let queryParams = `filter=${timeframe}`;
+        if (dateRange?.from) {
+          queryParams += `&date=${formatDateLocal(dateRange.from)}`;
+        }
+        if (dateRange?.to) {
+          queryParams += `&end_date=${formatDateLocal(dateRange.to)}`;
+        }
         const response = await api.get(
           `/api/sales/salesperson/${phoneNumber}/revenue/?${queryParams}`
         );
@@ -217,7 +233,7 @@ export function SalesPersonRevenue({
       }
     };
     fetchRevenueData();
-  }, [timeframe, phoneNumber]);
+  }, [timeframe, phoneNumber, dateRange]);
 
   // Transform data for the stacked chart
   const chartData = data.map((item) => ({

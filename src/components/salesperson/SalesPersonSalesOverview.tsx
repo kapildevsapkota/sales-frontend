@@ -32,7 +32,11 @@ export function SalesPersonSalesOverview({
         </div>
       </div>
       <div className="overflow-x-auto w-full min-w-[320px]">
-        <SalesPersonRevenue timeframe={timeframe} phoneNumber={phoneNumber} />
+        <SalesPersonRevenue
+          timeframe={timeframe}
+          dateRange={dateRange}
+          phoneNumber={phoneNumber}
+        />
       </div>
     </div>
   );
