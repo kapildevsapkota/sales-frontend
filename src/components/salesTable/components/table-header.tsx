@@ -30,6 +30,14 @@ import DateRangePicker from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import axios from "axios";
 import { printOrders } from "@/utils/printOrder";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface Logistic {
   id: number;
@@ -114,6 +122,9 @@ export function TableHeader({
   const [logistics, setLogistics] = useState<Logistic[]>([]);
   const [salespersons, setSalespersons] = useState<SalesPerson[]>([]);
   const { user } = useAuth();
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [summaryDate, setSummaryDate] = useState<Date | undefined>(undefined);
+  const [isExportingSummary, setIsExportingSummary] = useState(false);
 
   // Fetch logistics data on component mount - only for Packaging role
   useEffect(() => {
@@ -207,6 +218,38 @@ export function TableHeader({
     }
   };
 
+  const handleExportSummary = async () => {
+    if (!summaryDate) return;
+    setIsExportingSummary(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const year = summaryDate.getFullYear();
+      const month = String(summaryDate.getMonth() + 1).padStart(2, "0");
+      const day = String(summaryDate.getDate()).padStart(2, "0");
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/packaging/summary/?date=${year}-${month}-${day}`;
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "blob",
+      });
+      const urlObject = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = urlObject;
+      link.setAttribute(
+        "download",
+        `packaging_summary_${year}-${month}-${day}.csv`
+      );
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setShowSummaryModal(false);
+    } catch (error) {
+      console.error("Error exporting packaging summary:", error);
+      // Optionally show error to user
+    } finally {
+      setIsExportingSummary(false);
+    }
+  };
+
   // Get logistic name for display
   const getLogisticName = (logisticId: string) => {
     if (logisticId === "all") return "All Logistics";
@@ -277,10 +320,10 @@ export function TableHeader({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500 px-2 h-8 min-w-0"
-                onClick={handlePrintOrders}
+                className="flex items-center gap-1 whitespace-nowrap bg-green-400 hover:bg-green-500 px-2 h-8 min-w-0"
+                onClick={() => setShowSummaryModal(true)}
               >
-                Print Order
+                Export Summary
               </Button>
 
               <Button
@@ -295,6 +338,15 @@ export function TableHeader({
                     logistic !== "all" &&
                     ` (${getLogisticName(logistic)})`}
                 </span>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500 px-2 h-8 min-w-0"
+                onClick={handlePrintOrders}
+              >
+                Print Order
               </Button>
             </>
           )}
@@ -455,6 +507,44 @@ export function TableHeader({
           </Button>
         )}
       </div>
+      {/* Export Summary Modal */}
+      <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Export Packaging Summary</DialogTitle>
+            <DialogDescription>
+              Select a date to export the summary as CSV.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mb-4">
+            <input
+              type="date"
+              className="border rounded px-2 py-1 w-full"
+              value={summaryDate ? summaryDate.toISOString().slice(0, 10) : ""}
+              onChange={(e) =>
+                setSummaryDate(
+                  e.target.value ? new Date(e.target.value) : undefined
+                )
+              }
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSummaryModal(false)}
+              disabled={isExportingSummary}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleExportSummary}
+              disabled={!summaryDate || isExportingSummary}
+            >
+              {isExportingSummary ? "Exporting..." : "Export"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
