@@ -273,28 +273,41 @@ export function TableHeader({
         </div>
         <div className="flex-1 flex justify-end min-w-0 gap-2">
           {user?.role === "Packaging" && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500 px-2 h-8 min-w-0"
+                onClick={handlePrintOrders}
+              >
+                Print Order
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 whitespace-nowrap bg-yellow-400 hover:bg-yellow-500 px-2 h-8 min-w-0"
+                onClick={handleExportClick}
+              >
+                <span>
+                  Export Dash
+                  {user?.role === "Packaging" &&
+                    logistic !== "all" &&
+                    ` (${getLogisticName(logistic)})`}
+                </span>
+              </Button>
+            </>
+          )}
+          {user?.role === "Franchise" && (
             <Button
               variant="outline"
               size="sm"
-              className="flex items-center gap-1 whitespace-nowrap bg-blue-400 hover:bg-blue-500 px-2 h-8 min-w-0"
-              onClick={handlePrintOrders}
+              className="flex items-center gap-1 whitespace-nowrap bg-yellow-400 hover:bg-yellow-500 px-2 h-8 min-w-0"
+              onClick={handleExportClick}
             >
-              Print Order
+              Export Report
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1 whitespace-nowrap bg-yellow-400 hover:bg-yellow-500 px-2 h-8 min-w-0"
-            onClick={handleExportClick}
-          >
-            <span>
-              Export CSV
-              {user?.role === "Packaging" &&
-                logistic !== "all" &&
-                ` (${getLogisticName(logistic)})`}
-            </span>
-          </Button>
         </div>
       </div>
       {/* Second Row: All filters in a single compact row */}

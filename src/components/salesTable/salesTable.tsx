@@ -48,13 +48,12 @@ export default function SalesTable() {
 
   const { getValueByColumnId } = useTableData();
 
-  const {
-    showFilterForm,
-    setShowFilterForm,
-    exportDateRange,
-    setExportDateRange,
-    applyFilters,
-  } = useTableFilters();
+  const { showFilterForm, setShowFilterForm, applyFilters } = useTableFilters();
+
+  // Franchise export date range state
+  const [franchiseExportDateRange, setFranchiseExportDateRange] = useState<
+    [Date | undefined, Date | undefined]
+  >([undefined, undefined]);
 
   // Function to show error messages
   const showError = useCallback((message: string) => {
@@ -370,38 +369,64 @@ export default function SalesTable() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      // Build the URL with query parameters
+      if (user?.role === "Franchise") {
+        // Franchise: use /api/sales/sales-summary/ with date range
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/sales-summary/`;
+        const [from, to] = franchiseExportDateRange;
+        const params = [];
+        if (from) {
+          const year = from.getFullYear();
+          const month = String(from.getMonth() + 1).padStart(2, "0");
+          const day = String(from.getDate()).padStart(2, "0");
+          params.push(`start_date=${year}-${month}-${day}`);
+        }
+        if (to) {
+          const year = to.getFullYear();
+          const month = String(to.getMonth() + 1).padStart(2, "0");
+          const day = String(to.getDate()).padStart(2, "0");
+          params.push(`end_date=${year}-${month}-${day}`);
+        }
+        if (params.length > 0) {
+          url += `?${params.join("&")}`;
+        }
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        });
+        const urlObject = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = urlObject;
+        link.setAttribute("download", "franchise_sales_summary.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setShowExportModal(false);
+        return;
+      }
+      // Default: Packaging and others
       let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv/`;
-
-      // If user is Packaging role and a specific logistic is selected, add logistics query parameter
       if (user?.role === "Packaging" && logistic && logistic !== "all") {
         url += `?logistics=${logistic}`;
       }
-
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        responseType: "blob", // Important for downloading files
+        responseType: "blob",
       });
-
-      // Create a link element to trigger the download
       const urlObject = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = urlObject;
-
-      // Update filename to include logistic name if specific logistic is selected
       let filename = "sales_export.csv";
       if (user?.role === "Packaging" && logistic && logistic !== "all") {
-        // You might want to get the logistic name for the filename
         filename = `sales_export_logistic_${logistic}.csv`;
       }
-
       link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       setShowExportModal(false);
     } catch (error) {
       console.error("Error exporting CSV:", error);
@@ -446,10 +471,11 @@ export default function SalesTable() {
       {showExportModal && (
         <ExportModal
           open={showExportModal}
-          exportDateRange={exportDateRange}
-          setExportDateRange={setExportDateRange}
+          exportDateRange={franchiseExportDateRange}
+          setExportDateRange={setFranchiseExportDateRange}
           handleExportCSV={handleExportCSV}
           setShowExportModal={setShowExportModal}
+          userRole={user?.role}
         />
       )}
 
