@@ -131,7 +131,7 @@ export function SalesFestView({ id }: { id?: string }) {
   };
 
   // Use SWR to fetch data with 5-second polling
-  const { data, error, isLoading, mutate } = useSWR<SalesResponse>(
+  const { data, error, isLoading } = useSWR<SalesResponse>(
     buildUrl(),
     fetcher,
     {
