@@ -10,7 +10,6 @@ import {
   Menu,
   Users,
   Key,
-  Calendar,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -74,11 +73,11 @@ const items: MenuItem[] = [
     icon: Users,
     href: "/admin/salesPersons",
   },
-  {
-    label: "Sales Fest",
-    icon: Calendar,
-    href: "/admin/salesfest",
-  },
+  // {
+  //   label: "Sales Fest",
+  //   icon: Calendar,
+  //   href: "/admin/salesfest",
+  // },
 ];
 
 export function AppHeader() {
