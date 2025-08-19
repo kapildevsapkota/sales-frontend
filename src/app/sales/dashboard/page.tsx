@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stats } from "@/components/stats";
 import { DashboardBarchart } from "@/components/dashboard/DashboardBarchart";
 import { UserProfileDropdown } from "@/components/ui/user-profile-dropdown";
+import { SalesProductTable } from "@/components/dashboard/sales-product-table";
 
 export default function SalesDashboard() {
   const router = useRouter();
@@ -77,6 +78,9 @@ export default function SalesDashboard() {
         <Stats />
         <div className="mt-8">
           <DashboardBarchart />
+        </div>
+        <div className="mt-8">
+          <SalesProductTable />
         </div>
       </div>
     </div>
