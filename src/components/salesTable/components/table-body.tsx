@@ -1,7 +1,6 @@
 "use client";
 import { Eye } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,12 +36,6 @@ interface TableBodyProps {
   ) => void;
 }
 
-interface Logistics {
-  id: number;
-  name: string;
-  phone_number: string | null;
-}
-
 export function TableBody({
   tableRef,
   columns,
@@ -57,36 +50,6 @@ export function TableBody({
   setShowPaymentImageModal,
   onLocationUpdate,
 }: TableBodyProps) {
-  const [logistics, setLogistics] = useState<Logistics[]>([]);
-  const [isLoadingLogistics, setIsLoadingLogistics] = useState(true);
-
-  // Fetch logistics options from the API
-  useEffect(() => {
-    const fetchLogistics = async () => {
-      try {
-        const response = await fetch(
-          "https://sales.baliyoventures.com/api/account/logistics/",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch logistics");
-        }
-        const data = await response.json();
-        setLogistics(data);
-      } catch (error) {
-        console.error("Error fetching logistics:", error);
-      } finally {
-        setIsLoadingLogistics(false);
-      }
-    };
-
-    fetchLogistics();
-  }, []);
-
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
     switch (status) {
@@ -295,13 +258,7 @@ export function TableBody({
                     ) : column.id === "logistics_name" ? (
                       <div className="flex items-center">
                         <Select
-                          value={
-                            sale.logistics_name
-                              ? logistics
-                                  .find((l) => l.name === sale.logistics_name)
-                                  ?.id.toString()
-                              : ""
-                          }
+                          value={sale.logistics || ""}
                           onValueChange={(value) =>
                             handleLogisticsChange(String(sale.id), value)
                           }
@@ -310,23 +267,9 @@ export function TableBody({
                             <SelectValue placeholder="Change Logistics" />
                           </SelectTrigger>
                           <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
-                            {isLoadingLogistics ? (
-                              <SelectItem value="id">Loading...</SelectItem>
-                            ) : (
-                              <>
-                                <SelectItem value="none">
-                                  Change Logistic
-                                </SelectItem>
-                                {logistics.map((logistic) => (
-                                  <SelectItem
-                                    key={logistic.id}
-                                    value={logistic.id.toString() || "default"} // Ensure value is not an empty string
-                                  >
-                                    {logistic.name || "Unnamed Logistic"}
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
+                            <SelectItem value="YDM">YDM</SelectItem>
+                            <SelectItem value="DASH">DASH</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
