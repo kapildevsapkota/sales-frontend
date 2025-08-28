@@ -27,6 +27,7 @@ interface TableBodyProps {
     columnId: string
   ) => string | number | JSX.Element;
   handleStatusChange: (saleId: string, newStatus: string) => void;
+  handleLogisticsChange: (saleId: string, logisticsId: string) => void;
   handleEdit: (sale: SaleItem) => void;
   setSelectedPaymentImage: (url: string) => void;
   setShowPaymentImageModal: (show: boolean) => void;
@@ -45,6 +46,7 @@ export function TableBody({
   pageSize,
   getValueByColumnId,
   handleStatusChange,
+  handleLogisticsChange,
   handleEdit,
   setSelectedPaymentImage,
   setShowPaymentImageModal,
@@ -67,35 +69,6 @@ export function TableBody({
         return "bg-orange-500"; // Orange for return pending
       default:
         return "bg-gray-500"; // Default color
-    }
-  };
-
-  const handleLogisticsChange = async (saleId: string, logisticsId: string) => {
-    try {
-      // If logisticsId is 'none', set it to null
-      const logisticsValue = logisticsId === "none" ? null : logisticsId;
-
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-          body: JSON.stringify({ logistics: logisticsValue }),
-        }
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Logistics updated:", data);
-          // Optionally, update the state or refetch data
-        })
-        .catch((error) => {
-          console.error("Error updating logistics:", error);
-        });
-    } catch (error) {
-      console.error("Error updating logistics:", error);
     }
   };
 

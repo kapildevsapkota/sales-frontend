@@ -39,12 +39,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-interface Logistic {
-  id: number;
-  name: string;
-  phone_number: string | null;
-}
-
 interface SalesPerson {
   id: number;
   first_name: string;
@@ -119,36 +113,11 @@ export function TableHeader({
   salesperson,
   setSalesperson,
 }: TableHeaderProps) {
-  const [logistics, setLogistics] = useState<Logistic[]>([]);
   const [salespersons, setSalespersons] = useState<SalesPerson[]>([]);
   const { user } = useAuth();
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [summaryDate, setSummaryDate] = useState<Date | undefined>(undefined);
   const [isExportingSummary, setIsExportingSummary] = useState(false);
-
-  // Fetch logistics data on component mount - only for Packaging role
-  useEffect(() => {
-    const fetchLogistics = async () => {
-      if (user?.role !== "Packaging") return;
-
-      try {
-        const token = localStorage.getItem("accessToken");
-        const response = await axios.get<Logistic[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/logistics/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setLogistics(response.data);
-      } catch (error) {
-        console.error("Error fetching logistics:", error);
-      }
-    };
-
-    fetchLogistics();
-  }, [user]);
 
   // Fetch salespersons data on component mount
   useEffect(() => {
@@ -250,13 +219,6 @@ export function TableHeader({
     }
   };
 
-  // Get logistic name for display
-  const getLogisticName = (logisticId: string) => {
-    if (logisticId === "all") return "All Logistics";
-    const logisticItem = logistics.find((l) => l.id.toString() === logisticId);
-    return logisticItem ? logisticItem.name : "Unknown";
-  };
-
   return (
     <div className={`flex flex-col gap-2 w-full ${className}`}>
       {/* First Row: Columns toggler, results count, Export button */}
@@ -309,9 +271,7 @@ export function TableHeader({
         <div className="text-xs text-gray-500 whitespace-nowrap min-w-0 truncate">
           {resultsCount ? `${resultsCount} of ${salesCount} entries` : ""}
           {user?.role === "Packaging" && logistic !== "all" && (
-            <span className="ml-2 text-blue-600 font-medium">
-              ({getLogisticName(logistic)})
-            </span>
+            <span className="ml-2 text-blue-600 font-medium">({logistic})</span>
           )}
         </div>
         <div className="flex-1 flex justify-end min-w-0 gap-2">
@@ -336,7 +296,7 @@ export function TableHeader({
                   Export Dash
                   {user?.role === "Packaging" &&
                     logistic !== "all" &&
-                    ` (${getLogisticName(logistic)})`}
+                    ` (${logistic})`}
                 </span>
               </Button>
 
@@ -449,39 +409,19 @@ export function TableHeader({
             </SelectContent>
           </Select>
         </div>
-        {user?.role === "Packaging" && logistics.length > 0 && (
-          <div className="flex gap-1 min-w-0">
-            {logistics.map((logisticOption) => (
-              <Button
-                key={logisticOption.id}
-                variant={
-                  logistic === logisticOption.id.toString()
-                    ? "default"
-                    : "outline"
-                }
-                size="sm"
-                className={`h-8 px-3 text-xs whitespace-nowrap ${
-                  logistic === logisticOption.id.toString()
-                    ? "bg-blue-500 hover:bg-blue-600 text-white"
-                    : "hover:bg-gray-100"
-                }`}
-                onClick={() =>
-                  handleLogisticChange(logisticOption.id.toString())
-                }
-              >
-                {logisticOption.name}
-              </Button>
-            ))}
-            {logistic !== "all" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-2 text-xs whitespace-nowrap hover:bg-gray-100"
-                onClick={() => handleLogisticChange("all")}
-              >
-                All
-              </Button>
-            )}
+        {user?.role === "Packaging" && (
+          <div className="w-[120px] min-w-0">
+            <Select value={logistic} onValueChange={handleLogisticChange}>
+              <SelectTrigger className="h-8 w-full text-xs">
+                <SelectValue placeholder="Logistics" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="YDM">YDM</SelectItem>
+                <SelectItem value="DASH">DASH</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
         <div className="min-w-0">
