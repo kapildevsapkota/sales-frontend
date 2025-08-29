@@ -77,9 +77,10 @@ export function RecentSales({ id }: { id?: string }) {
         }
 
         const data: SalesResponse = await response.json();
-        setSalespersons(data.results);
+        setSalespersons(data.results || []);
       } catch (error) {
         console.error("Error fetching sales data:", error);
+        setSalespersons([]); // Set empty array on error
       } finally {
         setLoading(false);
       }
@@ -125,12 +126,12 @@ export function RecentSales({ id }: { id?: string }) {
 
       <div className="w-full bg-white rounded-2xl shadow-sm p-4">
         <Accordion type="single" collapsible className="w-full">
-          {salespersons.length === 0 && (
+          {(salespersons || []).length === 0 && (
             <div className="text-center text-gray-500 py-8">
               No sales data found.
             </div>
           )}
-          {salespersons.map((sp, idx) => (
+          {(salespersons || []).map((sp, idx) => (
             <AccordionItem key={idx} value={sp.first_name + sp.last_name + idx}>
               <AccordionTrigger>
                 <div className="flex flex-col sm:flex-row sm:items-center w-full justify-between gap-2">
@@ -159,14 +160,14 @@ export function RecentSales({ id }: { id?: string }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {sp.product_sales.length === 0 ? (
+                      {(sp.product_sales || []).length === 0 ? (
                         <tr>
                           <td colSpan={2} className="py-2 px-2 text-gray-400">
                             No product sales
                           </td>
                         </tr>
                       ) : (
-                        sp.product_sales.map((ps, i) => (
+                        (sp.product_sales || []).map((ps, i) => (
                           <tr key={i} className="border-b last:border-0">
                             <td className="py-2 px-2">{ps.product_name}</td>
                             <td className="py-2 px-2">{ps.quantity_sold}</td>

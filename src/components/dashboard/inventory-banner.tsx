@@ -73,7 +73,7 @@ export const InventoryBanner: React.FC<{ id?: string }> = ({ id }) => {
               {data.total_low_items > 1 ? "s" : ""} low in stock!
             </h2>
             <ul className="mt-2 ml-4 list-disc text-sm text-yellow-800">
-              {data.low_quantity_items.map((item) => (
+              {(data.low_quantity_items || []).map((item) => (
                 <li
                   key={item.product_name}
                   className={
@@ -99,12 +99,12 @@ export const InventoryBanner: React.FC<{ id?: string }> = ({ id }) => {
   // Handle superadmin response
   const sections = [
     { key: "factory", label: "Factory", data: data.factory },
-    ...Object.entries(data.distributors).map(([name, d]) => ({
+    ...Object.entries(data.distributors || {}).map(([name, d]) => ({
       key: `distributor-${name}`,
       label: `${name} (Distributor)`,
       data: d,
     })),
-    ...Object.entries(data.franchises).map(([name, f]) => ({
+    ...Object.entries(data.franchises || {}).map(([name, f]) => ({
       key: `franchise-${name}`,
       label: `${name} (Franchise)`,
       data: f,
@@ -132,7 +132,7 @@ export const InventoryBanner: React.FC<{ id?: string }> = ({ id }) => {
                 {section.data.total_low_items > 1 ? "s" : ""} low in stock!
               </h2>
               <ul className="mt-2 ml-4 list-disc text-sm text-yellow-800">
-                {section.data.low_quantity_items.map((item) => (
+                {(section.data.low_quantity_items || []).map((item) => (
                   <li
                     key={`${section.key}-${item.product_name}`}
                     className={

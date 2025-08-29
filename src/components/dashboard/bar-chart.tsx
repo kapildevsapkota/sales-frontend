@@ -83,7 +83,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                   <div className="mt-2">
                     <div className="text-xs text-gray-500 mb-1">Breakdown:</div>
                     <div className="space-y-0.5">
-                      {Object.entries(data.active_orders)
+                      {Object.entries(data.active_orders || {})
                         .slice(0, 4)
                         .map(([key, value]) => (
                           <div
@@ -129,7 +129,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                   <div className="mt-2">
                     <div className="text-xs text-gray-500 mb-1">Breakdown:</div>
                     <div className="space-y-0.5">
-                      {Object.entries(data.cancelled_orders)
+                      {Object.entries(data.cancelled_orders || {})
                         .slice(0, 4)
                         .map(([key, value]) => (
                           <div
@@ -226,7 +226,7 @@ export function DashboardBarChart({
           `/api/sales/revenue-with-cancelled/?${params.toString()}`
         );
         console.log("sales person revenue", response.data);
-        setData(response.data.data);
+        setData(response.data.data || []);
       } catch (error) {
         console.error("Error fetching salesperson revenue:", error);
         setData([]);
@@ -238,7 +238,7 @@ export function DashboardBarChart({
   }, [timeframe, id, dateRange]);
 
   // Transform data for the stacked chart
-  const chartData = data.map((item) => ({
+  const chartData = (data || []).map((item) => ({
     name: item.period,
     orders: item.order_count,
     cancelled: item.cancelled_count,
