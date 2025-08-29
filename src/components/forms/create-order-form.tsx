@@ -88,6 +88,7 @@ interface DuplicateOrderError {
       franchise: string;
       distributor: string;
     };
+    order_status: string;
   };
 }
 
@@ -218,7 +219,7 @@ export default function CreateOrderForm({
       try {
         const authToken = localStorage.getItem("accessToken");
         const response = await fetch(
-          "https://sales.baliyoventures.com/api/sales/products/",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/products/`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -465,7 +466,7 @@ export default function CreateOrderForm({
     } catch (error) {
       const err = error as AxiosError;
       if (err.response?.status === 403 || err.response?.status === 400) {
-        let errorMsg = "Order could not be placed.";
+        // let errorMsg = "Order could not be placed.";
         let duplicateError: DuplicateOrderError | null = null;
         if (err.response.data) {
           if (
@@ -475,10 +476,10 @@ export default function CreateOrderForm({
             "existing_order" in err.response.data
           ) {
             duplicateError = err.response.data as DuplicateOrderError;
-            errorMsg = duplicateError.error;
+            // errorMsg = duplicateError.error;
           }
         }
-        setForceOrderErrorMsg(errorMsg);
+        // setForceOrderErrorMsg(errorMsg);
         setDuplicateOrderError(duplicateError);
         setPendingForceOrderData(data);
         setForceOrderDialogOpen(true);
@@ -1382,8 +1383,8 @@ export default function CreateOrderForm({
                     {duplicateOrderError.existing_order.location.franchise}
                   </div>
                   <div>
-                    <span className="font-medium">Distributor:</span>{" "}
-                    {duplicateOrderError.existing_order.location.distributor}
+                    <span className="font-medium">Order Status:</span>{" "}
+                    {duplicateOrderError.existing_order.order_status}
                   </div>
                 </div>
               </div>
