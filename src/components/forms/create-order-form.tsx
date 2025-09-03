@@ -1163,6 +1163,7 @@ export default function CreateOrderForm({
                                 type="number"
                                 placeholder="0.00"
                                 className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                                required={true}
                                 {...field}
                                 onWheel={preventScroll}
                                 onChange={(e) => {
@@ -1230,6 +1231,7 @@ export default function CreateOrderForm({
                                       id="file-upload"
                                       type="file"
                                       className="sr-only"
+                                      required={true}
                                       onChange={handleFileUpload}
                                     />
                                   </label>

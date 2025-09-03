@@ -264,7 +264,8 @@ export function TableBody({
                             )}
                         </div>
                         {(sale.payment_method === "Prepaid" ||
-                          sale.payment_method === "Office Visit") &&
+                          sale.payment_method === "Office Visit" ||
+                          sale.payment_method === "Indrive") &&
                           sale.payment_screenshot && (
                             <Eye
                               className="h-4 w-4 cursor-pointer text-gray-500 hover:text-gray-700"
