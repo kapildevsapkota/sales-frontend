@@ -409,24 +409,23 @@ export function TableHeader({
             </SelectContent>
           </Select>
         </div>
-        {user?.role === "Packaging" ||
-          (user?.role === "Franchise" && (
-            <div className="w-[120px] min-w-0">
-              <Select value={logistic} onValueChange={handleLogisticChange}>
-                <SelectTrigger className="h-8 w-full text-xs">
-                  <SelectValue placeholder="Logistics" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="YDM">YDM</SelectItem>
-                  <SelectItem value="DASH">DASH</SelectItem>
-                  <SelectItem value="NCM">NCM</SelectItem>
-                  <SelectItem value="Pick and Drop">Pick and Drop</SelectItem>
-                  <SelectItem value="none">None</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
+        {(user?.role === "Packaging" || user?.role === "Franchise") && (
+          <div className="w-[120px] min-w-0">
+            <Select value={logistic} onValueChange={handleLogisticChange}>
+              <SelectTrigger className="h-8 w-full text-xs">
+                <SelectValue placeholder="Logistics" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="YDM">YDM</SelectItem>
+                <SelectItem value="DASH">DASH</SelectItem>
+                <SelectItem value="NCM">NCM</SelectItem>
+                <SelectItem value="Pick and Drop">Pick and Drop</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="min-w-0">
           <DateRangePicker
             className="w-full h-8 text-xs"
