@@ -330,6 +330,43 @@ export default function SalesTable() {
     }
   };
 
+  const handleLogisticsChange = async (saleId: string, logisticsId: string) => {
+    try {
+      // If logisticsId is 'none', set it to null
+      const logisticsValue = logisticsId === "none" ? null : logisticsId;
+
+      await api
+        .patch(`/api/sales/orders/${saleId}/`, { logistics: logisticsValue })
+        .then(() => {
+          setDisplayData((prevData) =>
+            prevData.map((sale) =>
+              sale.id.toString() === saleId
+                ? { ...sale, logistics: logisticsValue }
+                : sale
+            )
+          );
+          setSales((prevSales) => {
+            if (!prevSales) return prevSales;
+            return {
+              ...prevSales,
+              results: prevSales.results.map((sale) =>
+                sale.id.toString() === saleId
+                  ? { ...sale, logistics: logisticsValue }
+                  : sale
+              ),
+            };
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          showError("Failed to update logistics");
+        });
+    } catch (error) {
+      console.error("Error updating logistics:", error);
+      showError("Failed to update logistics");
+    }
+  };
+
   // Handle location update for a sale
   const handleLocationUpdate = (
     saleId: number,
@@ -498,6 +535,7 @@ export default function SalesTable() {
           pageSize={pageSize}
           getValueByColumnId={getValueByColumnId}
           handleStatusChange={handleStatusChange}
+          handleLogisticsChange={handleLogisticsChange}
           handleEdit={handleEdit}
           setSelectedPaymentImage={setSelectedPaymentImage}
           setShowPaymentImageModal={setShowPaymentImageModal}

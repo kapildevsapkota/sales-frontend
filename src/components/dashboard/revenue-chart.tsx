@@ -34,7 +34,7 @@ export function RevenueChart({ id }: { id?: string }) {
           }
         );
         const result = await response.json();
-        const chartData = result.products.map((product: Product) => ({
+        const chartData = (result.products || []).map((product: Product) => ({
           name: product.product_name,
           value: product.revenue,
           color: `hsl(${Math.random() * 360}, 70%, 50%)`, // Generate a random color for each product
@@ -42,13 +42,14 @@ export function RevenueChart({ id }: { id?: string }) {
         setData(chartData); // Update state with fetched revenue data
       } catch (error) {
         console.error("Error fetching revenue data:", error);
+        setData([]); // Set empty array on error
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchRevenueData();
-  }, [timeRange]);
+  }, [timeRange, id]);
 
   return (
     <div className="space-y-4">
@@ -93,7 +94,7 @@ export function RevenueChart({ id }: { id?: string }) {
                 }
                 labelLine={false}
               >
-                {data.map((entry, index) => (
+                {(data || []).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>

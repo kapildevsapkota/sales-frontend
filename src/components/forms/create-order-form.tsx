@@ -93,6 +93,7 @@ interface DuplicateOrderError {
       franchise: string;
       distributor: string;
     };
+    order_status: string;
   };
 }
 
@@ -474,7 +475,7 @@ export default function CreateOrderForm({
     } catch (error) {
       const err = error as AxiosError;
       if (err.response?.status === 403 || err.response?.status === 400) {
-        let errorMsg = "Order could not be placed.";
+        // let errorMsg = "Order could not be placed.";
         let duplicateError: DuplicateOrderError | null = null;
         if (err.response.data) {
           if (
@@ -484,10 +485,10 @@ export default function CreateOrderForm({
             "existing_order" in err.response.data
           ) {
             duplicateError = err.response.data as DuplicateOrderError;
-            errorMsg = duplicateError.error;
+            // errorMsg = duplicateError.error;
           }
         }
-        setForceOrderErrorMsg(errorMsg);
+        // setForceOrderErrorMsg(errorMsg);
         setDuplicateOrderError(duplicateError);
         setPendingForceOrderData(data);
         setForceOrderDialogOpen(true);
@@ -1222,6 +1223,7 @@ export default function CreateOrderForm({
                                 type="number"
                                 placeholder="0.00"
                                 className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                                required={true}
                                 {...field}
                                 onWheel={preventScroll}
                                 onChange={(e) => {
@@ -1289,6 +1291,7 @@ export default function CreateOrderForm({
                                       id="file-upload"
                                       type="file"
                                       className="sr-only"
+                                      required={true}
                                       onChange={handleFileUpload}
                                     />
                                   </label>
@@ -1442,8 +1445,8 @@ export default function CreateOrderForm({
                     {duplicateOrderError.existing_order.location.franchise}
                   </div>
                   <div>
-                    <span className="font-medium">Distributor:</span>{" "}
-                    {duplicateOrderError.existing_order.location.distributor}
+                    <span className="font-medium">Order Status:</span>{" "}
+                    {duplicateOrderError.existing_order.order_status}
                   </div>
                 </div>
               </div>

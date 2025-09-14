@@ -30,27 +30,32 @@ export function SalesChart({
 
   useEffect(() => {
     const fetchRevenueData = async () => {
-      const token = localStorage.getItem("accessToken"); // Get the access token from local storage
-      const response = await fetch(
-        `https://sales.baliyoventures.com/api/sales/revenue/?filter=${timeframe}${
-          id ? `&franchise=${id}` : ""
-        }`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Set the authorization header
-          },
-        }
-      );
-      const result = await response.json();
-      console.log("sales chart", result);
-      setData(result.data); // Update state with fetched revenue data
+      try {
+        const token = localStorage.getItem("accessToken"); // Get the access token from local storage
+        const response = await fetch(
+          `https://sales.baliyoventures.com/api/sales/revenue/?filter=${timeframe}${
+            id ? `&franchise=${id}` : ""
+          }`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Set the authorization header
+            },
+          }
+        );
+        const result = await response.json();
+        console.log("sales chart", result);
+        setData(result.data || []); // Update state with fetched revenue data
+      } catch (error) {
+        console.error("Error fetching revenue data:", error);
+        setData([]); // Set empty array on error
+      }
     };
 
     fetchRevenueData();
   }, [timeframe]);
 
   // Transform data for the chart based on the timeframe
-  const chartData = data.map((item) => ({
+  const chartData = (data || []).map((item) => ({
     name: item.period,
     sales: item.total_revenue,
     orders: item.order_count,

@@ -21,7 +21,7 @@ export interface SaleItem {
   dash_tracking_code: string;
   dash_location_name: string;
   logistics_name: string;
-  logistics: string;
+  logistics: string | null;
   id: number;
   created_at: string;
   full_name: string;

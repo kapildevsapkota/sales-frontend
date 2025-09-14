@@ -32,9 +32,10 @@ export function TopProducts({ id }: { id?: string }) {
           }
         );
         const result = await response.json();
-        setProducts(result.data);
+        setProducts(result.data || []);
       } catch (error) {
         console.error("Error fetching top products:", error);
+        setProducts([]); // Set empty array on error
       } finally {
         setIsLoading(false);
       }
@@ -75,7 +76,7 @@ export function TopProducts({ id }: { id?: string }) {
           ))
         ) : (
           <>
-            {products.map((product) => (
+            {(products || []).map((product) => (
               <div
                 key={product.product_id}
                 className="flex flex-col sm:flex-row justify-between p-2 sm:p-4 border-b last:border-b-0 gap-2"
@@ -93,7 +94,7 @@ export function TopProducts({ id }: { id?: string }) {
                 </div>
               </div>
             ))}
-            {products.length === 0 && (
+            {(products || []).length === 0 && (
               <div className="p-2 sm:p-4 text-center text-xs sm:text-base text-muted-foreground">
                 No products found
               </div>
