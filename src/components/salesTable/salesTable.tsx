@@ -98,8 +98,9 @@ export default function SalesTable() {
 
         // Add logistic parameter if selected and user is Packaging
         if (
-          (logistic && logistic !== "all" && user?.role === "Packaging") ||
-          user?.role === "Franchise"
+          logistic &&
+          logistic !== "all" &&
+          (user?.role === "Packaging" || user?.role === "Franchise")
         ) {
           url += `&logistics=${encodeURIComponent(logistic)}`;
         }
