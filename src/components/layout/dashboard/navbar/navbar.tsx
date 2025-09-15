@@ -73,6 +73,11 @@ const items: MenuItem[] = [
     icon: Users,
     href: "/admin/salesPersons",
   },
+  {
+    label: "YDM",
+    icon: Home,
+    href: "/admin/ydm",
+  },
   // {
   //   label: "Sales Fest",
   //   icon: Calendar,

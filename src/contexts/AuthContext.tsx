@@ -46,6 +46,7 @@ interface User {
   role: Role;
   is_active: boolean;
   distributor: string;
+  franchise_id: number;
 }
 
 interface AuthResponse {
