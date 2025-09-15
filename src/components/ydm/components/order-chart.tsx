@@ -162,7 +162,7 @@ export function OrderChart({ id }: { id: number }) {
                     day: "numeric",
                   });
                 }}
-                formatter={(value, name) => [value, "Orders"]}
+                formatter={(value) => [value, "Orders"]}
                 contentStyle={{
                   backgroundColor: "white",
                   border: "1px solid #e2e8f0",
