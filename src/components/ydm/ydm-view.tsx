@@ -1,6 +1,7 @@
 import { StatusCards } from "./components/status-cards";
 import { OrderChart } from "./components/order-chart";
 import { SidebarStats } from "./components/sidebar-stats";
+import { Totals } from "./components/totals";
 
 export default function YdmView({ id }: { id: number }) {
   return (
@@ -18,6 +19,7 @@ export default function YdmView({ id }: { id: number }) {
             {/* Status Cards */}
             <div className="w-full">
               <StatusCards id={Number(id)} />
+              <Totals id={Number(id)} />
             </div>
 
             {/* Order Chart */}

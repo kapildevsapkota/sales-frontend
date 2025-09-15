@@ -116,7 +116,7 @@ export function OrderChart({ id }: { id: number }) {
 
   if (chartData.length === 0) {
     return (
-      <Card className="shadow-lg border-0 rounded-xl overflow-hidden p-0">
+      <Card className="shadow-sm border-0 rounded-xl overflow-hidden p-0">
         <CardHeader className="bg-primary text-white py-3">
           <CardTitle className="text-center font-semibold text-sm">
             Daily Order Status
@@ -132,7 +132,7 @@ export function OrderChart({ id }: { id: number }) {
   }
 
   return (
-    <Card className="shadow-lg border-0 rounded-xl overflow-hidden p-0">
+    <Card className="shadow-sm border-0 rounded-xl overflow-hidden p-0">
       <CardHeader className="bg-primary text-white py-3">
         <CardTitle className="text-center font-semibold text-sm">
           Daily Order Status

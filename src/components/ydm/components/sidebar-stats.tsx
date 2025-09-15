@@ -78,7 +78,7 @@ export function SidebarStats({ id }: { id: number }) {
   return (
     <div className="space-y-4">
       {/* Order Summary */}
-      <Card className="shadow-lg border-0 rounded-xl">
+      <Card className="shadow-sm border-0 rounded-xl">
         <CardContent className="p-4 space-y-2.5">
           <div className="text-sm space-y-2">
             <div className="flex justify-between items-center py-1">
@@ -91,7 +91,7 @@ export function SidebarStats({ id }: { id: number }) {
               <span className="font-medium text-slate-700">Total COD:</span>
               <span className="font-semibold">
                 {formatCurrency(
-                  data?.overall_statistics?.["Total COD"]?.amount || 0
+                  data?.overall_statistics?.["Total Orders"]?.amount || 0
                 )}
               </span>
             </div>
@@ -127,7 +127,7 @@ export function SidebarStats({ id }: { id: number }) {
       </Card>
 
       {/* Today's Stats */}
-      <Card className="shadow-lg border-0 rounded-xl">
+      <Card className="shadow-sm border-0 rounded-xl">
         <CardContent className="p-4 space-y-2.5">
           <div className="text-sm space-y-2">
             <div className="flex justify-between items-center py-1">
@@ -169,7 +169,7 @@ export function SidebarStats({ id }: { id: number }) {
       </Card>
 
       {/* Delivery Performance */}
-      <Card className="shadow-lg border-0 rounded-xl">
+      <Card className="shadow-sm border-0 rounded-xl">
         <CardHeader className="pb-2 px-4 pt-4">
           <CardTitle className="text-sm font-semibold text-slate-800">
             Delivery Performance %

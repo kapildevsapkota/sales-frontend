@@ -98,17 +98,6 @@ export function StatusCards({ id }: { id: number }) {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <div className="text-xs">Order Picked</div>
-              <div>
-                {stats?.data?.order_processing?.["Order Picked"]?.nos || 0}
-              </div>
-              <div>
-                {formatAmount(
-                  stats?.data?.order_processing?.["Order Picked"]?.amount || 0
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Order Verified</div>
               <div>
                 {stats?.data?.order_processing?.["Order Verified"]?.nos || 0}
@@ -116,18 +105,6 @@ export function StatusCards({ id }: { id: number }) {
               <div>
                 {formatAmount(
                   stats?.data?.order_processing?.["Order Verified"]?.amount || 0
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2 font-medium">
-              <div className="text-xs">Order Processing</div>
-              <div>
-                {stats?.data?.order_processing?.["Order Processing"]?.nos || 0}
-              </div>
-              <div>
-                {formatAmount(
-                  stats?.data?.order_processing?.["Order Processing"]?.amount ||
-                    0
                 )}
               </div>
             </div>
@@ -149,19 +126,6 @@ export function StatusCards({ id }: { id: number }) {
             <div>AMOUNT</div>
           </div>
           <div className="space-y-1.5 text-sm">
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-xs">Received At Branch</div>
-              <div>
-                {stats?.data?.order_dispatched?.["Received At Branch"]?.nos ||
-                  0}
-              </div>
-              <div>
-                {formatAmount(
-                  stats?.data?.order_dispatched?.["Received At Branch"]
-                    ?.amount || 0
-                )}
-              </div>
-            </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Out For Delivery</div>
               <div>
