@@ -30,7 +30,7 @@ export default function YdmView({ id }: { id: number }) {
 
           {/* Right Sidebar */}
           <div className="xl:col-span-1">
-            <div className="sticky top-6">
+            <div className="sticky top-20">
               <SidebarStats id={Number(id)} />
             </div>
           </div>

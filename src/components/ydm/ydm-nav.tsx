@@ -14,7 +14,7 @@ export function YDMNavigation() {
 
   const isDashboardPage = pathname === basePath || pathname === `${basePath}/`;
   const isOrdersPage = pathname === `${basePath}/orders`;
-  // const isTodayOrdersPage = pathname === `${basePath}/today-orders`;
+  const isTodayOrdersPage = pathname === `${basePath}/todays-orders`;
 
   const navigationItems = useMemo(
     () => [
@@ -24,13 +24,13 @@ export function YDMNavigation() {
         label: "All Orders",
         isActive: isOrdersPage,
       },
-      // {
-      //   href: `${basePath}/today-orders`,
-      //   label: "Today Orders",
-      //   isActive: isTodayOrdersPage,
-      // },
+      {
+        href: `${basePath}/todays-orders`,
+        label: "Today Orders",
+        isActive: isTodayOrdersPage,
+      },
     ],
-    [basePath, isDashboardPage, isOrdersPage]
+    [basePath, isDashboardPage, isOrdersPage, isTodayOrdersPage]
   );
 
   return (

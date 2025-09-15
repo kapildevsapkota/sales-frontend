@@ -24,6 +24,8 @@ interface OrderFiltersProps {
   clearAllFilters: () => void;
   filterIsAssigned: string;
   setFilterIsAssigned: (value: string) => void;
+  /** If true, render only the search input */
+  onlySearch?: boolean;
 }
 
 export function OrderFilters({
@@ -39,6 +41,7 @@ export function OrderFilters({
   clearAllFilters,
   filterIsAssigned,
   setFilterIsAssigned,
+  onlySearch,
 }: OrderFiltersProps) {
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
@@ -52,77 +55,84 @@ export function OrderFilters({
             className="pl-10"
           />
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex items-center gap-2 bg-white border rounded-md px-3 py-2">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <Input
-              type="date"
-              placeholder="From"
-              value={dateRange.from}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, from: e.target.value })
-              }
-              className="border-0 p-0 h-auto text-sm min-w-[120px]"
-            />
-            <span className="text-gray-400 text-sm">to</span>
-            <Input
-              type="date"
-              placeholder="To"
-              value={dateRange.to}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, to: e.target.value })
-              }
-              className="border-0 p-0 h-auto text-sm min-w-[120px]"
-            />
+        {!onlySearch && (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex items-center gap-2 bg-white border rounded-md px-3 py-2">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              <Input
+                type="date"
+                placeholder="From"
+                value={dateRange.from}
+                onChange={(e) =>
+                  setDateRange({ ...dateRange, from: e.target.value })
+                }
+                className="border-0 p-0 h-auto text-sm min-w-[120px]"
+              />
+              <span className="text-gray-400 text-sm">to</span>
+              <Input
+                type="date"
+                placeholder="To"
+                value={dateRange.to}
+                onChange={(e) =>
+                  setDateRange({ ...dateRange, to: e.target.value })
+                }
+                className="border-0 p-0 h-auto text-sm min-w-[120px]"
+              />
+            </div>
+            <Select
+              value={filterDeliveryType}
+              onValueChange={setFilterDeliveryType}
+            >
+              <SelectTrigger className="w-full sm:w-48">
+                <MapPin className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Delivery Area" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Areas</SelectItem>
+                <SelectItem value="Inside valley">Inside Valley</SelectItem>
+                <SelectItem value="Outside valley">Outside Valley</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full sm:w-40">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Verified">Verified</SelectItem>
+                <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
+                <SelectItem value="Delivered">Delivered</SelectItem>
+                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                <SelectItem value="Returned By Customer">
+                  Returned By Customer
+                </SelectItem>
+                <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
+                <SelectItem value="Return Pending">Return Pending</SelectItem>
+                <SelectItem value="Out For Delivery">
+                  Out For Delivery
+                </SelectItem>
+                <SelectItem value="Rescheduled">Rescheduled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={filterIsAssigned}
+              onValueChange={setFilterIsAssigned}
+            >
+              <SelectTrigger className="w-full sm:w-40">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Is Assigned</SelectItem>
+                <SelectItem value="true">Assigned</SelectItem>
+                <SelectItem value="false">Unassigned</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select
-            value={filterDeliveryType}
-            onValueChange={setFilterDeliveryType}
-          >
-            <SelectTrigger className="w-full sm:w-48">
-              <MapPin className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Delivery Area" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Areas</SelectItem>
-              <SelectItem value="Inside valley">Inside Valley</SelectItem>
-              <SelectItem value="Outside valley">Outside Valley</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full sm:w-40">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Verified">Verified</SelectItem>
-              <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
-              <SelectItem value="Delivered">Delivered</SelectItem>
-              <SelectItem value="Cancelled">Cancelled</SelectItem>
-              <SelectItem value="Returned By Customer">
-                Returned By Customer
-              </SelectItem>
-              <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
-              <SelectItem value="Return Pending">Return Pending</SelectItem>
-              <SelectItem value="Out For Delivery">Out For Delivery</SelectItem>
-              <SelectItem value="Rescheduled">Rescheduled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterIsAssigned} onValueChange={setFilterIsAssigned}>
-            <SelectTrigger className="w-full sm:w-40">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Is Assigned</SelectItem>
-              <SelectItem value="true">Assigned</SelectItem>
-              <SelectItem value="false">Unassigned</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        )}
       </div>
-      {hasActiveFilters() && (
+      {!onlySearch && hasActiveFilters() && (
         <div className="flex justify-end">
           <Button
             variant="outline"

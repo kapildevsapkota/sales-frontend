@@ -73,7 +73,7 @@ export function StatusCards({ id }: { id: number }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {/* Order Processing Card */}
-      <Card className="bg-amber-500 text-white shadow-lg border-0 rounded-xl">
+      <Card className="bg-amber-500 text-white shadow-sm border-0 rounded-xl">
         <CardHeader className="pb-2 px-4 pt-4">
           <CardTitle className="text-center text-white font-semibold text-sm">
             ORDER PROCESSING
@@ -113,7 +113,7 @@ export function StatusCards({ id }: { id: number }) {
       </Card>
 
       {/* Order Dispatched Card */}
-      <Card className="bg-amber-500 text-white shadow-lg border-0 rounded-xl">
+      <Card className="bg-amber-500 text-white shadow-sm border-0 rounded-xl">
         <CardHeader className="pb-2 px-4 pt-4">
           <CardTitle className="text-center text-white font-semibold text-sm">
             ORDER DISPATCHED
@@ -154,7 +154,7 @@ export function StatusCards({ id }: { id: number }) {
       </Card>
 
       {/* Order Status Card */}
-      <Card className="bg-amber-500 text-white shadow-lg border-0 rounded-xl">
+      <Card className="bg-amber-500 text-white shadow-sm border-0 rounded-xl">
         <CardHeader className="pb-2 px-4 pt-4">
           <CardTitle className="text-center text-white font-semibold text-sm">
             ORDER STATUS

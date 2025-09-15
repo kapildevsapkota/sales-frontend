@@ -78,7 +78,7 @@ export function SidebarStats({ id }: { id: number }) {
   return (
     <div className="space-y-4">
       {/* Order Summary */}
-      <Card className="shadow-sm border-0 rounded-xl">
+      <Card className="shadow-none border border-gray-100 rounded-xl">
         <CardContent className="p-4 space-y-2.5">
           <div className="text-sm space-y-2">
             <div className="flex justify-between items-center py-1">
@@ -127,7 +127,7 @@ export function SidebarStats({ id }: { id: number }) {
       </Card>
 
       {/* Today's Stats */}
-      <Card className="shadow-sm border-0 rounded-xl">
+      <Card className="shadow-none border border-gray-100 rounded-xl">
         <CardContent className="p-4 space-y-2.5">
           <div className="text-sm space-y-2">
             <div className="flex justify-between items-center py-1">
@@ -169,7 +169,7 @@ export function SidebarStats({ id }: { id: number }) {
       </Card>
 
       {/* Delivery Performance */}
-      <Card className="shadow-sm border-0 rounded-xl">
+      <Card className="shadow-none border border-gray-100 rounded-xl">
         <CardHeader className="pb-2 px-4 pt-4">
           <CardTitle className="text-sm font-semibold text-slate-800">
             Delivery Performance %
