@@ -57,6 +57,7 @@ export interface SaleItem {
   delivery_type: string;
   ydm_rider?: string | null;
   promo_code?: string | null;
+  ydm_rider_name?: string | null;
 }
 
 interface OrderProduct {

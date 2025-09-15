@@ -42,6 +42,7 @@ export function OrdersTable({
             <TableHead className="font-semibold">Tracking Code</TableHead>
             <TableHead className="font-semibold">Total Price (Rs.)</TableHead>
             <TableHead className="font-semibold">Current Status</TableHead>
+            <TableHead className="font-semibold">Rider Info</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -113,6 +114,27 @@ export function OrdersTable({
                   >
                     {order.order_status}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    {order.ydm_rider_name ? (
+                      <div>{order.ydm_rider_name}</div>
+                    ) : (
+                      <div className="text-xs text-gray-600">N/A</div>
+                    )}
+                    {order.ydm_rider ? (
+                      <a
+                        href={`tel:${order.ydm_rider}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        <div className="text-xs text-gray-600">
+                          contact: {order.ydm_rider}
+                        </div>
+                      </a>
+                    ) : (
+                      <div className="text-xs text-gray-600">contact: N/A</div>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))
