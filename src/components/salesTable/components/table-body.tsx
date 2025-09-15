@@ -55,6 +55,8 @@ export function TableBody({
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
     switch (status) {
+      case "Sent to YDM":
+        return "bg-yellow-800"; // Blue for sent to YDM
       case "Delivered":
         return "bg-green-500"; // Green for delivered
       case "Pending":
@@ -162,6 +164,15 @@ export function TableBody({
                               ></span>
                               Processing
                             </SelectItem>
+                            <SelectItem value="Sent to YDM">
+                              <span
+                                className={
+                                  getOrderStatusColor("Sent to YDM") +
+                                  " rounded-full w-4 h-4 inline-block mr-2"
+                                }
+                              ></span>
+                              Sent to YDM
+                            </SelectItem>
                             <SelectItem value="Sent to Dash">
                               <span
                                 className={
@@ -242,6 +253,10 @@ export function TableBody({
                           <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
                             <SelectItem value="YDM">YDM</SelectItem>
                             <SelectItem value="DASH">DASH</SelectItem>
+                            <SelectItem value="NCM">NCM</SelectItem>
+                            <SelectItem value="Pick and Drop">
+                              Pick And Drop
+                            </SelectItem>
                             <SelectItem value="none">None</SelectItem>
                           </SelectContent>
                         </Select>
@@ -264,7 +279,8 @@ export function TableBody({
                             )}
                         </div>
                         {(sale.payment_method === "Prepaid" ||
-                          sale.payment_method === "Office Visit") &&
+                          sale.payment_method === "Office Visit" ||
+                          sale.payment_method === "Indrive") &&
                           sale.payment_screenshot && (
                             <Eye
                               className="h-4 w-4 cursor-pointer text-gray-500 hover:text-gray-700"

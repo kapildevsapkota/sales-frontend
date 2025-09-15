@@ -1085,7 +1085,6 @@ export default function CreateOrderForm({
               </div>
 
               {/* Payment Information Section */}
-              {/* Payment Information Section */}
               <div className="mb-8">
                 <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold text-green-700">
                   Payment Information
@@ -1163,6 +1162,7 @@ export default function CreateOrderForm({
                                 type="number"
                                 placeholder="0.00"
                                 className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
+                                required={true}
                                 {...field}
                                 onWheel={preventScroll}
                                 onChange={(e) => {
@@ -1230,6 +1230,7 @@ export default function CreateOrderForm({
                                       id="file-upload"
                                       type="file"
                                       className="sr-only"
+                                      required={true}
                                       onChange={handleFileUpload}
                                     />
                                   </label>
