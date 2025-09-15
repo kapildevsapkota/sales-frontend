@@ -107,7 +107,7 @@ export function OrdersTable({
                 </TableCell>
                 <TableCell>
                   <Badge
-                    className={`text-xs font-medium ${getStatusColor(
+                    className={`text-xs font-medium hover:bg-transparent ${getStatusColor(
                       order.order_status
                     )}`}
                   >

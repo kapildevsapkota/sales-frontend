@@ -71,7 +71,7 @@ export class YDMApiService {
     }
 
     const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-    const url = `${baseURL}/api/sales/orders/?${params.toString()}`;
+    const url = `${baseURL}/api/sales/orders/?logistics=YDM&${params.toString()}`;
 
     const response = await fetch(url, {
       headers: {

@@ -34,10 +34,10 @@ export function YDMNavigation() {
   );
 
   return (
-    <div className="mb-6">
+    <div>
       <nav
         aria-label="Primary"
-        className="sticky top-4 z-30 mx-auto w-full max-w-max rounded-2xl border bg-white/70 p-1 shadow-sm ring-1 ring-black/5 backdrop-blur-md dark:bg-neutral-900/60 dark:ring-white/10"
+        className="sticky top-0 mx-auto w-full max-w-max rounded-2xl border bg-white/70 p-1 shadow-sm ring-1 ring-black/5 backdrop-blur-md dark:bg-neutral-900/60 dark:ring-white/10"
       >
         <ul className="flex items-center gap-1">
           {navigationItems.map((item) => {
