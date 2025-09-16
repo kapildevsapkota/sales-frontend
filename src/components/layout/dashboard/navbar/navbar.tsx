@@ -10,6 +10,7 @@ import {
   Menu,
   Users,
   Key,
+  Calendar,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -23,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, Role } from "@/contexts/AuthContext";
 import {
   Sheet,
   SheetTrigger,
@@ -44,6 +45,7 @@ interface MenuItem {
     label: string;
     href: string;
   }[];
+  visible?: (user: any) => boolean;
 }
 
 // Menu items with admin routes
@@ -78,18 +80,30 @@ const items: MenuItem[] = [
     icon: Home,
     href: "/admin/ydm",
   },
-  // {
-  //   label: "Sales Fest",
-  //   icon: Calendar,
-  //   href: "/admin/salesfest",
-  // },
+  {
+    label: "Sales Fest",
+    icon: Calendar,
+    href: "/admin/salesfest",
+    visible: (user) =>
+      !!user &&
+      (user.role === Role.SuperAdmin ||
+        user.role === Role.Distributor ||
+        user.role === Role.Franchise) &&
+      typeof user.phone_number === "string" &&
+      user.phone_number.replace(/\D/g, "") === "1111111111",
+  },
 ];
 
 export function AppHeader() {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
+
+  const visibleItems = React.useMemo(
+    () => items.filter((item) => (item.visible ? item.visible(user) : true)),
+    [user]
+  );
 
   // Close Sheet on nav change
   React.useEffect(() => {
@@ -119,7 +133,7 @@ export function AppHeader() {
             </div>
             {/* Desktop Navigation */}
             <nav className="hidden md:flex md:space-x-2 ml-6">
-              {items.map((item) => (
+              {visibleItems.map((item) => (
                 <div key={item.label} className="relative px-1">
                   {item.items ? (
                     <Collapsible className="group/collapsible">
@@ -217,7 +231,7 @@ export function AppHeader() {
                     </div>
                   </SheetHeader>
                   <nav className="flex-1 flex flex-col gap-1 px-2 py-4">
-                    {items.map((item) => (
+                    {visibleItems.map((item) => (
                       <React.Fragment key={item.label}>
                         {item.items ? (
                           <Collapsible className="w-full">

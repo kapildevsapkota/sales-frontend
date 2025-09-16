@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "sales.baliyoventures.com",
       },
+      {
+        protocol: "http",
+        hostname: "not-violations-senators-theoretical.trycloudflare.com",
+      },
     ],
   },
 };
