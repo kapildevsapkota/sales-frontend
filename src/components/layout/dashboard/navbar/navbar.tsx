@@ -45,6 +45,7 @@ interface MenuItem {
     label: string;
     href: string;
   }[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   visible?: (user: any) => boolean;
 }
 

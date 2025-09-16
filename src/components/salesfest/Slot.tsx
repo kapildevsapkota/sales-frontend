@@ -13,9 +13,11 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [hasSpun, setHasSpun] = useState<boolean>(false);
   const [currentPhase, setCurrentPhase] = useState<number>(0); // 0: ready, 1: minor, 2: major, 3: grand, 4: complete
+  console.log(currentPhase);
   const [, setOrgData] = useState<OrganizationData | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [mobileCurrentItem, setMobileCurrentItem] = useState<number>(0);
+  console.log(mobileCurrentItem);
   const router = useRouter();
 
   // Single sprite wheel state (no categories)
@@ -237,6 +239,7 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
 
         // Ensure we don't exceed 1
         easedProgress = Math.min(easedProgress, 1);
+        console.log(easedProgress);
 
         // Interpolate from startY to endY
         const currentY = startY + (endY - startY) * progress;
