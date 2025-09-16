@@ -22,7 +22,7 @@ export default function SalesFestPage() {
       user.role === Role.SuperAdmin ||
       user.role === Role.Distributor ||
       user.role === Role.Franchise;
-    return roleOk && cleaned === "1111111111";
+    return roleOk && cleaned === "9841751148";
   }, [user]);
 
   useEffect(() => {

@@ -90,7 +90,7 @@ const items: MenuItem[] = [
         user.role === Role.Distributor ||
         user.role === Role.Franchise) &&
       typeof user.phone_number === "string" &&
-      user.phone_number.replace(/\D/g, "") === "1111111111",
+      user.phone_number.replace(/\D/g, "") === "9841751148",
   },
 ];
 

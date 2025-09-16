@@ -25,7 +25,7 @@ interface OrganizationData {
 
 const formSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
-  phone_number: z.string().min(10, "Contact number must be at least 10 digits"),
+  // phone_number: z.string().min(10, "Contact number must be at least 10 digits"),
 });
 
 export default function InfoForm({
@@ -150,7 +150,7 @@ export default function InfoForm({
 
       <main className="flex-grow h-screen flex flex-col justify-center items-center relative z-10">
         {!submissionResponse ? (
-          <div className="max-w-3xl w-full  backdrop-blur-sm p-4 ">
+          <div className="max-w-md w-full  backdrop-blur-sm p-4 ">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <FormFields register={register} errors={errors} />
               <div className="flex justify-center ">
