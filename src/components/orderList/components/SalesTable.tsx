@@ -125,7 +125,7 @@ Tracking Code: ${sale.dash_tracking_code}
             <br />
             {sale.logistics === "YDM" && (
               <a
-                href={`/track-order/${sale.order_code}`}
+                href={`https://ydm-logistics.vercel.app/track-order/${sale.order_code}`}
                 target="_blank"
                 className="hover:underline"
               >

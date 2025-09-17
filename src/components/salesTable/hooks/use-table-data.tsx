@@ -42,6 +42,18 @@ export function useTableData() {
             <>
               {sale.full_name}
               <br />
+              {sale.logistics === "YDM" && (
+                <a
+                  href={`https://ydm-logistics.vercel.app/track-order/${sale.order_code}`}
+                  target="_blank"
+                  className="hover:underline"
+                >
+                  <span className="text-gray-500 text-sm cursor-pointer">
+                    {sale.order_code}
+                  </span>
+                  <br />
+                </a>
+              )}
               {sale.dash_tracking_code}
             </>
           );
