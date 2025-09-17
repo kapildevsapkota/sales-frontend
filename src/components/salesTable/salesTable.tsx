@@ -55,6 +55,32 @@ export default function SalesTable() {
     [Date | undefined, Date | undefined]
   >([undefined, undefined]);
 
+  // Export filters (advanced) state
+  const [totalAmountMin, setTotalAmountMin] = useState<number | undefined>(
+    undefined
+  );
+  const [totalAmountMax, setTotalAmountMax] = useState<number | undefined>(
+    undefined
+  );
+  const [productsCountMin, setProductsCountMin] = useState<number | undefined>(
+    undefined
+  );
+  const [productsCountMax, setProductsCountMax] = useState<number | undefined>(
+    undefined
+  );
+  const [moreThan3Products, setMoreThan3Products] = useState<
+    boolean | undefined
+  >(undefined);
+  const [multipleOrdersCustomer, setMultipleOrdersCustomer] = useState<
+    boolean | undefined
+  >(undefined);
+  const [oilBottleTotalMin, setOilBottleTotalMin] = useState<
+    number | undefined
+  >(undefined);
+  const [oilBottleOnly, setOilBottleOnly] = useState<boolean | undefined>(
+    undefined
+  );
+
   // Function to show error messages
   const showError = useCallback((message: string) => {
     console.log("showError called with:", message);
@@ -412,20 +438,40 @@ export default function SalesTable() {
 
       if (user?.role === "Franchise") {
         // Franchise: use /api/sales/sales-summary/ with date range
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/sales-summary/`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-summary/`;
         const [from, to] = franchiseExportDateRange;
-        const params = [];
+        const params: string[] = [];
         if (from) {
           const year = from.getFullYear();
           const month = String(from.getMonth() + 1).padStart(2, "0");
           const day = String(from.getDate()).padStart(2, "0");
-          params.push(`start_date=${year}-${month}-${day}`);
+          params.push(`date_from=${year}-${month}-${day}`);
         }
         if (to) {
           const year = to.getFullYear();
           const month = String(to.getMonth() + 1).padStart(2, "0");
           const day = String(to.getDate()).padStart(2, "0");
-          params.push(`end_date=${year}-${month}-${day}`);
+          params.push(`date_to=${year}-${month}-${day}`);
+        }
+        // Append advanced export filters
+        if (typeof totalAmountMin === "number")
+          params.push(`total_amount_min=${totalAmountMin}`);
+        if (typeof totalAmountMax === "number")
+          params.push(`total_amount_max=${totalAmountMax}`);
+        if (typeof productsCountMin === "number")
+          params.push(`products_count_min=${productsCountMin}`);
+        if (typeof productsCountMax === "number")
+          params.push(`products_count_max=${productsCountMax}`);
+        if (typeof moreThan3Products === "boolean")
+          params.push(`more_than_3_products=${moreThan3Products}`);
+        if (typeof multipleOrdersCustomer === "boolean")
+          params.push(`multiple_orders_customer=${multipleOrdersCustomer}`);
+        if (typeof oilBottleTotalMin === "number")
+          params.push(`oil_bottle_total_min=${oilBottleTotalMin}`);
+
+        // Append franchise id if available
+        if (user?.franchise_id) {
+          params.push(`franchise=${user.franchise_id}`);
         }
         if (params.length > 0) {
           url += `?${params.join("&")}`;
@@ -448,8 +494,34 @@ export default function SalesTable() {
       }
       // Default: Packaging and others
       let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv/`;
+      const params: string[] = [];
       if (user?.role === "Packaging" && logistic && logistic !== "all") {
-        url += `?logistics=${logistic}`;
+        params.push(`logistics=${encodeURIComponent(logistic)}`);
+      }
+      // Append franchise id if available/requested
+      if (user?.franchise_id) {
+        params.push(`franchise=${user.franchise_id}`);
+      }
+      // Append advanced export filters (optional for this endpoint as well)
+      if (typeof totalAmountMin === "number")
+        params.push(`total_amount_min=${totalAmountMin}`);
+      if (typeof totalAmountMax === "number")
+        params.push(`total_amount_max=${totalAmountMax}`);
+      if (typeof productsCountMin === "number")
+        params.push(`products_count_min=${productsCountMin}`);
+      if (typeof productsCountMax === "number")
+        params.push(`products_count_max=${productsCountMax}`);
+      if (typeof moreThan3Products === "boolean")
+        params.push(`more_than_3_products=${moreThan3Products}`);
+      if (typeof multipleOrdersCustomer === "boolean")
+        params.push(`multiple_orders_customer=${multipleOrdersCustomer}`);
+      if (typeof oilBottleTotalMin === "number")
+        params.push(`oil_bottle_total_min=${oilBottleTotalMin}`);
+      if (typeof oilBottleOnly === "boolean")
+        params.push(`oil_bottle_only=${oilBottleOnly}`);
+
+      if (params.length > 0) {
+        url += `?${params.join("&")}`;
       }
       const response = await axios.get(url, {
         headers: {
@@ -517,6 +589,22 @@ export default function SalesTable() {
           handleExportCSV={handleExportCSV}
           setShowExportModal={setShowExportModal}
           userRole={user?.role}
+          totalAmountMin={totalAmountMin}
+          setTotalAmountMin={setTotalAmountMin}
+          totalAmountMax={totalAmountMax}
+          setTotalAmountMax={setTotalAmountMax}
+          productsCountMin={productsCountMin}
+          setProductsCountMin={setProductsCountMin}
+          productsCountMax={productsCountMax}
+          setProductsCountMax={setProductsCountMax}
+          moreThan3Products={moreThan3Products}
+          setMoreThan3Products={setMoreThan3Products}
+          multipleOrdersCustomer={multipleOrdersCustomer}
+          setMultipleOrdersCustomer={setMultipleOrdersCustomer}
+          oilBottleTotalMin={oilBottleTotalMin}
+          setOilBottleTotalMin={setOilBottleTotalMin}
+          oilBottleOnly={oilBottleOnly}
+          setOilBottleOnly={setOilBottleOnly}
         />
       )}
 

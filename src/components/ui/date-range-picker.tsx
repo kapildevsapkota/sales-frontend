@@ -27,11 +27,9 @@ export default function DateRangePicker({
   // Use the provided value and onChange props, or fall back to internal state
   const [date, setDate] = React.useState<DateRange | undefined>(value);
 
-  // Update internal state when props change
+  // Update internal state when props change (including clearing when value is undefined)
   React.useEffect(() => {
-    if (value !== undefined) {
-      setDate(value);
-    }
+    setDate(value);
   }, [value]);
 
   // Handle date changes
