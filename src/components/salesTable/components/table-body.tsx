@@ -55,6 +55,8 @@ export function TableBody({
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
     switch (status) {
+      case "Rescheduled":
+        return "bg-orange-500"; // Orange for rescheduled
       case "Sent to YDM":
         return "bg-yellow-800"; // Blue for sent to YDM
       case "Delivered":
@@ -199,6 +201,15 @@ export function TableBody({
                                 }
                               ></span>
                               Delivered
+                            </SelectItem>
+                            <SelectItem value="Rescheduled">
+                              <span
+                                className={
+                                  getOrderStatusColor("Rescheduled") +
+                                  " rounded-full w-4 h-4 inline-block mr-2"
+                                }
+                              ></span>
+                              Rescheduled
                             </SelectItem>
                             <SelectItem value="Cancelled">
                               <span
