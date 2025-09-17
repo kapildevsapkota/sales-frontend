@@ -123,6 +123,19 @@ Tracking Code: ${sale.dash_tracking_code}
           <>
             <span className="font-bold">{sale.full_name}</span>
             <br />
+            {sale.logistics === "YDM" && (
+              <a
+                href={`/track-order/${sale.order_code}`}
+                target="_blank"
+                className="hover:underline"
+              >
+                <span className="text-gray-500 text-sm cursor-pointer">
+                  {sale.order_code}
+                </span>
+              </a>
+            )}
+
+            <br />
             <span className="text-gray-500 text-sm">
               {sale.dash_tracking_code}
             </span>
