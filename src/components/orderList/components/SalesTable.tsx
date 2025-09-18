@@ -44,7 +44,34 @@ export function SalesTable({
   const router = useRouter();
 
   // Function to handle sending order to WhatsApp
-  const handleSendOrder = (sale: SaleItem, isDash: boolean) => {
+  const handleSendOrder = (
+    sale: SaleItem,
+    isDash: boolean,
+    isCustomer: boolean
+  ) => {
+    const customerDetails = `
+    THANK YOU FOR YOUR ORDER!
+
+*Customer Details:*
+👤 Name: ${sale.full_name}
+📱 Phone: ${sale.phone_number}
+📱 AltPhone: ${sale.alternate_phone_number}
+📍 Location: ${sale.delivery_address}, ${sale.city}
+
+🛒 Products: ${sale.order_products
+      .map((p) => `${p.product.name} - ${p.quantity}`)
+      .join(", ")}
+💰 Total Amount: Rs. ${sale.total_amount}
+${
+  sale.payment_method === "Prepaid"
+    ? `💳 Prepaid Amount: Rs. ${sale.prepaid_amount || 0}
+💰 Remaining Amount: Rs. ${
+        Number(sale.total_amount) - (sale.prepaid_amount || 0)
+      }`
+    : ""
+}
+    `.trim();
+
     // Format the order details
     const orderDetails = `
 *New Order Alert!* 🚀
@@ -93,7 +120,13 @@ Tracking Code: ${sale.dash_tracking_code}
 
     // Copy to clipboard
     navigator.clipboard
-      .writeText(isDash ? orderDetailsForDashGroup : orderDetails)
+      .writeText(
+        isDash
+          ? orderDetailsForDashGroup
+          : isCustomer
+          ? customerDetails
+          : orderDetails
+      )
       .then(() => {
         // Show success message
         alert(
@@ -199,7 +232,7 @@ Tracking Code: ${sale.dash_tracking_code}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleSendOrder(sale, false)}
+              onClick={() => handleSendOrder(sale, false, false)}
               className="flex items-center gap-1"
             >
               <svg
@@ -221,7 +254,29 @@ Tracking Code: ${sale.dash_tracking_code}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleSendOrder(sale, true)}
+              onClick={() => handleSendOrder(sale, false, true)}
+              className="flex items-center gap-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              Send to Customer
+            </Button>
+            {/* <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendOrder(sale, true, false)}
               className="flex items-center gap-1"
             >
               <svg
@@ -239,7 +294,7 @@ Tracking Code: ${sale.dash_tracking_code}
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               Send Order to Dash
-            </Button>
+            </Button> */}
           </>
         );
       case "edit":
