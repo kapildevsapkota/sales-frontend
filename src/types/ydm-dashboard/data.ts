@@ -9,6 +9,7 @@ interface OverallStatistics {
   "Total RTV": OrderData;
   "Total Delivery Charge": OrderData;
   "Total Pending COD": OrderData;
+  "Total Delivered": OrderData;
 }
 
 interface TodaysStatistics {

@@ -103,6 +103,14 @@ export function SidebarStats({ id }: { id: number }) {
             </div>
             <div className="flex justify-between items-center py-1">
               <span className="font-medium text-slate-700">
+                Total Delivered:
+              </span>
+              <span className="font-semibold">
+                {data?.overall_statistics?.["Total Delivered"]?.nos || 0}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-1">
+              <span className="font-medium text-slate-700">
                 Total Delivery Charge:
               </span>
               <span className="font-semibold">
