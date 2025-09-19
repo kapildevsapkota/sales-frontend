@@ -17,6 +17,18 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
   const [nextPage, setNextPage] = useState<string | null>(null);
   const [previousPage, setPreviousPage] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [dateInventory, setDateInventory] = useState<
+    {
+      inventory_id: number;
+      product_id: number;
+      product_name: string;
+      quantity: number;
+    }[]
+  >([]);
+  const [isDateInventoryLoading, setIsDateInventoryLoading] = useState(false);
+  const [dateInventoryError, setDateInventoryError] = useState<string | null>(
+    null
+  );
 
   const fetchActivityLogs = async (url: string): Promise<void> => {
     if (!isOpen) return;
@@ -83,6 +95,62 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
+
+  // Fetch inventory-by-date snapshot when a date is selected
+  useEffect(() => {
+    const fetchInventoryByDate = async (date: string) => {
+      if (!date) {
+        setDateInventory([]);
+        setDateInventoryError(null);
+        return;
+      }
+      setIsDateInventoryLoading(true);
+      setDateInventoryError(null);
+      try {
+        let accessToken = "";
+        if (typeof window !== "undefined") {
+          accessToken = localStorage.getItem("accessToken") || "";
+          if (!accessToken) {
+            throw new Error("Authentication token not found");
+          }
+        }
+
+        const url = `https://sales.baliyoventures.com/api/sales/inventory-date-product/?date=${encodeURIComponent(
+          date
+        )}`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (response.status === 401) {
+          throw new Error("Authentication failed. Please log in again.");
+        }
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch inventory snapshot: ${response.status}`
+          );
+        }
+
+        const data = await response.json();
+        setDateInventory(Array.isArray(data.results) ? data.results : []);
+      } catch (err) {
+        setDateInventoryError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
+        console.error("Error fetching inventory by date:", err);
+      } finally {
+        setIsDateInventoryLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchInventoryByDate(selectedDate);
+    }
+  }, [isOpen, selectedDate]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -162,7 +230,11 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
-              onClick={() => setSelectedDate("")}
+              onClick={() => {
+                setSelectedDate("");
+                setDateInventory([]);
+                setDateInventoryError(null);
+              }}
               className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
             >
               Clear
@@ -193,6 +265,35 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
           </svg>
           Refresh
         </button>
+
+        {/* Inventory Snapshot for Selected Date */}
+        {selectedDate && (
+          <div className="mb-4 border rounded-md p-4 bg-gray-50">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold">Inventory on {selectedDate}</h3>
+              {isDateInventoryLoading && (
+                <span className="text-xs text-gray-500">Loading…</span>
+              )}
+            </div>
+            {dateInventoryError ? (
+              <div className="text-sm text-red-600">{dateInventoryError}</div>
+            ) : dateInventory.length === 0 && !isDateInventoryLoading ? (
+              <p className="text-sm text-gray-600">No data for this date.</p>
+            ) : (
+              <div className="max-h-56 overflow-y-auto divide-y">
+                {dateInventory.map((item) => (
+                  <div
+                    key={item.inventory_id}
+                    className="py-2 flex justify-between"
+                  >
+                    <span className="text-sm">{item.product_name}</span>
+                    <span className="text-sm font-medium">{item.quantity}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-700"></div>
