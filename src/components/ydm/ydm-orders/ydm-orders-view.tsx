@@ -11,8 +11,11 @@ import {
   YDMRiderOrderFilters,
 } from "@/types/ydm-dashboard/ydm-orders";
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function YdmOrdersView({ id }: { id: number }) {
+  const searchParams = useSearchParams();
+
   // State management
   const [orders, setOrders] = useState<SaleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,12 +26,23 @@ export default function YdmOrdersView({ id }: { id: number }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
 
-  // Filter states
-  const [searchOrder, setSearchOrder] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
-  const [filterDeliveryType, setFilterDeliveryType] = useState("all");
-  const [filterIsAssigned, setFilterIsAssigned] = useState("all");
+  // Filter states - initialize from URL params
+  const [searchOrder, setSearchOrder] = useState(
+    searchParams.get("search") || ""
+  );
+  const [filterStatus, setFilterStatus] = useState(
+    searchParams.get("status") || "all"
+  );
+  const [dateRange, setDateRange] = useState({
+    from: searchParams.get("from") || "",
+    to: searchParams.get("to") || "",
+  });
+  const [filterDeliveryType, setFilterDeliveryType] = useState(
+    searchParams.get("deliveryType") || "all"
+  );
+  const [filterIsAssigned, setFilterIsAssigned] = useState(
+    searchParams.get("assigned") || "all"
+  );
 
   // Fetch orders function
   const fetchOrders = useCallback(async () => {

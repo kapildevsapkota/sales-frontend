@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderTrackingResponse } from "@/types/ydm-dashboard/stats";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 class DashboardService {
   private static baseURL = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -35,9 +36,29 @@ class DashboardService {
 }
 
 export function StatusCards({ id }: { id: number }) {
+  const router = useRouter();
   const [stats, setStats] = useState<OrderTrackingResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  // Status mapping from display names to filter values
+  const statusMapping: Record<string, string> = {
+    "Order Placed": "Order Placed",
+    "Order Verified": "Verified",
+    "Out For Delivery": "Out For Delivery",
+    Rescheduled: "Rescheduled",
+    Delivered: "Delivered",
+    Cancelled: "Cancelled",
+    "Pending RTV": "Return Pending",
+  };
+
+  const handleStatusClick = (status: string) => {
+    const filterValue = statusMapping[status] || status;
+    const ordersUrl = `/admin/ydm/orders?status=${encodeURIComponent(
+      filterValue
+    )}`;
+    router.push(ordersUrl);
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -86,7 +107,10 @@ export function StatusCards({ id }: { id: number }) {
             <div>AMOUNT</div>
           </div>
           <div className="space-y-1.5 text-sm">
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-3 gap-2 cursor-pointer hover:bg-amber-600/20 rounded px-1 py-1 transition-colors"
+              onClick={() => handleStatusClick("Sent to YDM")}
+            >
               <div className="text-xs">Order Placed</div>
               <div>
                 {stats?.data?.order_processing?.["Order Placed"]?.nos || 0}
@@ -97,7 +121,10 @@ export function StatusCards({ id }: { id: number }) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-3 gap-2 cursor-pointer hover:bg-amber-600/20 rounded px-1 py-1 transition-colors"
+              onClick={() => handleStatusClick("Verified")}
+            >
               <div className="text-xs">Order Verified</div>
               <div>
                 {stats?.data?.order_processing?.["Order Verified"]?.nos || 0}
@@ -126,7 +153,10 @@ export function StatusCards({ id }: { id: number }) {
             <div>AMOUNT</div>
           </div>
           <div className="space-y-1.5 text-sm">
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-3 gap-2 cursor-pointer hover:bg-amber-600/20 rounded px-1 py-1 transition-colors"
+              onClick={() => handleStatusClick("Out For Delivery")}
+            >
               <div className="text-xs">Out For Delivery</div>
               <div>
                 {stats?.data?.order_dispatched?.["Out For Delivery"]?.nos || 0}
@@ -138,7 +168,10 @@ export function StatusCards({ id }: { id: number }) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-3 gap-2 cursor-pointer hover:bg-amber-600/20 rounded px-1 py-1 transition-colors"
+              onClick={() => handleStatusClick("Rescheduled")}
+            >
               <div className="text-xs">Rescheduled</div>
               <div>
                 {stats?.data?.order_dispatched?.["Rescheduled"]?.nos || 0}
@@ -167,7 +200,10 @@ export function StatusCards({ id }: { id: number }) {
             <div>AMOUNT</div>
           </div>
           <div className="space-y-1.5 text-sm">
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-3 gap-2 cursor-pointer hover:bg-amber-600/20 rounded px-1 py-1 transition-colors"
+              onClick={() => handleStatusClick("Delivered")}
+            >
               <div className="text-xs">Delivered</div>
               <div>{stats?.data?.order_status?.["Delivered"]?.nos || 0}</div>
               <div>
@@ -176,7 +212,10 @@ export function StatusCards({ id }: { id: number }) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-3 gap-2 cursor-pointer hover:bg-amber-600/20 rounded px-1 py-1 transition-colors"
+              onClick={() => handleStatusClick("Cancelled")}
+            >
               <div className="text-xs">Cancelled</div>
               <div>{stats?.data?.order_status?.["Cancelled"]?.nos || 0}</div>
               <div>
@@ -185,7 +224,10 @@ export function StatusCards({ id }: { id: number }) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-3 gap-2 cursor-pointer hover:bg-amber-600/20 rounded px-1 py-1 transition-colors"
+              onClick={() => handleStatusClick("Return Pending")}
+            >
               <div className="text-xs">Pending RTV</div>
               <div>{stats?.data?.order_status?.["Pending RTV"]?.nos || 0}</div>
               <div>
