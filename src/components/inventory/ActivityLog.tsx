@@ -16,6 +16,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
   const [error, setError] = useState<string | null>(null);
   const [nextPage, setNextPage] = useState<string | null>(null);
   const [previousPage, setPreviousPage] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   const fetchActivityLogs = async (url: string): Promise<void> => {
     if (!isOpen) return;
@@ -29,7 +30,15 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
           throw new Error("Authentication token not found");
         }
       }
-      const response = await fetch(url, {
+
+      // Add date filter to URL if selected
+      let apiUrl = url;
+      if (selectedDate) {
+        const separator = url.includes("?") ? "&" : "?";
+        apiUrl = `${url}${separator}changed_at=${selectedDate}`;
+      }
+
+      const response = await fetch(apiUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -64,6 +73,16 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  // Fetch data when date filter changes
+  useEffect(() => {
+    if (isOpen) {
+      fetchActivityLogs(
+        "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -125,6 +144,32 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Date Filter */}
+        <div className="mb-4">
+          <label
+            htmlFor="dateFilter"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Filter by Date
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              id="dateFilter"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              onClick={() => setSelectedDate("")}
+              className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
         <button
           onClick={() =>
             fetchActivityLogs(
