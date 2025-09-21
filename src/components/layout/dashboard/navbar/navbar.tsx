@@ -93,6 +93,18 @@ const items: MenuItem[] = [
       typeof user.phone_number === "string" &&
       user.phone_number.replace(/\D/g, "") === "9841751148",
   },
+  {
+    label: "Fest Groups",
+    icon: Users,
+    href: "/admin/festgroups",
+    visible: (user) =>
+      !!user &&
+      (user.role === Role.SuperAdmin ||
+        user.role === Role.Distributor ||
+        user.role === Role.Franchise) &&
+      typeof user.phone_number === "string" &&
+      user.phone_number.replace(/\D/g, "") === "9841751148",
+  },
 ];
 
 export function AppHeader() {
