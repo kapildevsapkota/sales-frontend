@@ -1,10 +1,6 @@
 "use client";
 
-import type {
-  Invoice,
-  PaginatedInvoiceResponse,
-  InvoiceFilters,
-} from "@/types/invoice";
+import type { PaginatedInvoiceResponse, InvoiceFilters } from "@/types/invoice";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { InvoiceTable } from "./components/invoice-table";
 
@@ -103,7 +99,6 @@ function useGetInvoices(filters: InvoiceFilters) {
 }
 
 export default function InvoicePage() {
-  const router = useRouter();
   const params = useParams();
   const idParam = params?.id as string | undefined;
   const franchiseId = useMemo(

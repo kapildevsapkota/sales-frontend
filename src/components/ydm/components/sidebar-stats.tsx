@@ -2,7 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
-import { DashboardStatisticsResponse } from "@/types/ydm-dashboard/data";
+import {
+  DashboardStatisticsResponse,
+  PendingCODData,
+} from "@/types/ydm-dashboard/data";
+import Link from "next/link";
 
 class DashboardService {
   private static baseURL = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -74,6 +78,9 @@ export function SidebarStats({ id }: { id: number }) {
   };
 
   const data = dashboardData?.data;
+  const pendingCOD = data?.overall_statistics?.["Total Pending COD"] as
+    | PendingCODData
+    | undefined;
 
   return (
     <div className="space-y-4">
@@ -124,9 +131,18 @@ export function SidebarStats({ id }: { id: number }) {
               <span className="font-medium text-slate-700">
                 Total Pending COD:
               </span>
-              <span className="font-semibold">
-                {formatCurrency(
-                  data?.overall_statistics?.["Total Pending COD"]?.amount || 0
+              <span className={"font-semibold"}>
+                {formatCurrency(pendingCOD?.amount || 0)}
+                {pendingCOD?.has_invoices && (
+                  <Link href="/admin/ydm/invoice">
+                    <span className="ml-2 text-xs font-medium text-red-600">
+                      ({pendingCOD?.number_of_invoices}{" "}
+                      {pendingCOD?.number_of_invoices === 1
+                        ? "invoice"
+                        : "invoices"}
+                      )
+                    </span>
+                  </Link>
                 )}
               </span>
             </div>

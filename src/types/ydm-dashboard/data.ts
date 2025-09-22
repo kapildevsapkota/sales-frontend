@@ -3,12 +3,17 @@ interface OrderData {
   amount: number;
 }
 
+export interface PendingCODData extends OrderData {
+  has_invoices?: boolean;
+  number_of_invoices?: number;
+}
+
 interface OverallStatistics {
   "Total Orders": OrderData;
   "Total COD": OrderData;
   "Total RTV": OrderData;
   "Total Delivery Charge": OrderData;
-  "Total Pending COD": OrderData;
+  "Total Pending COD": PendingCODData;
   "Total Delivered": OrderData;
 }
 

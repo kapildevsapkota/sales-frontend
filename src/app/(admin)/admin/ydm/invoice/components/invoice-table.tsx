@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,8 +20,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Invoice } from "@/types/invoice";
-import { Eye, Check, X } from "lucide-react";
+import { Eye, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 type InvoiceTableProps = {
   invoices: Invoice[];
@@ -90,6 +91,16 @@ export function InvoiceTable({
 }: InvoiceTableProps) {
   const router = useRouter();
   const [approvalLoading, setApprovalLoading] = useState<number | null>(null);
+  const [reportOpenForId, setReportOpenForId] = useState<number | null>(null);
+  const [reportComments, setReportComments] = useState<string>("");
+  const [reportLoading, setReportLoading] = useState<boolean>(false);
+  const [viewOpenForId, setViewOpenForId] = useState<number | null>(null);
+  const [commentsLoading, setCommentsLoading] = useState<boolean>(false);
+  const [invoiceComments, setInvoiceComments] = useState<
+    Array<{ id: number; invoice: number; comment: string; created_at?: string }>
+  >([]);
+  const [viewComment, setViewComment] = useState<string>("");
+  const [viewSubmitting, setViewSubmitting] = useState<boolean>(false);
 
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === "string" ? Number.parseFloat(amount) : amount;
@@ -131,6 +142,115 @@ export function InvoiceTable({
       });
     } finally {
       setApprovalLoading(null);
+    }
+  };
+
+  const reportInvoice = async (invoiceId: number, comments: string) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/logistics/invoice-report/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: JSON.stringify({
+          invoice: invoiceId,
+          comment: comments,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to submit report: ${errorText}`);
+    }
+
+    return response.json();
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportOpenForId) return;
+    try {
+      setReportLoading(true);
+      await reportInvoice(reportOpenForId, reportComments.trim());
+      toast({
+        title: "Reported",
+        description: "Invoice reported successfully",
+      });
+      setReportOpenForId(null);
+      setReportComments("");
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to submit report",
+        variant: "destructive",
+      });
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const fetchInvoiceReports = async (invoiceId: number) => {
+    setCommentsLoading(true);
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/logistics/invoice-report/?invoice=${invoiceId}`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Failed to load comments");
+      }
+      const data = await response.json();
+      // Expecting an array; fall back to empty array if not
+      setInvoiceComments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setInvoiceComments([]);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to load comments",
+        variant: "destructive",
+      });
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (viewOpenForId) {
+      fetchInvoiceReports(viewOpenForId);
+    } else {
+      setInvoiceComments([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewOpenForId]);
+
+  const handleAddViewComment = async () => {
+    if (!viewOpenForId) return;
+    const trimmed = viewComment.trim();
+    if (!trimmed) return;
+    try {
+      setViewSubmitting(true);
+      await reportInvoice(viewOpenForId, trimmed);
+      setViewComment("");
+      await fetchInvoiceReports(viewOpenForId);
+      toast({ title: "Success", description: "Comment added." });
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to add comment",
+        variant: "destructive",
+      });
+    } finally {
+      setViewSubmitting(false);
     }
   };
 
@@ -227,17 +347,62 @@ export function InvoiceTable({
                     )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
-                    <Dialog>
+                    <Dialog
+                      open={viewOpenForId === inv.id}
+                      onOpenChange={(open) => {
+                        if (open) {
+                          setViewOpenForId(inv.id);
+                        } else {
+                          setViewOpenForId(null);
+                        }
+                      }}
+                    >
                       <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="View">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="View"
+                          onClick={() => setViewOpenForId(inv.id)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-xl">
+                      <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Invoice</DialogTitle>
+                          <DialogTitle>
+                            Invoice
+                            {/* Approval Button (only when not approved) */}
+                            {!inv.is_approved ? (
+                              <div className="mt-6 pt-6 border-t-2 border-gray-400 flex justify-end">
+                                <div className="flex justify-center">
+                                  <Button
+                                    onClick={() =>
+                                      handleApprovalToggle(
+                                        inv.id,
+                                        inv.is_approved
+                                      )
+                                    }
+                                    disabled={approvalLoading === inv.id}
+                                    className="min-w-32"
+                                  >
+                                    {approvalLoading === inv.id ? (
+                                      <div className="flex items-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        Updating...
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4" />
+                                        Approve
+                                      </div>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : null}
+                          </DialogTitle>
                         </DialogHeader>
-                        <div className="bg-white border-2 border-gray-300 rounded-lg shadow-lg overflow-hidden">
+                        <div className="bg-white border-2 border-gray-300 rounded-lg overflow-hidden">
                           <div className="border-b-4 border-black p-8">
                             <div className="flex justify-between items-start">
                               <div>
@@ -363,46 +528,121 @@ export function InvoiceTable({
                                 </div>
                               </div>
                             ) : null}
-
-                            {/* Approval Toggle Button */}
-                            <div className="mt-6 pt-6 border-t-2 border-gray-400">
-                              <div className="flex justify-center">
-                                <Button
-                                  onClick={() =>
-                                    handleApprovalToggle(
-                                      inv.id,
-                                      inv.is_approved
-                                    )
-                                  }
-                                  disabled={approvalLoading === inv.id}
-                                  variant={
-                                    inv.is_approved ? "destructive" : "default"
-                                  }
-                                  className="min-w-32"
-                                >
-                                  {approvalLoading === inv.id ? (
-                                    <div className="flex items-center gap-2">
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                      Updating...
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-2">
-                                      {inv.is_approved ? (
-                                        <>
-                                          <X className="h-4 w-4" />
-                                          Unapprove
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Check className="h-4 w-4" />
-                                          Approve
-                                        </>
-                                      )}
-                                    </div>
-                                  )}
-                                </Button>
-                              </div>
+                          </div>
+                        </div>
+                        {/* Comments Section + Add Comment */}
+                        <div className="mt-6 border-t pt-4">
+                          <h3 className="text-base font-semibold">Comments</h3>
+                          {commentsLoading ? (
+                            <div className="py-3 text-sm text-muted-foreground">
+                              Loading comments...
                             </div>
+                          ) : invoiceComments.length === 0 ? (
+                            <div className="py-3 text-sm text-muted-foreground">
+                              No comments for this invoice.
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {invoiceComments.map((c) => (
+                                <div
+                                  key={c.id}
+                                  className="p-3 border rounded-md bg-gray-50"
+                                >
+                                  <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                                    {c.comment}
+                                  </div>
+                                  {c.created_at ? (
+                                    <div className="mt-1 text-xs text-muted-foreground">
+                                      {formatDateTime(c.created_at)}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Add comment inline */}
+                          <div className="mt-4 space-y-2">
+                            <Textarea
+                              placeholder="Write a comment..."
+                              value={viewComment}
+                              onChange={(e) => setViewComment(e.target.value)}
+                              rows={3}
+                            />
+                            <div className="flex justify-end">
+                              <Button
+                                onClick={handleAddViewComment}
+                                disabled={
+                                  viewSubmitting ||
+                                  viewComment.trim().length === 0
+                                }
+                              >
+                                {viewSubmitting
+                                  ? "Submitting..."
+                                  : "Add Comment"}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    {/* Report Button and Dialog */}
+                    <Dialog
+                      open={reportOpenForId === inv.id}
+                      onOpenChange={(open) => {
+                        if (open) {
+                          setReportOpenForId(inv.id);
+                        } else {
+                          setReportOpenForId(null);
+                          setReportComments("");
+                        }
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" className="ml-1">
+                          Comment
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Comment Invoice</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3">
+                          <p className="text-sm text-muted-foreground">
+                            Provide comments for commenting invoice{" "}
+                            <span className="font-mono font-semibold">
+                              {inv.invoice_code}
+                            </span>
+                            .
+                          </p>
+                          <Textarea
+                            placeholder="Enter comments"
+                            value={reportComments}
+                            onChange={(e) => setReportComments(e.target.value)}
+                            rows={4}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setReportOpenForId(null);
+                                setReportComments("");
+                              }}
+                              disabled={reportLoading}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleSubmitReport}
+                              disabled={
+                                reportLoading ||
+                                reportComments.trim().length === 0
+                              }
+                            >
+                              {reportLoading
+                                ? "Submitting..."
+                                : "Submit Comment"}
+                            </Button>
                           </div>
                         </div>
                       </DialogContent>
