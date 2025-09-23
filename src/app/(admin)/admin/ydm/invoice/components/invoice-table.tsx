@@ -254,7 +254,9 @@ export function InvoiceTable({
         paidAmount: String(inv.paid_amount ?? "0"),
         dueAmount: String(inv.due_amount ?? "0"),
         // Narrow types from util expect specific literals; cast for flexibility
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         paymentType: inv.payment_type as unknown as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         status: inv.status as unknown as any,
         franchise: String(inv.franchise ?? ""),
         createdBy: String(inv.created_by ?? ""),
@@ -268,11 +270,13 @@ export function InvoiceTable({
 
       const franchiseName = String(inv.franchise ?? "");
       await downloadInvoicePDF(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         invoiceData as any,
         franchiseName,
         inv.signature ?? undefined
       );
     } catch (error) {
+      console.error(error);
       toast({
         title: "Error",
         description: "Failed to generate PDF",

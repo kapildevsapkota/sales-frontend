@@ -34,7 +34,6 @@ export async function generateInvoicePDF(
   const black = rgb(0, 0, 0);
   const gray = rgb(0.4, 0.4, 0.4);
   const lightGray = rgb(0.9, 0.9, 0.9);
-  const white = rgb(1, 1, 1);
 
   // Helper function to format currency
   const formatCurrency = (amount: string) => {
