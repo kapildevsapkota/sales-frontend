@@ -15,6 +15,8 @@ import type { Invoice } from "@/types/invoice";
 import { toast } from "@/hooks/use-toast";
 import InvoiceViewDialog from "./InvoiceViewDialog";
 import InvoiceReportDialog from "./InvoiceReportDialog";
+import { Button } from "@/components/ui/button";
+import { downloadInvoicePDF } from "../utils/invoice-pdf";
 
 type InvoiceTableProps = {
   invoices: Invoice[];
@@ -244,6 +246,41 @@ export function InvoiceTable({
     }
   };
 
+  const handleDownloadPdf = async (inv: Invoice) => {
+    try {
+      const invoiceData = {
+        invoiceCode: inv.invoice_code,
+        totalAmount: String(inv.total_amount ?? "0"),
+        paidAmount: String(inv.paid_amount ?? "0"),
+        dueAmount: String(inv.due_amount ?? "0"),
+        // Narrow types from util expect specific literals; cast for flexibility
+        paymentType: inv.payment_type as unknown as any,
+        status: inv.status as unknown as any,
+        franchise: String(inv.franchise ?? ""),
+        createdBy: String(inv.created_by ?? ""),
+        signedBy: "",
+        signatureDate: inv.approved_at
+          ? new Date(inv.approved_at).toLocaleDateString()
+          : "",
+        notes: "",
+        signature: inv.signature ?? null,
+      };
+
+      const franchiseName = String(inv.franchise ?? "");
+      await downloadInvoicePDF(
+        invoiceData as any,
+        franchiseName,
+        inv.signature ?? undefined
+      );
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-4 mx-auto max-w-7xl">
       <div className="flex items-center justify-between">
@@ -342,7 +379,7 @@ export function InvoiceTable({
                       "-"
                     )}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap flex items-center gap-2">
                     <InvoiceViewDialog
                       invoice={inv}
                       open={viewOpenForId === inv.id}
@@ -362,7 +399,13 @@ export function InvoiceTable({
                       formatDateTime={formatDateTime}
                       submittingComment={viewSubmitting}
                     />
-
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDownloadPdf(inv)}
+                    >
+                      PDF
+                    </Button>
                     <InvoiceReportDialog
                       open={reportOpenForId === inv.id}
                       onOpenChange={(open) => {
