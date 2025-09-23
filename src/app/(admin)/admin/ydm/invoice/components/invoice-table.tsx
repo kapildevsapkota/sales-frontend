@@ -313,14 +313,20 @@ export function InvoiceTable({
                   <TableCell>{inv.payment_type}</TableCell>
                   <TableCell>
                     <Badge
-                      className={`text-xs font-medium ${getStatusColor(
+                      className={`text-xs font-medium hover:bg-trasnparent ${getStatusColor(
                         inv.status
                       )}`}
                     >
                       {inv.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{inv.is_approved ? "Yes" : "No"}</TableCell>
+                  <TableCell
+                    className={`${
+                      inv.is_approved ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    {inv.is_approved ? "Yes" : "No"}
+                  </TableCell>
                   <TableCell>{formatDateTime(inv.created_at)}</TableCell>
                   <TableCell>
                     {inv.signature ? (
