@@ -42,7 +42,7 @@ export function UserProfileDropdown({
   };
 
   const handleFestConfig = () => {
-    router.push("/admin/fest-config");
+    router.push("/admin/fest-settings");
   };
 
   const getUserInitials = () => {
@@ -103,7 +103,7 @@ export function UserProfileDropdown({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleFestConfig}>
             <Settings className="mr-2 h-4 w-4" />
-            <span>Fest Config</span>
+            <span>Fest Settings</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleLogout}
