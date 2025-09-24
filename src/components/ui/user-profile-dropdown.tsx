@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LogOut, ChevronDown, Settings } from "lucide-react";
+import { LogOut, ChevronDown, Settings, Settings2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,10 @@ export function UserProfileDropdown({
 
   const handleChangePassword = () => {
     router.push("/change-password");
+  };
+
+  const handleFestConfig = () => {
+    router.push("/admin/fest-config");
   };
 
   const getUserInitials = () => {
@@ -96,6 +100,10 @@ export function UserProfileDropdown({
           <DropdownMenuItem onClick={handleChangePassword}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Change Password</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleFestConfig}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Fest Config</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleLogout}
@@ -161,6 +169,11 @@ export function UserProfileDropdown({
         >
           <Settings className="mr-2 h-4 w-4" />
           <span className="cursor-pointer">Change Password</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleFestConfig}>
+          <Settings2 className="mr-2 h-4 w-4" />
+          <span>Fest Config</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
