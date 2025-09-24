@@ -173,7 +173,7 @@ export function UserProfileDropdown({
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleFestConfig}>
           <Settings2 className="mr-2 h-4 w-4" />
-          <span>Fest Config</span>
+          <span>Fest Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

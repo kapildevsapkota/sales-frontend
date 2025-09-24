@@ -8,6 +8,7 @@ interface MembersMultiSelectProps {
   selected: string[];
   onChange: (values: string[]) => void;
   placeholder?: string;
+  required?: boolean;
 }
 
 export function MembersMultiSelect({
@@ -15,6 +16,7 @@ export function MembersMultiSelect({
   selected,
   onChange,
   placeholder = "Select members...",
+  required = false,
 }: MembersMultiSelectProps) {
   const getLabelForValue = (value: string) =>
     options.find((o) => o.value === value)?.label;
@@ -25,6 +27,7 @@ export function MembersMultiSelect({
       onChange={onChange}
       placeholder={placeholder}
       getLabelForValue={getLabelForValue}
+      required={required}
     />
   );
 }

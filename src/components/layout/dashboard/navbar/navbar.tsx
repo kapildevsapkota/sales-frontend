@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useAuth, Role } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
 import {
   Sheet,
   SheetTrigger,
@@ -46,76 +47,143 @@ interface MenuItem {
     href: string;
   }[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  visible?: (user: any) => boolean;
+  visible?: (user: any, hasSalesFest?: boolean | null) => boolean;
 }
 
-// Menu items with admin routes
-const items: MenuItem[] = [
-  {
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/admin",
-  },
-  {
-    label: "Sales",
-    icon: Home,
-    href: "/admin/salesList",
-  },
-  {
-    label: "Inventory",
-    icon: Home,
-    href: "/admin/inventory",
-  },
-  {
-    label: "User Management",
-    icon: UserPlus,
-    href: "/admin/usermanagement",
-  },
-  {
-    label: "Sales Persons",
-    icon: Users,
-    href: "/admin/salesPersons",
-  },
-  {
-    label: "YDM",
-    icon: Home,
-    href: "/admin/ydm",
-  },
-  {
-    label: "Sales Fest",
-    icon: Calendar,
-    href: "/admin/salesfest",
-    visible: (user) =>
-      !!user &&
-      (user.role === Role.SuperAdmin ||
-        user.role === Role.Distributor ||
-        user.role === Role.Franchise) &&
-      typeof user.phone_number === "string" &&
-      user.phone_number.replace(/\D/g, "") === "9841751148",
-  },
-  {
-    label: "Fest Groups",
-    icon: Users,
-    href: "/admin/festgroups",
-    visible: (user) =>
-      !!user &&
-      (user.role === Role.SuperAdmin ||
-        user.role === Role.Distributor ||
-        user.role === Role.Franchise) &&
-      typeof user.phone_number === "string" &&
-      user.phone_number.replace(/\D/g, "") === "9841751148",
-  },
-];
+// Menu items will be defined inside the component to access state (hasSalesFest)
 
 export function AppHeader() {
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
+  const [hasSalesFest, setHasSalesFest] = React.useState<boolean | null>(null);
+
+  // Load fest-config for current user's franchise to know if Sales Fest is enabled
+  React.useEffect(() => {
+    const loadFestConfig = async () => {
+      try {
+        if (!user?.franchise_id) return;
+        const response = await api.get(
+          `/api/fest-config/${user.franchise_id}/`
+        );
+        // expecting shape { has_sales_fest: boolean, ... }
+        setHasSalesFest(Boolean(response.data?.has_sales_fest));
+      } catch (error) {
+        // If it fails, default to false visibility
+        setHasSalesFest(false);
+        // eslint-disable-next-line no-console
+        console.error("Failed to load fest-config:", error);
+      }
+    };
+    loadFestConfig();
+  }, [user?.franchise_id]);
+
+  // Listen for immediate updates from the fest-config page toggle
+  React.useEffect(() => {
+    const handleSalesFestUpdated = (e: Event) => {
+      const custom = e as CustomEvent<{ has_sales_fest?: boolean }>;
+      if (typeof custom.detail?.has_sales_fest === "boolean") {
+        setHasSalesFest(custom.detail.has_sales_fest);
+      } else {
+        try {
+          const stored = window.localStorage.getItem("has_sales_fest");
+          if (stored !== null) setHasSalesFest(Boolean(JSON.parse(stored)));
+        } catch (error) {
+          // ignore
+          console.error("Failed to load sales fest:", error);
+        }
+      }
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener(
+        "salesfest:updated",
+        handleSalesFestUpdated as EventListener
+      );
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener(
+          "salesfest:updated",
+          handleSalesFestUpdated as EventListener
+        );
+      }
+    };
+  }, []);
+
+  // Menu items with access to hasSalesFest
+  const items: MenuItem[] = React.useMemo(
+    () => [
+      {
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        href: "/admin",
+      },
+      {
+        label: "Sales",
+        icon: Home,
+        href: "/admin/salesList",
+      },
+      {
+        label: "Inventory",
+        icon: Home,
+        href: "/admin/inventory",
+      },
+      {
+        label: "User Management",
+        icon: UserPlus,
+        href: "/admin/usermanagement",
+      },
+      {
+        label: "Sales Persons",
+        icon: Users,
+        href: "/admin/salesPersons",
+      },
+      {
+        label: "YDM",
+        icon: Home,
+        href: "/admin/ydm",
+      },
+      {
+        label: "Sales Fest",
+        icon: Calendar,
+        href: "/admin/salesfest",
+        visible: (u) =>
+          !!u &&
+          (u.role === Role.SuperAdmin ||
+            u.role === Role.Distributor ||
+            u.role === Role.Franchise) &&
+          typeof u.phone_number === "string" &&
+          u.phone_number.replace(/\D/g, "") === "9841751148",
+      },
+      {
+        label: "Fest Groups",
+        icon: Users,
+        href: "/admin/festgroups",
+        visible: (u) =>
+          !!u &&
+          (u.role === Role.SuperAdmin ||
+            u.role === Role.Distributor ||
+            u.role === Role.Franchise) &&
+          typeof u.phone_number === "string" &&
+          u.phone_number.replace(/\D/g, "") === "9841751148",
+      },
+      {
+        label: "Sales Groups",
+        icon: Users,
+        href: "/admin/salesgroup",
+        visible: (_u, fest) => fest === true,
+      },
+    ],
+    [hasSalesFest]
+  );
 
   const visibleItems = React.useMemo(
-    () => items.filter((item) => (item.visible ? item.visible(user) : true)),
-    [user]
+    () =>
+      items.filter((item) =>
+        item.visible ? item.visible(user, hasSalesFest) : true
+      ),
+    [items, user, hasSalesFest]
   );
 
   // Close Sheet on nav change

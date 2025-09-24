@@ -26,6 +26,7 @@ interface MultiSelectProps {
   placeholder?: string;
   className?: string;
   getLabelForValue?: (value: string) => string | undefined;
+  required?: boolean;
 }
 
 export function MultiSelect({
@@ -35,6 +36,7 @@ export function MultiSelect({
   placeholder = "Select items...",
   className,
   getLabelForValue,
+  required = false,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -57,6 +59,7 @@ export function MultiSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-required={required}
           className={cn("w-full justify-between min-h-9 h-auto", className)}
         >
           <div className="flex flex-wrap gap-1">

@@ -57,6 +57,7 @@ export function GroupDialog({
             <Input
               id="group-name"
               value={formData.name}
+              required={true}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
@@ -77,6 +78,7 @@ export function GroupDialog({
             <MembersMultiSelect
               options={availableMembers}
               selected={formData.members}
+              required={true}
               onChange={(members) => setFormData({ ...formData, members })}
             />
           </div>

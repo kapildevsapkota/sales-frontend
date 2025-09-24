@@ -202,13 +202,19 @@ export default function FestConfigView() {
   }, []);
 
   const handleCreateGroup = () => {
-    if (!formData.name || !formData.leader) return;
+    if (!formData.name || formData.members.length === 0) return;
 
-    const payload = {
+    const payload: {
+      group_name: string;
+      members: number[];
+      leader?: number | null;
+    } = {
       group_name: formData.name,
-      leader: Number(formData.leader),
       members: formData.members.map((m) => Number(m)),
     };
+    if (formData.leader) {
+      payload.leader = Number(formData.leader);
+    }
 
     api
       .post("/api/sales-groups/", payload)
@@ -220,7 +226,9 @@ export default function FestConfigView() {
         const newGroup: Group = {
           id: String(res.data?.id ?? Date.now()),
           name: formData.name,
-          leader: idToLabel.get(formData.leader) || formData.leader,
+          leader: formData.leader
+            ? idToLabel.get(formData.leader) || formData.leader
+            : "",
           members: formData.members.map((id) => idToLabel.get(id) || id),
           createdAt: new Date(),
         };
@@ -247,13 +255,20 @@ export default function FestConfigView() {
   };
 
   const handleUpdateGroup = () => {
-    if (!editingGroup || !formData.name || !formData.leader) return;
+    if (!editingGroup || !formData.name || formData.members.length === 0)
+      return;
 
-    const payload = {
+    const payload: {
+      group_name: string;
+      members: number[];
+      leader?: number | null;
+    } = {
       group_name: formData.name,
-      leader: Number(formData.leader),
       members: formData.members.map((m) => Number(m)),
     };
+    if (formData.leader) {
+      payload.leader = Number(formData.leader);
+    }
 
     api
       .patch(`/api/sales-groups/${editingGroup.id}/`, payload)
@@ -266,7 +281,9 @@ export default function FestConfigView() {
             ? {
                 ...group,
                 name: formData.name,
-                leader: idToLabel.get(formData.leader) || formData.leader,
+                leader: formData.leader
+                  ? idToLabel.get(formData.leader) || formData.leader
+                  : "",
                 members: formData.members.map((id) => idToLabel.get(id) || id),
               }
             : group
@@ -298,6 +315,21 @@ export default function FestConfigView() {
 
   const handleShowGroupsToggle = async (checked: boolean) => {
     setShowGroups(checked);
+    // Broadcast immediately so other UI (e.g., navbar) can react without reload
+    try {
+      // Cache latest state for fast reads
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("has_sales_fest", JSON.stringify(checked));
+        window.dispatchEvent(
+          new CustomEvent("salesfest:updated", {
+            detail: { has_sales_fest: checked },
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Failed to update sales fest:", error);
+      // ignore storage errors
+    }
     try {
       await api.patch(`/api/fest-config/${user?.franchise_id}/`, {
         has_sales_fest: checked,
