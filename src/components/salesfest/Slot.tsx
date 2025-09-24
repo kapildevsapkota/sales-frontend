@@ -109,7 +109,7 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
         const measuredHeight = wheelContainerRef.current?.clientHeight ?? 672; // fallback 42rem (3 x 14rem)
         const rotation = calculateRotationForItem(
           winningItem.index,
-          8,
+          singleWheel.length,
           224,
           measuredHeight
         );
@@ -184,7 +184,7 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
 
       // Constants for smooth animation (must match CSS heights below)
       const itemHeight = 224; // Height of each item (14rem = 224px)
-      const wheelHeight = 8 * itemHeight; // Total wheel height
+      const wheelHeight = singleWheel.length * itemHeight; // Total wheel height
 
       // Calculate total rotations needed for dramatic effect
       const baseRotations = 6; // Reduced base rotations for shorter duration

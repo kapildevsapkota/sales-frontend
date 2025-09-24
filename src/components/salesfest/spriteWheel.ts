@@ -69,7 +69,7 @@ export function createSpriteWheel(
     });
 
     // Fill remaining slots with "Better Luck Next Time" to reach 8 total items
-    const remainingSlots = 8 - wheelItems.length;
+    const remainingSlots = 15 - wheelItems.length;
     for (let i = 0; i < remainingSlots; i++) {
       wheelItems.push({
         ...betterLuckItem,
@@ -121,7 +121,7 @@ export function getWinningItemForTier(
  */
 export function calculateRotationForItem(
   itemIndex: number,
-  totalItems: number = 8,
+  totalItems: number = 15,
   itemHeight: number = 224, // Height of each item in pixels (14rem = 224px). Must match Slot.tsx
   containerHeight: number = 704 // Height of the visible wheel window (44rem = 704px). Must match Slot.tsx
 ): number {
@@ -263,7 +263,8 @@ export function createSingleSpriteWheel(
     index: 0,
   };
 
-  const realGifts: SpriteWheelItem[] = giftList.slice(0, 8).map((gift) => ({
+  // Map all provided gifts (no slicing) so all are represented on the wheel
+  const realGifts: SpriteWheelItem[] = giftList.map((gift) => ({
     id: gift.id,
     name: gift.name,
     image: gift.image,
@@ -272,28 +273,21 @@ export function createSingleSpriteWheel(
     index: 0, // will be assigned below
   }));
 
-  // Initialize wheel with BLNT placeholders at all 8 positions
-  const wheel: SpriteWheelItem[] = new Array(8).fill(null).map((_, idx) => ({
-    ...prototypeBetterLuckItem,
-    index: idx,
-  }));
+  // Ensure wheel length is greater than the number of gifts for visual spacing
+  // Keep a sensible minimum so animation distance feels substantial
+  const wheelLength = Math.max(realGifts.length + 2, 15);
 
-  // Place gifts into even indices first to achieve image/BLNT alternation
-  let giftPointer = 0;
-  const evenIndices = [0, 2, 4, 6];
-  const oddIndices = [1, 3, 5, 7];
+  // Initialize wheel with BLNT placeholders at all positions
+  const wheel: SpriteWheelItem[] = new Array(wheelLength)
+    .fill(null)
+    .map((_, idx) => ({
+      ...prototypeBetterLuckItem,
+      index: idx,
+    }));
 
-  for (const evenIdx of evenIndices) {
-    if (giftPointer >= realGifts.length) break;
-    wheel[evenIdx] = { ...realGifts[giftPointer], index: evenIdx };
-    giftPointer += 1;
-  }
-
-  // If more than 4 gifts, place remaining into odd slots
-  for (const oddIdx of oddIndices) {
-    if (giftPointer >= realGifts.length) break;
-    wheel[oddIdx] = { ...realGifts[giftPointer], index: oddIdx };
-    giftPointer += 1;
+  // Place gifts sequentially at the start of the wheel
+  for (let i = 0; i < realGifts.length; i++) {
+    wheel[i] = { ...realGifts[i], index: i };
   }
 
   return wheel;
@@ -329,7 +323,10 @@ export function processSubmissionForSingleWheel(
 } {
   const singleWheel = createSingleSpriteWheel(giftList, betterLuckImageSrc);
   const winningItem = getWinningItemNoCategory(singleWheel, submissionResponse);
-  const rotation = calculateRotationForItem(winningItem.index);
+  const rotation = calculateRotationForItem(
+    winningItem.index,
+    singleWheel.length
+  );
 
   return { singleWheel, winningItem, rotation };
 }
