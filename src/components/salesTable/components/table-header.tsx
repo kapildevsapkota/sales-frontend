@@ -377,6 +377,11 @@ export function TableHeader({
               <SelectItem value="Returned By Customer">
                 Returned By Customer
               </SelectItem>
+              <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
+              <SelectItem value="Sent to Dash">InDrive</SelectItem>
+              <SelectItem value="Out For Delivery">Out For Delivery</SelectItem>
+              <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
+              <SelectItem value="Verified">Verified</SelectItem>
               <SelectItem value="Returned By Dash">Returned By Dash</SelectItem>
               <SelectItem value="Return Pending">Return Pending</SelectItem>
             </SelectContent>

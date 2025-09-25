@@ -55,6 +55,20 @@ export function TableBody({
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
     switch (status) {
+      case "Delivered":
+        return "bg-green-500"; // Green for delivered
+      case "Sent to Dash":
+        return "bg-yellow-500"; // Yellow for sent to YDM
+      case "Verified":
+        return "bg-purple-500"; // Purple for verified
+      case "Rescheduled":
+        return "bg-orange-500"; // Orange for rescheduled
+      case "Processing":
+        return "bg-blue-500"; // Blue for processing
+      case "Out For Delivery":
+        return "bg-indigo-500"; // Indigo for out for delivery
+      case "Returned By YDM":
+        return "bg-rose-500"; // Rose for returned by YDM
       case "Rescheduled":
         return "bg-orange-500"; // Orange for rescheduled
       case "Sent to YDM":
@@ -183,6 +197,34 @@ export function TableBody({
                                 }
                               ></span>
                               Sent to Dash
+                            </SelectItem>
+                            <SelectItem value="Out For Delivery">
+                              <span
+                                className={
+                                  getOrderStatusColor("Out For Delivery") +
+                                  " rounded-full w-4 h-4 inline-block mr-2"
+                                }
+                              ></span>
+                              Out For Delivery
+                            </SelectItem>
+
+                            <SelectItem value="Returned By YDM">
+                              <span
+                                className={
+                                  getOrderStatusColor("Returned By YDM") +
+                                  " rounded-full w-4 h-4 inline-block mr-2"
+                                }
+                              ></span>
+                              Returned By YDM
+                            </SelectItem>
+                            <SelectItem value="Verified">
+                              <span
+                                className={
+                                  getOrderStatusColor("Verified") +
+                                  " rounded-full w-4 h-4 inline-block mr-2"
+                                }
+                              ></span>
+                              Verified
                             </SelectItem>
                             <SelectItem value="Indrive">
                               <span
