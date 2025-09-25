@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Gift, Tag, ArrowLeft, Edit2Icon, BarChart } from "lucide-react";
+import {
+  Gift,
+  Tag,
+  ArrowLeft,
+  Edit2Icon,
+  BarChart,
+  TrashIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -65,7 +72,7 @@ const ManageLuckyDraw: React.FC = () => {
   const { user } = useAuth();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-
+  const [isDeleting, setIsDeleting] = useState(false);
   const createSchema = z.object({
     name: z.string().min(1, "Name is required"),
     start_date: z.string().min(1, "Start date is required"),
@@ -99,6 +106,15 @@ const ManageLuckyDraw: React.FC = () => {
   });
 
   const handleCreate = async (data: CreateFormData) => {
+    // Prevent creation when lucky draw is disabled via toggle
+    if (!showGroups) {
+      toast({
+        title: "Disabled",
+        description: "Enable Show Lucky Draw to create a new item",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsCreating(true);
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -199,6 +215,22 @@ const ManageLuckyDraw: React.FC = () => {
     } catch (err) {
       console.error("Error updating sales config:", err);
     }
+  };
+
+  const handleDeleteDraw = async (draw: LuckyDraw) => {
+    try {
+      setIsDeleting(true);
+      await api.delete(`/api/lucky-draw-systems/${draw.id}/`);
+    } catch (err) {
+      console.error("Error deleting lucky draw:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+    setLuckyDraws(luckyDraws.filter((d) => d.id !== draw.id));
+    toast({
+      title: "Deleted",
+      description: "Lucky draw deleted successfully",
+    });
   };
 
   const handleDrawClick = (draw: LuckyDraw) => setSelectedDraw(draw);
@@ -343,12 +375,25 @@ const ManageLuckyDraw: React.FC = () => {
           <Dialog
             open={isCreateOpen}
             onOpenChange={(o) => {
-              if (!o) resetCreateForm();
-              setIsCreateOpen(o);
+              if (!o) {
+                resetCreateForm();
+                setIsCreateOpen(false);
+                return;
+              }
+              // Only allow opening when toggle is enabled
+              if (showGroups) {
+                setIsCreateOpen(true);
+              }
             }}
           >
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 text-white hover:bg-blue-700">
+              <Button
+                className="bg-blue-600 text-white hover:bg-blue-700"
+                disabled={!showGroups}
+                title={
+                  !showGroups ? "Enable Show Lucky Draw to create" : undefined
+                }
+              >
                 Create
               </Button>
             </DialogTrigger>
@@ -502,6 +547,14 @@ const ManageLuckyDraw: React.FC = () => {
                         onClick={() => handleDrawClick(draw)}
                       >
                         <Edit2Icon className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="h-10 w-10 p-2 hover:bg-gray-200 rounded-full transition-colors duration-200"
+                        onClick={() => handleDeleteDraw(draw)}
+                        disabled={isDeleting}
+                      >
+                        <TrashIcon className="h-5 w-5 text-red-500" />
                       </Button>
                     </TableCell>
                   </TableRow>

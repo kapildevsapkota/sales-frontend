@@ -202,6 +202,9 @@ export default function FestConfigView() {
   }, []);
 
   const handleCreateGroup = () => {
+    if (!showGroups) {
+      return;
+    }
     if (!formData.name || formData.members.length === 0) return;
 
     const payload: {
@@ -367,7 +370,9 @@ export default function FestConfigView() {
 
             <Button
               className="bg-primary hover:bg-primary/90"
-              onClick={() => setIsCreateDialogOpen(true)}
+              onClick={() => showGroups && setIsCreateDialogOpen(true)}
+              disabled={!showGroups}
+              title={!showGroups ? "Enable Show Groups to create" : undefined}
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Group
@@ -400,7 +405,7 @@ export default function FestConfigView() {
 
         {/* Create Dialog */}
         <GroupDialog
-          open={isCreateDialogOpen}
+          open={isCreateDialogOpen && showGroups}
           title="Create New Group"
           formData={formData}
           setFormData={(d) => setFormData(d)}
