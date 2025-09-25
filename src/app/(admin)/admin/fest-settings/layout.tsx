@@ -1,11 +1,18 @@
+"use client";
 import type React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function FestConfigLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
+  const baseLinkClasses =
+    "block rounded px-3 py-2 text-sm text-neutral-800 hover:bg-gray-100 dark:text-neutral-200 dark:hover:bg-neutral-800";
   return (
     <div className="flex min-h-screen">
       <aside className="w-64 shrink-0 border-r bg-white p-4 dark:bg-neutral-900">
@@ -14,14 +21,22 @@ export default function FestConfigLayout({
         </h2>
         <nav className="space-y-1">
           <Link
-            href="/admin/fest-settings"
-            className="block rounded px-3 py-2 text-sm text-neutral-800 hover:bg-gray-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            href="/admin/fest-settings/sales-group"
+            className={`${baseLinkClasses} ${
+              isActive("/admin/fest-settings/sales-group")
+                ? "bg-blue-800 font-medium dark:bg-neutral-800 text-white"
+                : ""
+            }`}
           >
             Sales Group
           </Link>
           <Link
-            href="#"
-            className="block rounded px-3 py-2 text-sm text-neutral-800 hover:bg-gray-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            href="/admin/fest-settings/lucky-draw"
+            className={`${baseLinkClasses} ${
+              isActive("/admin/fest-settings/lucky-draw")
+                ? "bg-blue-800 font-medium dark:bg-neutral-800 text-white"
+                : ""
+            }`}
           >
             Lucky Draw
           </Link>

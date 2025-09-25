@@ -58,6 +58,7 @@ export function AppHeader() {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const [hasSalesFest, setHasSalesFest] = React.useState<boolean | null>(null);
+  const [hasLuckyDraw, setHasLuckyDraw] = React.useState<boolean | null>(null);
 
   // Load fest-config for current user's franchise to know if Sales Fest is enabled
   React.useEffect(() => {
@@ -68,10 +69,15 @@ export function AppHeader() {
           `/api/fest-config/${user.franchise_id}/`
         );
         // expecting shape { has_sales_fest: boolean, ... }
-        setHasSalesFest(Boolean(response.data?.has_sales_fest));
+        const data = response.data?.data ?? response.data;
+        setHasSalesFest(Boolean(data?.has_sales_fest));
+        if (typeof data?.has_lucky_draw === "boolean") {
+          setHasLuckyDraw(Boolean(data.has_lucky_draw));
+        }
       } catch (error) {
         // If it fails, default to false visibility
         setHasSalesFest(false);
+        setHasLuckyDraw(false);
         // eslint-disable-next-line no-console
         console.error("Failed to load fest-config:", error);
       }
@@ -82,16 +88,32 @@ export function AppHeader() {
   // Listen for immediate updates from the fest-config page toggle
   React.useEffect(() => {
     const handleSalesFestUpdated = (e: Event) => {
-      const custom = e as CustomEvent<{ has_sales_fest?: boolean }>;
+      const custom = e as CustomEvent<{
+        has_sales_fest?: boolean;
+        has_lucky_draw?: boolean;
+      }>;
       if (typeof custom.detail?.has_sales_fest === "boolean") {
         setHasSalesFest(custom.detail.has_sales_fest);
-      } else {
+      }
+      if (typeof custom.detail?.has_lucky_draw === "boolean") {
+        setHasLuckyDraw(custom.detail.has_lucky_draw);
+      }
+      if (typeof custom.detail?.has_sales_fest !== "boolean") {
         try {
-          const stored = window.localStorage.getItem("has_sales_fest");
-          if (stored !== null) setHasSalesFest(Boolean(JSON.parse(stored)));
+          const storedFest = window.localStorage.getItem("has_sales_fest");
+          if (storedFest !== null)
+            setHasSalesFest(Boolean(JSON.parse(storedFest)));
         } catch (error) {
-          // ignore
           console.error("Failed to load sales fest:", error);
+        }
+      }
+      if (typeof custom.detail?.has_lucky_draw !== "boolean") {
+        try {
+          const storedLucky = window.localStorage.getItem("has_lucky_draw");
+          if (storedLucky !== null)
+            setHasLuckyDraw(Boolean(JSON.parse(storedLucky)));
+        } catch (error) {
+          console.error("Failed to load lucky draw:", error);
         }
       }
     };
@@ -111,7 +133,7 @@ export function AppHeader() {
     };
   }, []);
 
-  // Menu items with access to hasSalesFest
+  // Menu items with access to hasSalesFest/hasLuckyDraw
   const items: MenuItem[] = React.useMemo(
     () => [
       {
@@ -174,8 +196,15 @@ export function AppHeader() {
         href: "/admin/salesgroup",
         visible: (_u, fest) => fest === true,
       },
+      {
+        label: "Lucky Draw",
+        icon: Calendar,
+        href: "/admin/lucky-draw",
+        // Use hasLuckyDraw from closure instead of the 2nd arg
+        visible: () => hasLuckyDraw === true,
+      },
     ],
-    [hasSalesFest]
+    [hasSalesFest, hasLuckyDraw]
   );
 
   const visibleItems = React.useMemo(

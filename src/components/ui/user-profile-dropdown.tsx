@@ -42,7 +42,7 @@ export function UserProfileDropdown({
   };
 
   const handleFestConfig = () => {
-    router.push("/admin/fest-settings");
+    router.push("/admin/fest-settings/sales-group");
   };
 
   const getUserInitials = () => {
