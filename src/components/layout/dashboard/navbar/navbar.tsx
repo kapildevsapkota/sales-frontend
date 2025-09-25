@@ -196,13 +196,13 @@ export function AppHeader() {
         href: "/admin/salesgroup",
         visible: (_u, fest) => fest === true,
       },
-      {
-        label: "Lucky Draw",
-        icon: Calendar,
-        href: "/admin/lucky-draw",
-        // Use hasLuckyDraw from closure instead of the 2nd arg
-        visible: () => hasLuckyDraw === true,
-      },
+      // {
+      //   label: "Lucky Draw",
+      //   icon: Calendar,
+      //   href: "/admin/lucky-draw",
+      //   // Use hasLuckyDraw from closure instead of the 2nd arg
+      //   visible: () => hasLuckyDraw === true,
+      // },
     ],
     [hasSalesFest, hasLuckyDraw]
   );
