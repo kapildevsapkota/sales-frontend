@@ -5,6 +5,7 @@ import { DashboardTopProducts } from "@/components/dashboard/DashboardTopProduct
 import { DashboardRevenueByCategory } from "@/components/dashboard/DashboardRevenueByCategory";
 import { InventoryBanner } from "@/components/dashboard/inventory-banner";
 import { DashboardBarchart } from "@/components/dashboard/DashboardBarchart";
+import { BulkOrders } from "./bulk-orders";
 
 export const DashboardContent: React.FC<{ id?: string }> = ({ id }) => {
   return (
@@ -20,8 +21,9 @@ export const DashboardContent: React.FC<{ id?: string }> = ({ id }) => {
         <DashboardTopSalesPersons id={id} />
       </div>
 
-      <div>
+      <div className="flex flex-col gap-4">
         <DashboardBarchart id={id} />
+        <BulkOrders />
       </div>
 
       {/* Top Products and Revenue by Category */}
