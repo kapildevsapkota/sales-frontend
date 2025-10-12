@@ -12,7 +12,6 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  Legend,
   CartesianGrid,
 } from "recharts";
 import { Package, Loader2, AlertCircle, BarChart3, X } from "lucide-react";
@@ -85,6 +84,7 @@ export const BulkOrders = () => {
   };
 
   // Custom tooltip component for the chart
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       // Find the corresponding day data for detailed product information
@@ -97,9 +97,6 @@ export const BulkOrders = () => {
           <p className="font-semibold text-gray-900 mb-2">{`Date: ${label}`}</p>
           <p className="text-orange-600 mb-2">
             {`Bulk Orders: ${payload[0].value}`}
-          </p>
-          <p className="text-blue-600 mb-2">
-            {`Total Items: ${payload[1].value}`}
           </p>
 
           {dayData && dayData.products.length > 0 && (
@@ -239,17 +236,10 @@ export const BulkOrders = () => {
                       axisLine={false}
                     />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
                     <Bar
                       dataKey="bulkOrders"
                       fill="#f97316"
                       name="Bulk Orders"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="totalProducts"
-                      fill="#3b82f6"
-                      name="Total Items"
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
