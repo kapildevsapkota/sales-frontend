@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type React from "react";
 
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { SaleItem, SalesResponse } from "@/types/sale";
 import { TableHeader } from "./components/table-header";
 import { TableBody } from "./components/table-body";
@@ -38,6 +38,7 @@ export default function SalesTable() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialogMessage, setErrorDialogMessage] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tableRef = useRef<HTMLTableElement>(null);
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
   const { user } = useAuth();
@@ -54,6 +55,14 @@ export default function SalesTable() {
   const [franchiseExportDateRange, setFranchiseExportDateRange] = useState<
     [Date | undefined, Date | undefined]
   >([undefined, undefined]);
+
+  // Persisted bulk order filter via query params
+  const [isBulkOrderOnly, setIsBulkOrderOnly] = useState<boolean>(false);
+  const [rawIsBulkOrderQuery, setRawIsBulkOrderQuery] = useState<string | null>(
+    null
+  );
+  const [initializedFromQuery, setInitializedFromQuery] =
+    useState<boolean>(false);
 
   // Export filters (advanced) state
   const [totalAmountMin, setTotalAmountMin] = useState<number | undefined>(
@@ -146,6 +155,12 @@ export default function SalesTable() {
           url += `&end_date=${formatDate(dateRange.to)}`;
         }
 
+        // Add bulk order flag if active; preserve raw query value if available
+        if (isBulkOrderOnly || rawIsBulkOrderQuery !== null) {
+          const val = rawIsBulkOrderQuery ?? "true";
+          url += `&is_bulk_order=${encodeURIComponent(val)}`;
+        }
+
         const response = await axios.get<SalesResponse>(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -174,10 +189,46 @@ export default function SalesTable() {
       deliveryType,
       logistic,
       dateRange,
+      isBulkOrderOnly,
+      rawIsBulkOrderQuery,
       user,
       salesperson,
     ]
   );
+
+  // Initialize from URL query parameters (bulk orders + date)
+  useEffect(() => {
+    const isBulk = searchParams?.get("is_bulk_order");
+    const start = searchParams?.get("start_date");
+    const end = searchParams?.get("end_date");
+
+    const toDate = (value: string | null): Date | undefined => {
+      if (!value) return undefined;
+      const parsed = new Date(value);
+      return isNaN(parsed.getTime()) ? undefined : parsed;
+    };
+
+    const fromDate = toDate(start);
+    const to = toDate(end ?? start ?? null);
+
+    if (isBulk !== null) {
+      // Accept any truthy markers ("true", "1", "yes")
+      const normalized = String(isBulk).toLowerCase();
+      const truthy =
+        normalized === "true" ||
+        normalized === "1" ||
+        normalized === "yes" ||
+        normalized === "y";
+      setIsBulkOrderOnly(truthy);
+      setRawIsBulkOrderQuery(isBulk);
+    }
+    if (fromDate || to) {
+      setDateRange({ from: fromDate, to });
+    }
+    setInitializedFromQuery(true);
+  }, [searchParams, setDateRange]);
+
+  // (fetching is gated in the main effect below using initializedFromQuery)
 
   // Update the handleGlobalSearch function
   const handleGlobalSearch = useCallback(
@@ -318,8 +369,11 @@ export default function SalesTable() {
   ]);
 
   useEffect(() => {
+    if (!initializedFromQuery) return;
     fetchSales(currentPage);
-  }, [fetchSales, currentPage]);
+  }, [currentPage, fetchSales, initializedFromQuery]);
+
+  // Removed redundant effect that reset the page and refetched on filter changes.
 
   // Add this function to handle edit
   const handleEdit = (sale: SaleItem) => {

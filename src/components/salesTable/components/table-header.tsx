@@ -96,7 +96,6 @@ export function TableHeader({
   handleSearchInputChange,
   setSearchInput,
   setFilterTerm,
-  fetchSales,
   setShowExportModal,
   paymentMethod,
   setPaymentMethod,
@@ -141,9 +140,8 @@ export function TableHeader({
     fetchSalespersons();
   }, []);
 
-  useEffect(() => {
-    fetchSales(1);
-  }, [paymentMethod, orderStatus, deliveryType, logistic, dateRange]);
+  // Removed automatic refetching here to avoid duplicate API calls.
+  // Parent component observes these states and triggers fetch accordingly.
 
   const handleDeliveryTypeChange = (value: string) => {
     setDeliveryType(value);
@@ -164,7 +162,6 @@ export function TableHeader({
       setLogistic("all");
     }
     setDateRange(undefined);
-    fetchSales(1);
   };
 
   const handleExportClick = () => {
@@ -341,7 +338,6 @@ export function TableHeader({
               onClick={() => {
                 setSearchInput("");
                 setFilterTerm("");
-                fetchSales(1);
               }}
             >
               ×

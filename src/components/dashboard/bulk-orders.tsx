@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { api } from "@/lib/api";
@@ -39,6 +40,7 @@ export const BulkOrders = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const router = useRouter();
 
   const fetchBulkOrders = async () => {
     setLoading(true);
@@ -140,10 +142,23 @@ export const BulkOrders = () => {
       return {
         date: format(new Date(day.date), "MMM dd"),
         fullDate: format(new Date(day.date), "MMM dd, yyyy"),
+        isoDate: format(new Date(day.date), "yyyy-MM-dd"),
         bulkOrders: day.bulk_orders_count,
         totalProducts: totalProducts,
       };
     }) || [];
+
+  const handleBarClick = (data: unknown, index: number) => {
+    // Recharts passes the datum as the second arg in some versions; safest is to read from chartData
+    const item = chartData[index];
+    const iso = item?.isoDate;
+    const query = new URLSearchParams({ is_bulk_order: "true" });
+    if (iso) {
+      query.set("start_date", iso);
+      query.set("end_date", iso);
+    }
+    router.push(`/admin/salesList?${query.toString()}`);
+  };
 
   return (
     <div className="col-span-full rounded-2xl p-6 bg-white shadow-sm">
@@ -237,10 +252,12 @@ export const BulkOrders = () => {
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar
+                      className="cursor-pointer"
                       dataKey="bulkOrders"
                       fill="#f97316"
                       name="Bulk Orders"
                       radius={[4, 4, 0, 0]}
+                      onClick={handleBarClick}
                     />
                   </BarChart>
                 </ResponsiveContainer>
