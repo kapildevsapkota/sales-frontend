@@ -390,10 +390,10 @@ export default function CreateOrderForm({
       formData.append("city", data.city || "");
       formData.append("delivery_address", data.delivery_location);
       formData.append("landmark", data.landmark || "");
-      formData.append("phone_number", data.phone_number);
+      formData.append("phone_number", data.phone_number.trim());
       formData.append(
         "alternate_phone_number",
-        data.alternate_phone_number || ""
+        (data.alternate_phone_number || "").trim()
       );
       formData.append("payment_method", data.payment_method);
       formData.append("total_amount", data.total_amount.toString());
