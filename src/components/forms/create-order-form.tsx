@@ -125,7 +125,10 @@ export default function CreateOrderForm({
   const orderSchema = z.object({
     full_name: z.string().min(2, "Name is required"),
     delivery_location: z.string().min(2, "Delivery location is required"),
-    phone_number: z.string().min(10, "Phone number must be at least 10 digits"),
+    phone_number: z
+      .string()
+      .regex(/^\d{10}$/, "Phone number must be exactly 10 digits")
+      .min(10, "Phone number must be exactly 10 digits"),
     alternate_phone_number: z.string().nullable().optional(),
     city: z.string().optional(),
     landmark: z.string().optional(),
@@ -610,9 +613,36 @@ export default function CreateOrderForm({
                               size={16}
                             />
                             <Input
-                              placeholder="Enter phone number"
+                              type="tel"
+                              placeholder="Enter 10 digit phone number"
                               className="h-[60px] pl-10 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
+                              maxLength={10}
                               {...field}
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                let value = e.clipboardData.getData("text");
+                                // First, remove all non-digit characters (spaces, dashes, plus signs, etc.)
+                                value = value.replace(/\D/g, "");
+                                // Then, remove 977 prefix if present (Nepal country code)
+                                if (value.startsWith("977")) {
+                                  value = value.slice(3);
+                                }
+                                // Limit to 10 digits
+                                value = value.slice(0, 10);
+                                field.onChange(value);
+                              }}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                // First, remove all non-digit characters (spaces, dashes, plus signs, etc.)
+                                value = value.replace(/\D/g, "");
+                                // Then, remove 977 prefix if present (Nepal country code)
+                                if (value.startsWith("977")) {
+                                  value = value.slice(3);
+                                }
+                                // Limit to 10 digits
+                                value = value.slice(0, 10);
+                                field.onChange(value);
+                              }}
                             />
                           </div>
                         </FormControl>
@@ -636,10 +666,37 @@ export default function CreateOrderForm({
                               size={16}
                             />
                             <Input
-                              placeholder="Enter alternate phone number"
+                              type="tel"
+                              placeholder="Enter 10 digit phone number"
                               className="h-[60px] pl-10 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
+                              maxLength={10}
                               {...field}
                               value={field.value || ""}
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                let value = e.clipboardData.getData("text");
+                                // First, remove all non-digit characters (spaces, dashes, plus signs, etc.)
+                                value = value.replace(/\D/g, "");
+                                // Then, remove 977 prefix if present (Nepal country code)
+                                if (value.startsWith("977")) {
+                                  value = value.slice(3);
+                                }
+                                // Limit to 10 digits
+                                value = value.slice(0, 10);
+                                field.onChange(value || null);
+                              }}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                // First, remove all non-digit characters (spaces, dashes, plus signs, etc.)
+                                value = value.replace(/\D/g, "");
+                                // Then, remove 977 prefix if present (Nepal country code)
+                                if (value.startsWith("977")) {
+                                  value = value.slice(3);
+                                }
+                                // Limit to 10 digits
+                                value = value.slice(0, 10);
+                                field.onChange(value || null);
+                              }}
                             />
                           </div>
                         </FormControl>
