@@ -45,6 +45,10 @@ export function UserProfileDropdown({
     router.push("/admin/fest-settings/sales-group");
   };
 
+  const handleDashConfig = () => {
+    router.push("/admin/dash-config");
+  };
+
   const getUserInitials = () => {
     const firstName = user.first_name || "";
     const lastName = user.last_name || "";
@@ -100,6 +104,10 @@ export function UserProfileDropdown({
           <DropdownMenuItem onClick={handleChangePassword}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Change Password</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDashConfig}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Dash Config</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleFestConfig}>
             <Settings className="mr-2 h-4 w-4" />
@@ -169,6 +177,11 @@ export function UserProfileDropdown({
         >
           <Settings className="mr-2 h-4 w-4" />
           <span className="cursor-pointer">Change Password</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleDashConfig}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Dash Config</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleFestConfig}>
