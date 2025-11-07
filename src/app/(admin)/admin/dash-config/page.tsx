@@ -11,7 +11,6 @@ import { AxiosError } from "axios";
 interface DashStatusResponse {
   message?: string;
   email?: string;
-  expires_at?: string;
   error?: string;
 }
 
@@ -44,11 +43,12 @@ export default function DashConfigPage() {
       if (err instanceof AxiosError && err.response?.data) {
         const errorData = err.response.data as DashStatusResponse;
         if (errorData.error === "Dash credentials not found.") {
-          // Set data with error to trigger form display
+          // Set data with error - form will still display
           setData({ error: errorData.error });
           return;
         }
       }
+      // Only set error for non-credentials-not-found errors
       setError(
         err instanceof Error ? err.message : "Failed to fetch dash status"
       );
@@ -60,6 +60,13 @@ export default function DashConfigPage() {
   useEffect(() => {
     fetchDashStatus();
   }, []);
+
+  // Update form email when data is loaded
+  useEffect(() => {
+    if (data?.email && !data.error) {
+      setFormData((prev) => ({ ...prev, email: data.email || "" }));
+    }
+  }, [data]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -78,7 +85,8 @@ export default function DashConfigPage() {
       } else {
         // Refresh the status after successful login
         await fetchDashStatus();
-        setFormData({ email: "", password: "" });
+        // Clear only password, email will be populated from fetchDashStatus response
+        setFormData((prev) => ({ ...prev, password: "" }));
       }
     } catch (err) {
       setLoginError(
@@ -100,14 +108,6 @@ export default function DashConfigPage() {
     );
   }
 
-  // Check if we should show the form:
-  // 1. If error is "Dash credentials not found"
-  // 2. If no email exists in the response
-  const shouldShowForm =
-    data?.error === "Dash credentials not found." ||
-    !data?.email ||
-    data.email.trim() === "";
-
   // Show error only if it's not the "credentials not found" error
   if (error && data?.error !== "Dash credentials not found.") {
     return (
@@ -124,101 +124,62 @@ export default function DashConfigPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Dash Configuration</h1>
 
-        {shouldShowForm ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4">Login Dash Account</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              No email is Logined. Please provide your email and password to
-              Login.
-            </p>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="email"
-                    className="pl-10"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="password"
-                    className="pl-10"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
-              {loginError && (
-                <div className="text-red-600 dark:text-red-400 text-sm">
-                  {loginError}
-                </div>
-              )}
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin" />
-                    <span>Logining...</span>
-                  </div>
-                ) : (
-                  "Login"
-                )}
-              </Button>
-            </form>
-          </div>
-        ) : (
-          data && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Status Message
-                  </label>
-                  <p className="mt-1 text-lg text-gray-900 dark:text-gray-100">
-                    {data.message}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Logined Email
-                  </label>
-                  <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {data.email}
-                  </p>
-                </div>
-                {data.expires_at && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Expires At
-                    </label>
-                    <p className="mt-1 text-lg text-gray-900 dark:text-gray-100">
-                      {new Date(data.expires_at).toLocaleString()}
-                    </p>
-                  </div>
-                )}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold mb-4">Dash Account Login</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  type="email"
+                  className="pl-10"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  required
+                />
               </div>
             </div>
-          )
-        )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  type="password"
+                  className="pl-10"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  required
+                />
+              </div>
+            </div>
+            {loginError && (
+              <div className="text-red-600 dark:text-red-400 text-sm">
+                {loginError}
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin" />
+                  <span>Logining...</span>
+                </div>
+              ) : (
+                "Login"
+              )}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
