@@ -51,6 +51,9 @@ const StockManagement = () => {
     null
   );
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const handleProductAdded = () => {
+    mutate("https://sales.baliyoventures.com/api/sales/franchise-inventory/");
+  };
 
   // Use SWR to fetch data
   const { data, error } = useSWR<InventoryData>(
@@ -391,7 +394,10 @@ const StockManagement = () => {
 
       {/* Render AddProduct component when the dialog is open */}
       {isAddProductOpen && (
-        <AddProduct onClose={() => setIsAddProductOpen(false)} />
+        <AddProduct
+          onClose={() => setIsAddProductOpen(false)}
+          onSuccess={handleProductAdded}
+        />
       )}
     </div>
   );

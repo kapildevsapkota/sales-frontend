@@ -41,6 +41,7 @@ interface Product {
 
 interface AddProductProps {
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 const formSchema = z.object({
@@ -48,7 +49,7 @@ const formSchema = z.object({
   quantity: z.number().min(1, "Quantity must be at least 1"),
 });
 
-const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
+const AddProduct: React.FC<AddProductProps> = ({ onClose, onSuccess }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,6 +130,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
         description: "Product added to inventory successfully",
       });
 
+      onSuccess?.();
       onClose();
     } catch (error) {
       console.error("Error adding product:", error);
