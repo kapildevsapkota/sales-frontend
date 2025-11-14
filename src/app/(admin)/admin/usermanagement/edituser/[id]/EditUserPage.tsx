@@ -48,7 +48,11 @@ export default function EditUserPage({ id }: EditUserPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <CreateAccountForm initialValues={userData} isEditMode />
+      <CreateAccountForm
+        initialValues={userData}
+        isEditMode={true}
+        userId={id}
+      />
     </div>
   );
 }

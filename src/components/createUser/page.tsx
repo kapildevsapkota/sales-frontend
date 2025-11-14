@@ -81,6 +81,7 @@ export type CreateUserFormData = z.infer<typeof formSchema>;
 interface CreateAccountFormProps {
   initialValues?: CreateUserFormData;
   isEditMode?: boolean;
+  userId?: string;
 }
 
 // Helper to clean form data based on role
@@ -109,6 +110,7 @@ function cleanFormData(values: z.infer<typeof formSchema>) {
 export default function CreateAccountForm({
   initialValues,
   isEditMode = false,
+  userId,
 }: CreateAccountFormProps) {
   const { user } = useAuth();
   const router = useRouter();
@@ -183,6 +185,8 @@ export default function CreateAccountForm({
   }, []);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log("Form submitted with values:", values);
+    console.log("isEditMode:", isEditMode, "userId:", userId);
     setLoading(true);
     try {
       if (
@@ -209,10 +213,10 @@ export default function CreateAccountForm({
           role: cleanedValues.role,
           distributor: cleanedValues.distributor,
           franchise: cleanedValues.franchise,
-          password: cleanedValues.password,
+          password: isEditMode ? undefined : cleanedValues.password, // Exclude password in edit mode
           factory: cleanedValues.factory,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        }).filter(([_, v]) => v !== null && v !== undefined)
+        }).filter(([_, v]) => v !== null && v !== undefined && v !== "")
       );
 
       const token = localStorage.getItem("accessToken"); // Retrieve the token from local storage
@@ -220,7 +224,7 @@ export default function CreateAccountForm({
       let response;
       if (isEditMode) {
         response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/${initialValues?.phone_number}/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/users/${userId}/`,
           {
             method: "PATCH",
             headers: {
@@ -279,16 +283,31 @@ export default function CreateAccountForm({
   const getRoleOptions = () => {
     if (!user) return [];
 
+    let options: string[] = [];
     switch (user.role) {
       case Role.SuperAdmin:
-        return [Role.Distributor, Role.Franchise, Role.Logistic];
+        options = [Role.Distributor, Role.Franchise, Role.Logistic];
+        break;
       case Role.Franchise:
-        return [Role.SalesPerson, Role.TreatmentStaff, Role.Packaging];
+        options = [Role.SalesPerson, Role.TreatmentStaff, Role.Packaging];
+        break;
       case Role.Distributor:
-        return [Role.Franchise];
+        options = [Role.Franchise];
+        break;
       default:
-        return [];
+        options = [];
     }
+
+    // In edit mode, ensure the current role is included in options
+    if (
+      isEditMode &&
+      initialValues?.role &&
+      !options.includes(initialValues.role)
+    ) {
+      options.push(initialValues.role);
+    }
+
+    return options;
   };
 
   const showFieldsByRole = (selectedRole: string | undefined) => {
@@ -328,13 +347,20 @@ export default function CreateAccountForm({
           <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
             <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl font-bold text-white">
               <UserPlus className="w-7 h-7" />
-              Create New Account
+              {isEditMode ? "Edit Account" : "Create New Account"}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 md:p-8">
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onSubmit, (errors) => {
+                  console.error("Form validation errors:", errors);
+                  toast({
+                    title: "Validation Error",
+                    description: "Please check all required fields",
+                    variant: "destructive",
+                  });
+                })}
                 className="space-y-8"
               >
                 {/* Personal Information Section */}
