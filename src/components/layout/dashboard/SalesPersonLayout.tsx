@@ -16,7 +16,7 @@ export default function SalesPersonLayout({
     return <div>Loading...</div>;
   }
 
-  if (user?.role !== Role.SalesPerson) {
+  if (user?.role !== Role.SalesPerson && user?.role !== Role.Franchise) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-gray-50">
         <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center gap-6 max-w-md w-full">
