@@ -65,12 +65,12 @@ export default function CreateOrderPage() {
             Complete the form below to create a new order
           </p>
         </div>**/}
-        <div className="py-5">
+        <div>
           <TabBar />
         </div>
 
         <div className="overflow-hidden">
-          <div className="p-4 sm:p-6">
+          <div>
             <CreateOrderForm
               products={products}
               oilTypes={["Mustard Oil", "Olive Oil", "Coconut Oil"]}

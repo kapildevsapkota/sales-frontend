@@ -553,15 +553,12 @@ export default function CreateOrderForm({
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-6">
+    <div className="container mx-auto max-w-4xl pt-4 sm:pt-6">
       {/* Header */}
       <div className="mb-8 text-left">
-        <h1 className="text-3xl font-bold text-green-800">
-          Create Your Order Here
+        <h1 className="text-2xl font-bold text-green-800">
+          {isEditMode ? "Edit Order" : "Create Your Order Here"}
         </h1>
-        <p className="text-lg text-gray-600">
-          {isEditMode ? "Edit Order" : "Sales Order Form"}
-        </p>
       </div>
 
       <Card className="shadow-lg">

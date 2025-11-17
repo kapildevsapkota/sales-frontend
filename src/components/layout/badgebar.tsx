@@ -25,17 +25,17 @@ const TabBar: React.FC<TabBarProps> = ({
   const defaultTabs: TabItem[] = [
     {
       label: "Home",
-      icon: <HomeIcon size={16} />,
+      icon: <HomeIcon size={14} />,
       path: "/sales/dashboard",
     },
     {
       label: "Create Order",
-      icon: <PlusCircleIcon size={16} />,
+      icon: <PlusCircleIcon size={14} />,
       path: "/sales/create",
     },
     {
       label: "View Orders",
-      icon: <ClipboardListIcon size={16} />,
+      icon: <ClipboardListIcon size={14} />,
       path: "/sales/orders",
     },
   ];
@@ -75,13 +75,13 @@ const TabBar: React.FC<TabBarProps> = ({
         <button
           key={index}
           onClick={() => handleTabClick(index, tab.path)}
-          className={` py-3 px-2 rounded-md text-sm font-semibold transition-colors ${
+          className={` py-2 px-1.5 rounded-md text-sm font-semibold transition-colors ${
             activeTab === index
               ? "bg-black text-white"
               : "bg-white text-gray-800 border border-gray-300 hover:bg-gray-100"
-          } flex-1 mx-1 flex items-center justify-center`}
+          } flex-1 mx-0.5 flex items-center justify-center`}
         >
-          {tab.icon && <span className="mr-1.5">{tab.icon}</span>}
+          {tab.icon && <span className="mr-1">{tab.icon}</span>}
           {tab.label}
         </button>
       ))}
