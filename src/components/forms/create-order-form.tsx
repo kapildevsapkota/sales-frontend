@@ -115,30 +115,49 @@ export default function CreateOrderForm({
 
   const router = useRouter();
 
-  const orderSchema = z.object({
-    full_name: z.string().min(2, "Name is required"),
-    delivery_location: z.string().min(2, "Delivery location is required"),
-    phone_number: z
-      .string()
-      .regex(/^\d{10}$/, "Phone number must be exactly 10 digits")
-      .min(10, "Phone number must be exactly 10 digits"),
-    alternate_phone_number: z.string().nullable().optional(),
-    city: z.string().optional(),
-    landmark: z.string().optional(),
-    amount: z.number().min(0, "Amount must be at least 0"),
-    delivery_charge: z.number().min(0, "Delivery charge must be at least 0"),
-    remarks: z.string().optional(),
-    oil_type: z.array(z.string()).min(1, "Please select at least one oil type"),
-    total_amount: z.number().min(0, "Total amount must be at least 0"),
-    payment_method: z.nativeEnum(PaymentMethod),
-    payment_screenshot: z.instanceof(File).optional(),
-    prepaid_amount: z
-      .number()
-      .min(0, "Prepaid amount must be at least 0")
-      .optional(),
-    delivery_type: z.nativeEnum(DeliveryType),
-    location: z.number().optional(),
-  });
+  const orderSchema = z
+    .object({
+      full_name: z.string().min(2, "Name is required"),
+      delivery_location: z.string().min(2, "Delivery location is required"),
+      phone_number: z
+        .string()
+        .regex(/^\d{10}$/, "Phone number must be exactly 10 digits")
+        .min(10, "Phone number must be exactly 10 digits"),
+      alternate_phone_number: z.string().nullable().optional(),
+      city: z.string().optional(),
+      landmark: z.string().optional(),
+      amount: z.number().min(0, "Amount must be at least 0"),
+      delivery_charge: z
+        .number({ invalid_type_error: "Delivery charge must be a number" })
+        .min(0, "Delivery charge must be at least 0")
+        .optional(),
+      remarks: z.string().optional(),
+      oil_type: z
+        .array(z.string())
+        .min(1, "Please select at least one oil type"),
+      total_amount: z.number().min(0, "Total amount must be at least 0"),
+      payment_method: z.nativeEnum(PaymentMethod),
+      payment_screenshot: z.instanceof(File).optional(),
+      prepaid_amount: z
+        .number()
+        .min(0, "Prepaid amount must be at least 0")
+        .optional(),
+      delivery_type: z.nativeEnum(DeliveryType),
+      location: z.number().optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (
+        data.payment_method !== PaymentMethod.OfficeVisit &&
+        (typeof data.delivery_charge !== "number" ||
+          Number.isNaN(data.delivery_charge))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["delivery_charge"],
+          message: "Delivery charge is required.",
+        });
+      }
+    });
 
   type OrderFormValues = z.infer<typeof orderSchema>;
 
@@ -313,20 +332,27 @@ export default function CreateOrderForm({
     setValue("payment_screenshot", undefined);
   };
 
-  // Update total amount whenever amount or delivery charge changes
+  // Update total amount whenever amount, delivery charge, or payment method changes
   useEffect(() => {
     const hasAmount = typeof amount === "number" && !Number.isNaN(amount);
+    const computedDeliveryCharge =
+      paymentMethod === PaymentMethod.OfficeVisit
+        ? 0
+        : typeof deliveryCharge === "number" && !Number.isNaN(deliveryCharge)
+        ? deliveryCharge
+        : undefined;
     const hasDeliveryCharge =
-      typeof deliveryCharge === "number" && !Number.isNaN(deliveryCharge);
+      typeof computedDeliveryCharge === "number" &&
+      !Number.isNaN(computedDeliveryCharge);
 
     if (!hasAmount && !hasDeliveryCharge) {
       setValue("total_amount", undefined as unknown as number);
       return;
     }
 
-    const total = (amount || 0) + (deliveryCharge || 0);
+    const total = (amount || 0) + (computedDeliveryCharge || 0);
     setValue("total_amount", total);
-  }, [amount, deliveryCharge, setValue]);
+  }, [amount, deliveryCharge, paymentMethod, setValue]);
 
   const onSubmit = async (data: OrderFormValues, forceOrder = false) => {
     try {
@@ -373,7 +399,11 @@ export default function CreateOrderForm({
       formData.append("total_amount", data.total_amount.toString());
       formData.append("remarks", data.remarks || "");
       formData.append("order_products", JSON.stringify(orderProducts));
-      formData.append("delivery_charge", data.delivery_charge.toString());
+      const deliveryChargeToSend =
+        data.payment_method === PaymentMethod.OfficeVisit
+          ? 0
+          : data.delivery_charge ?? 0;
+      formData.append("delivery_charge", deliveryChargeToSend.toString());
       formData.append("delivery_type", data.delivery_type);
       formData.append(
         "prepaid_amount",
@@ -884,10 +914,20 @@ export default function CreateOrderForm({
                             className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
                             value={
-                              typeof field.value === "number" ? field.value : ""
+                              paymentMethod === PaymentMethod.OfficeVisit
+                                ? 0
+                                : typeof field.value === "number"
+                                ? field.value
+                                : ""
+                            }
+                            disabled={
+                              paymentMethod === PaymentMethod.OfficeVisit
                             }
                             onWheelCapture={preventScroll}
                             onChange={(e) => {
+                              if (paymentMethod === PaymentMethod.OfficeVisit) {
+                                return;
+                              }
                               const value = e.target.value;
                               field.onChange(
                                 value === "" ? undefined : parseFloat(value)
@@ -895,6 +935,12 @@ export default function CreateOrderForm({
                             }}
                           />
                         </FormControl>
+                        {paymentMethod === PaymentMethod.OfficeVisit && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Delivery charge is automatically set to 0 for Office
+                            Visit payments.
+                          </p>
+                        )}
                         <FormMessage className="text-red-500 text-xs mt-1" />
                       </FormItem>
                     )}
