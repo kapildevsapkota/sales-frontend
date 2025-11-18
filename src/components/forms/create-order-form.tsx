@@ -155,17 +155,17 @@ export default function CreateOrderForm({
       full_name: "",
       delivery_location: "",
       phone_number: "",
-      delivery_charge: 0,
+      delivery_charge: undefined,
       alternate_phone_number: "",
       city: "",
       landmark: "",
       remarks: "",
       oil_type: [],
-      total_amount: 0,
-      amount: 0,
+      total_amount: undefined,
+      amount: undefined,
       payment_method: PaymentMethod.CashOnDelivery,
       payment_screenshot: undefined,
-      prepaid_amount: 0,
+      prepaid_amount: undefined,
       delivery_type: DeliveryType.Inside,
       dash_location: undefined,
     },
@@ -179,7 +179,10 @@ export default function CreateOrderForm({
   const totalAmount = watch("total_amount");
 
   // Calculate remaining amount
-  const remainingAmount = totalAmount - (prepaidAmount || 0);
+  const remainingAmount =
+    typeof totalAmount === "number"
+      ? totalAmount - (prepaidAmount || 0)
+      : undefined;
 
   // API call to fetch locations with search query
   const fetchLocations = async (searchQuery: string) => {
@@ -351,9 +354,16 @@ export default function CreateOrderForm({
 
   // Update total amount whenever amount or delivery charge changes
   useEffect(() => {
-    const numAmount = parseFloat(amount?.toString() || "0");
-    const numDeliveryCharge = parseFloat(deliveryCharge?.toString() || "0");
-    const total = numAmount + numDeliveryCharge;
+    const hasAmount = typeof amount === "number" && !Number.isNaN(amount);
+    const hasDeliveryCharge =
+      typeof deliveryCharge === "number" && !Number.isNaN(deliveryCharge);
+
+    if (!hasAmount && !hasDeliveryCharge) {
+      setValue("total_amount", undefined as unknown as number);
+      return;
+    }
+
+    const total = (amount || 0) + (deliveryCharge || 0);
     setValue("total_amount", total);
   }, [amount, deliveryCharge, setValue]);
 
@@ -986,12 +996,15 @@ export default function CreateOrderForm({
                             placeholder="0.00"
                             className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
-                            onWheel={preventScroll}
+                            value={
+                              typeof field.value === "number" ? field.value : ""
+                            }
+                            onWheelCapture={preventScroll}
                             onChange={(e) => {
-                              const value = e.target.value
-                                ? parseFloat(e.target.value)
-                                : 0;
-                              field.onChange(value);
+                              const value = e.target.value;
+                              field.onChange(
+                                value === "" ? undefined : parseFloat(value)
+                              );
                             }}
                           />
                         </FormControl>
@@ -1014,12 +1027,15 @@ export default function CreateOrderForm({
                             placeholder="0.00"
                             className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
-                            onWheel={preventScroll}
+                            value={
+                              typeof field.value === "number" ? field.value : ""
+                            }
+                            onWheelCapture={preventScroll}
                             onChange={(e) => {
-                              const value = e.target.value
-                                ? parseFloat(e.target.value)
-                                : 0;
-                              field.onChange(value);
+                              const value = e.target.value;
+                              field.onChange(
+                                value === "" ? undefined : parseFloat(value)
+                              );
                             }}
                           />
                         </FormControl>
@@ -1047,9 +1063,11 @@ export default function CreateOrderForm({
                             placeholder="0.00"
                             className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             {...field}
-                            onWheel={preventScroll}
+                            value={
+                              typeof field.value === "number" ? field.value : ""
+                            }
+                            onWheelCapture={preventScroll}
                             disabled
-                            value={field.value || 0}
                           />
                         </div>
                       </FormControl>
@@ -1218,12 +1236,17 @@ export default function CreateOrderForm({
                                 className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                                 required={true}
                                 {...field}
-                                onWheel={preventScroll}
+                                value={
+                                  typeof field.value === "number"
+                                    ? field.value
+                                    : ""
+                                }
+                                onWheelCapture={preventScroll}
                                 onChange={(e) => {
-                                  const value = e.target.value
-                                    ? parseFloat(e.target.value)
-                                    : 0;
-                                  field.onChange(value);
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? undefined : parseFloat(value)
+                                  );
                                 }}
                               />
                             </div>
@@ -1247,7 +1270,11 @@ export default function CreateOrderForm({
                             placeholder="0.00"
                             className="h-[60px] pl-8 border-gray-300 focus:border-green-500 focus-visible:ring-green-500 font-medium text-right"
                             disabled
-                            value={remainingAmount}
+                            value={
+                              typeof remainingAmount === "number"
+                                ? remainingAmount
+                                : ""
+                            }
                           />
                         </div>
                       </FormControl>
