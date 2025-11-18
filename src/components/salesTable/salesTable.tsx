@@ -421,11 +421,21 @@ export default function SalesTable() {
 
       await api
         .patch(`/api/sales/orders/${saleId}/`, { logistics: logisticsValue })
-        .then(() => {
+        .then((response) => {
+          // Extract updated order_status from API response
+          const updatedOrderStatus = response.data?.order_status;
+          const updatedLogistics = response.data?.logistics ?? logisticsValue;
+
           setDisplayData((prevData) =>
             prevData.map((sale) =>
               sale.id.toString() === saleId
-                ? { ...sale, logistics: logisticsValue }
+                ? {
+                    ...sale,
+                    logistics: updatedLogistics,
+                    ...(updatedOrderStatus && {
+                      order_status: updatedOrderStatus,
+                    }),
+                  }
                 : sale
             )
           );
@@ -435,7 +445,13 @@ export default function SalesTable() {
               ...prevSales,
               results: prevSales.results.map((sale) =>
                 sale.id.toString() === saleId
-                  ? { ...sale, logistics: logisticsValue }
+                  ? {
+                      ...sale,
+                      logistics: updatedLogistics,
+                      ...(updatedOrderStatus && {
+                        order_status: updatedOrderStatus,
+                      }),
+                    }
                   : sale
               ),
             };
