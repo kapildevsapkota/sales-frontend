@@ -62,7 +62,30 @@ export function useTableData() {
                   <br />
                 </a>
               )}
-              {sale.tracking_code}
+              {sale.logistics === "DASH" && (
+                <a
+                  href={`https://dashlogistics.com.np/track-order?trackCode=${sale.tracking_code}`}
+                  target="_blank"
+                  className="hover:underline"
+                >
+                  <span className="text-gray-500 text-sm cursor-pointer">
+                    {sale.tracking_code}
+                  </span>
+                  <br />
+                </a>
+              )}
+              {sale.logistics === "PicknDrop" && (
+                <a
+                  href={`https://pickndropnepal.com/tracking/${sale.tracking_code}`}
+                  target="_blank"
+                  className="hover:underline"
+                >
+                  <span className="text-gray-500 text-sm cursor-pointer">
+                    {sale.tracking_code}
+                  </span>
+                  <br />
+                </a>
+              )}
             </>
           );
         case "location_name":
