@@ -104,6 +104,7 @@ export default function CreateOrderForm({
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
+  const [quantityInputValue, setQuantityInputValue] = useState("");
   const [forceOrderDialogOpen, setForceOrderDialogOpen] = useState(false);
   const [forceOrderErrorMsg, setForceOrderErrorMsg] = useState("");
   const [duplicateOrderError, setDuplicateOrderError] =
@@ -492,16 +493,26 @@ export default function CreateOrderForm({
     e.stopPropagation();
   };
 
-  const handleOilTypeClick = (productName: string) => {
-    setSelectedProduct(productName);
-    setQuantityDialogOpen(true);
+  const handleQuantityDialogToggle = (open: boolean) => {
+    setQuantityDialogOpen(open);
+    if (!open) {
+      setSelectedProduct(null);
+      setQuantityInputValue("");
+    }
   };
 
-  const handleQuantityConfirm = (quantity: string) => {
+  const handleOilTypeClick = (productName: string) => {
+    setSelectedProduct(productName);
+    setQuantityInputValue(quantities[productName] || "");
+    handleQuantityDialogToggle(true);
+  };
+
+  const handleQuantityConfirm = () => {
     if (selectedProduct) {
+      const nextQuantity = quantityInputValue || "0";
       setQuantities({
         ...quantities,
-        [selectedProduct]: quantity,
+        [selectedProduct]: nextQuantity,
       });
 
       // Update selectedOilTypes if not already included
@@ -511,7 +522,7 @@ export default function CreateOrderForm({
         form.setValue("oil_type", newSelectedTypes);
       }
     }
-    setQuantityDialogOpen(false);
+    handleQuantityDialogToggle(false);
   };
 
   // Add this wrapper for react-hook-form
@@ -1241,7 +1252,10 @@ export default function CreateOrderForm({
           </Form>
         </CardContent>
       </Card>
-      <Dialog open={quantityDialogOpen} onOpenChange={setQuantityDialogOpen}>
+      <Dialog
+        open={quantityDialogOpen}
+        onOpenChange={handleQuantityDialogToggle}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Enter Quantity</DialogTitle>
@@ -1253,18 +1267,30 @@ export default function CreateOrderForm({
                 type="number"
                 min="1"
                 placeholder="Enter quantity"
-                defaultValue={
-                  selectedProduct ? quantities[selectedProduct] || "" : ""
-                }
-                onChange={(e) => {
-                  if (selectedProduct) {
-                    handleQuantityConfirm(e.target.value);
+                value={quantityInputValue}
+                onChange={(e) => setQuantityInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleQuantityConfirm();
                   }
                 }}
                 className="col-span-3"
               />
             </div>
           </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleQuantityDialogToggle(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleQuantityConfirm}>
+              Save Quantity
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog
