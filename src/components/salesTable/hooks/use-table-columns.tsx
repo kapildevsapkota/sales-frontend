@@ -29,7 +29,18 @@ export function useTableColumns() {
       visible: true,
       width: 120,
     },
-
+    {
+      id: "logistics_name",
+      label: "Logistics",
+      visible: true,
+      width: 120,
+    },
+    {
+      id: "order_status",
+      label: "Order Status",
+      visible: true,
+      width: 50,
+    },
     {
       id: "phone_number",
       label: "Phone",
@@ -39,7 +50,7 @@ export function useTableColumns() {
     {
       id: "alternate_phone_number",
       label: "Alternate Phone",
-      visible: true,
+      visible: false,
       width: 50,
     },
     {
@@ -66,6 +77,7 @@ export function useTableColumns() {
       visible: true,
       width: 40,
     },
+
     {
       id: "remarks",
       label: "Remarks [If Any]",
@@ -91,23 +103,12 @@ export function useTableColumns() {
       width: 50,
     },
     {
-      id: "logistics_name",
-      label: "Logistics",
-      visible: true,
-      width: 120,
-    },
-    {
       id: "delivery_type",
       label: "Delivery Type",
-      visible: true,
+      visible: false,
       width: 50,
     },
-    {
-      id: "order_status",
-      label: "Order Status",
-      visible: true,
-      width: 50,
-    },
+
     {
       id: "edit",
       label: "Edit",
