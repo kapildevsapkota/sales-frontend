@@ -30,6 +30,11 @@ export default function DashConfigPage() {
     password: "",
   });
 
+  const SPECIAL_DASH_ERRORS = [
+    "Dash credentials not found.",
+    "Dash token is missing or expired.",
+  ];
+
   const fetchDashStatus = async () => {
     try {
       setIsLoading(true);
@@ -39,10 +44,10 @@ export default function DashConfigPage() {
       );
       setData(response.data);
     } catch (err) {
-      // Check if error response contains "Dash credentials not found"
+      // Check for known dash auth errors where we still want to show the form
       if (err instanceof AxiosError && err.response?.data) {
         const errorData = err.response.data as DashStatusResponse;
-        if (errorData.error === "Dash credentials not found.") {
+        if (errorData.error && SPECIAL_DASH_ERRORS.includes(errorData.error)) {
           // Set data with error - form will still display
           setData({ error: errorData.error });
           return;
@@ -108,8 +113,8 @@ export default function DashConfigPage() {
     );
   }
 
-  // Show error only if it's not the "credentials not found" error
-  if (error && data?.error !== "Dash credentials not found.") {
+  // Show error only if it's not one of the known dash auth errors
+  if (error && !SPECIAL_DASH_ERRORS.includes(data?.error ?? "")) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -126,6 +131,11 @@ export default function DashConfigPage() {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold mb-4">Dash Account Login</h2>
+          {data?.error && (
+            <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
+              {data.error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

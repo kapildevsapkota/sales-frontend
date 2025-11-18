@@ -49,6 +49,10 @@ export function UserProfileDropdown({
     router.push("/admin/dash-config");
   };
 
+  const handlePicknDropConfig = () => {
+    router.push("/admin/pickndrop-config");
+  };
+
   const getUserInitials = () => {
     const firstName = user.first_name || "";
     const lastName = user.last_name || "";
@@ -182,6 +186,10 @@ export function UserProfileDropdown({
         <DropdownMenuItem onClick={handleDashConfig}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Dash Config</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handlePicknDropConfig}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>PicknDrop Config</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleFestConfig}>

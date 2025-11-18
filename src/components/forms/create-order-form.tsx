@@ -50,6 +50,8 @@ interface CreateOrderFormProps {
   convincedByOptions: string[];
   orderId?: string;
   isEditMode?: boolean;
+  onSuccess?: () => Promise<void> | void;
+  disableNavigation?: boolean;
 }
 
 interface FileWithPreview extends File {
@@ -95,6 +97,8 @@ interface DuplicateOrderError {
 export default function CreateOrderForm({
   orderId,
   isEditMode = false,
+  onSuccess,
+  disableNavigation = false,
 }: CreateOrderFormProps) {
   const [oilTypes, setOilTypes] = useState<ProductInfo[]>([]);
   const [oilTypesLoading, setOilTypesLoading] = useState(true);
@@ -473,10 +477,13 @@ export default function CreateOrderForm({
           `Order ${isEditMode ? "updated" : "submitted"} successfully!`
         );
         form.reset();
-        if (user?.role === Role.SalesPerson) {
-          router.push("/sales/orders");
-        } else {
-          router.push("/admin/salesList");
+        await onSuccess?.();
+        if (!disableNavigation) {
+          if (user?.role === Role.SalesPerson) {
+            router.push("/sales/orders");
+          } else {
+            router.push("/admin/salesList");
+          }
         }
       } else {
         throw new Error(`Failed to ${isEditMode ? "update" : "submit"} order`);

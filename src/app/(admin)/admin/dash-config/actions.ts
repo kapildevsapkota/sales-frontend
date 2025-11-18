@@ -26,7 +26,7 @@ export async function dashLogin(
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const url = `https://sales.baliyoventures.com/api/dash/login/`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/dash/login/`;
     const body = JSON.stringify({ email, password });
 
     console.log("[dashLogin] Request URL:", url);

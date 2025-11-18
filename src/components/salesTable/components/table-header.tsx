@@ -7,6 +7,7 @@ import type { SaleItem } from "@/types/sale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import CreateOrderForm from "@/components/forms/create-order-form";
 
 import {
   DropdownMenu,
@@ -83,6 +84,7 @@ interface TableHeaderProps {
   sales: SaleItem[];
   salesperson: string;
   setSalesperson: (value: string) => void;
+  currentPage: number;
 }
 
 export function TableHeader({
@@ -96,6 +98,7 @@ export function TableHeader({
   handleSearchInputChange,
   setSearchInput,
   setFilterTerm,
+  fetchSales,
   setShowExportModal,
   paymentMethod,
   setPaymentMethod,
@@ -111,12 +114,19 @@ export function TableHeader({
   sales,
   salesperson,
   setSalesperson,
+  currentPage,
 }: TableHeaderProps) {
   const [salespersons, setSalespersons] = useState<SalesPerson[]>([]);
   const { user } = useAuth();
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [summaryDate, setSummaryDate] = useState<Date | undefined>(undefined);
   const [isExportingSummary, setIsExportingSummary] = useState(false);
+  const [showCreateOrderModal, setShowCreateOrderModal] = useState(false);
+
+  const handleOrderCreated = async () => {
+    await fetchSales(currentPage);
+    setShowCreateOrderModal(false);
+  };
 
   // Fetch salespersons data on component mount
   useEffect(() => {
@@ -308,14 +318,24 @@ export function TableHeader({
             </>
           )}
           {user?.role === "Franchise" && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1 whitespace-nowrap bg-yellow-400 hover:bg-yellow-500 px-2 h-8 min-w-0"
-              onClick={handleExportClick}
-            >
-              Export Report
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 whitespace-nowrap bg-green-500 hover:bg-green-600 px-2 h-8 min-w-0"
+                onClick={() => setShowCreateOrderModal(true)}
+              >
+                Create Order
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 whitespace-nowrap bg-yellow-400 hover:bg-yellow-500 px-2 h-8 min-w-0"
+                onClick={handleExportClick}
+              >
+                Export Report
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -486,6 +506,20 @@ export function TableHeader({
               {isExportingSummary ? "Exporting..." : "Export"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={showCreateOrderModal}
+        onOpenChange={setShowCreateOrderModal}
+      >
+        <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[95vh] overflow-y-auto">
+          <CreateOrderForm
+            products={[]}
+            oilTypes={[]}
+            convincedByOptions={[]}
+            onSuccess={handleOrderCreated}
+            disableNavigation
+          />
         </DialogContent>
       </Dialog>
     </div>

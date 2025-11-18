@@ -649,6 +649,7 @@ export default function SalesTable() {
         sales={sales?.results || []}
         salesperson={salesperson}
         setSalesperson={setSalesperson}
+        currentPage={currentPage}
       />
 
       {showExportModal && (
