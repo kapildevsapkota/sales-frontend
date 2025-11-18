@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import type { AxiosError } from "axios";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, SendIcon } from "lucide-react";
 import type { SaleItem, DashLocation } from "@/types/sale";
@@ -166,7 +167,19 @@ export function DashLocationCell({
       );
     } catch (error) {
       console.error("Error sending order to logistics:", error);
-      toast.error("Failed to send order.");
+      let errorMessage: string | undefined;
+      if (typeof error === "object" && error !== null) {
+        const axiosError = error as AxiosError<{
+          error?: string;
+          message?: string;
+          detail?: string;
+        }>;
+        errorMessage =
+          axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.response?.data?.detail;
+      }
+      toast.error(errorMessage ?? "Failed to send order.");
     } finally {
       setIsSendingOrder(false);
     }

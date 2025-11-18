@@ -29,7 +29,6 @@ import {
   UploadIcon,
   TrashIcon,
   TruckIcon,
-  SearchIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -63,12 +62,6 @@ interface ProductInfo {
   product_id: number;
   name: string;
   quantity: number;
-}
-
-interface LocationInfo {
-  id: number;
-  name: string;
-  coverage_areas: string[];
 }
 
 enum DeliveryType {
@@ -117,12 +110,6 @@ export default function CreateOrderForm({
     useState<DuplicateOrderError | null>(null);
   const [pendingForceOrderData, setPendingForceOrderData] =
     useState<OrderFormValues | null>(null);
-  const [locations, setLocations] = useState<LocationInfo[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(
-    null
-  );
-  const [locationSearchOpen, setLocationSearchOpen] = useState(false);
-  const [locationSearchQuery, setLocationSearchQuery] = useState("");
   const { user } = useAuth();
 
   const router = useRouter();
@@ -188,42 +175,6 @@ export default function CreateOrderForm({
     typeof totalAmount === "number"
       ? totalAmount - (prepaidAmount || 0)
       : undefined;
-
-  // API call to fetch locations with search query
-  const fetchLocations = async (searchQuery: string) => {
-    if (searchQuery.length < 3) {
-      setLocations([]);
-      return;
-    }
-
-    try {
-      const authToken = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/api/sales/locations?search=${encodeURIComponent(searchQuery)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-      const data = await response.json();
-      setLocations(data);
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-      setLocations([]);
-    }
-  };
-
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchLocations(locationSearchQuery);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [locationSearchQuery]);
 
   useEffect(() => {
     const fetchOilTypes = async () => {
@@ -1251,10 +1202,8 @@ export default function CreateOrderForm({
                   className="h-[45px] text-gray-600 border-gray-300 hover:bg-gray-50"
                   onClick={() => {
                     form.reset();
-                    setSelectedLocation(null);
                     setSelectedOilTypes([]);
                     setQuantities({});
-                    setLocationSearchQuery("");
                   }}
                 >
                   Clear Form
