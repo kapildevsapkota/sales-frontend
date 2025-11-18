@@ -1,5 +1,5 @@
 "use client";
-import { Search, ChevronDown, Eye, EyeOff } from "lucide-react";
+import { Search, ChevronDown, Eye, EyeOff, PlusIcon } from "lucide-react";
 import type React from "react";
 import { useState, useEffect } from "react";
 import type { SaleItem } from "@/types/sale";
@@ -325,6 +325,7 @@ export function TableHeader({
                 className="flex items-center gap-1 whitespace-nowrap bg-green-500 hover:bg-green-600 px-2 h-8 min-w-0"
                 onClick={() => setShowCreateOrderModal(true)}
               >
+                <PlusIcon className="h-4 w-4" />
                 Create Order
               </Button>
               <Button
@@ -512,7 +513,7 @@ export function TableHeader({
         open={showCreateOrderModal}
         onOpenChange={setShowCreateOrderModal}
       >
-        <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0">
           <CreateOrderForm
             products={[]}
             oilTypes={[]}

@@ -535,11 +535,11 @@ export default function CreateOrderForm({
       </div>
 
       <Card className="shadow-lg">
-        <CardContent className="p-6">
+        <CardContent className="p-6 pb-0">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleFormSubmit)}
-              className="space-y-8"
+              className="space-y-8 pb-8"
             >
               {/* Customer Information Section */}
               <div className="mb-8">
@@ -1194,8 +1194,8 @@ export default function CreateOrderForm({
                 )}
               </div>
 
-              {/* Submit Button */}
-              <div className="flex items-center justify-end gap-4">
+              {/* Sticky Submit Actions */}
+              <div className="sticky bottom-0 left-0 right-0 -mx-6 -mb-6 flex items-center justify-end gap-4 border-t border-gray-200 bg-white px-6 py-4">
                 <Button
                   type="button"
                   variant="outline"
