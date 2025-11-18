@@ -97,6 +97,7 @@ export default function CreateOrderForm({
   isEditMode = false,
 }: CreateOrderFormProps) {
   const [oilTypes, setOilTypes] = useState<ProductInfo[]>([]);
+  const [oilTypesLoading, setOilTypesLoading] = useState(true);
   const [selectedOilTypes, setSelectedOilTypes] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: string }>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -222,6 +223,7 @@ export default function CreateOrderForm({
 
   useEffect(() => {
     const fetchOilTypes = async () => {
+      setOilTypesLoading(true);
       try {
         const authToken = localStorage.getItem("accessToken");
         const response = await fetch(
@@ -251,6 +253,9 @@ export default function CreateOrderForm({
         );
       } catch (error) {
         console.error("Error fetching oil types:", error);
+        setOilTypes([]);
+      } finally {
+        setOilTypesLoading(false);
       }
     };
 
@@ -779,137 +784,6 @@ export default function CreateOrderForm({
                     )}
                   />
                 </div>
-
-                {/* Location Search Section */}
-                <div className="mt-6">
-                  <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem className="form-floating">
-                        <FormLabel className="text-sm font-medium">
-                          Search Location
-                        </FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <div className="relative">
-                              <SearchIcon
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10"
-                                size={16}
-                              />
-                              <Input
-                                placeholder="Type location name (min 3 characters)..."
-                                className="h-[60px] pl-10 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
-                                value={locationSearchQuery}
-                                onChange={(e) => {
-                                  setLocationSearchQuery(e.target.value);
-                                  setLocationSearchOpen(
-                                    e.target.value.length >= 3
-                                  );
-                                }}
-                                onFocus={() =>
-                                  setLocationSearchOpen(
-                                    locationSearchQuery.length >= 3
-                                  )
-                                }
-                                onBlur={() =>
-                                  setTimeout(
-                                    () => setLocationSearchOpen(false),
-                                    200
-                                  )
-                                }
-                              />
-                            </div>
-
-                            {/* Custom Dropdown */}
-                            {locationSearchOpen && (
-                              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                {locationSearchQuery.length < 3 ? (
-                                  <div className="p-3 text-sm text-gray-500">
-                                    Type at least 3 characters to search
-                                  </div>
-                                ) : locations.length === 0 ? (
-                                  <div className="p-3 text-sm text-gray-500">
-                                    No locations found
-                                  </div>
-                                ) : (
-                                  <>
-                                    <div className="p-2 text-xs font-medium text-gray-500 border-b bg-gray-50">
-                                      Locations
-                                    </div>
-                                    {locations.map((location) => (
-                                      <div
-                                        key={location.id}
-                                        className="p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                                        onClick={() => {
-                                          setSelectedLocation(location);
-                                          field.onChange(location.id);
-                                          setLocationSearchOpen(false);
-                                          setLocationSearchQuery("");
-                                        }}
-                                      >
-                                        <div className="flex flex-col space-y-2">
-                                          <span className="font-medium text-sm text-gray-900">
-                                            {location.name}
-                                          </span>
-                                          <div className="text-xs text-gray-600">
-                                            <span className="font-medium text-gray-700">
-                                              Coverage Areas:
-                                            </span>
-                                            <div className="mt-1 flex flex-wrap gap-1">
-                                              {location.coverage_areas.map(
-                                                (area, index) => (
-                                                  <span
-                                                    key={index}
-                                                    className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs border border-blue-200"
-                                                  >
-                                                    {area}
-                                                  </span>
-                                                )
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </FormControl>
-                        {selectedLocation && (
-                          <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-green-800">
-                                  Selected: {selectedLocation.name}
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                  Coverage Areas:{" "}
-                                  {selectedLocation.coverage_areas.join(", ")}
-                                </p>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 text-green-600 hover:text-green-800"
-                                onClick={() => {
-                                  setSelectedLocation(null);
-                                  field.onChange(undefined);
-                                }}
-                              >
-                                <TrashIcon size={14} />
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                        <FormMessage className="text-red-500 text-xs mt-1" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
 
               {/* Product Selection Section */}
@@ -927,38 +801,51 @@ export default function CreateOrderForm({
                         Oil Type <span className="text-red-500 ml-1">*</span>
                       </FormLabel>
                       <FormControl>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
-                          {oilTypes.map((product) => (
-                            <div
-                              key={product.name}
-                              onClick={() => handleOilTypeClick(product.name)}
-                              className={`flex items-center p-3 rounded-md cursor-pointer transition-colors
+                        {oilTypesLoading ? (
+                          <div className="p-4 rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-600 text-center">
+                            Loading available products...
+                          </div>
+                        ) : oilTypes.length === 0 ? (
+                          <div className="p-4 rounded-md border border-yellow-200 bg-yellow-50 text-yellow-800 space-y-3">
+                            <p className="text-sm font-medium">
+                              No inventory items available. Add products to
+                              inventory before creating an order.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
+                            {oilTypes.map((product) => (
+                              <div
+                                key={product.name}
+                                onClick={() => handleOilTypeClick(product.name)}
+                                className={`flex items-center p-3 rounded-md cursor-pointer transition-colors
                                 ${
                                   selectedOilTypes.includes(product.name)
                                     ? "bg-green-50 border border-green-200"
                                     : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
                                 }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedOilTypes.includes(
-                                  product.name
-                                )}
-                                className="mr-3 h-8 w-4 text-green-600 focus:ring-green-500"
-                                onChange={() => {}} // Handled by parent div click
-                              />
-                              <span className="text-sm">{product.name}</span>
-                              <span className="text-sm text-gray-500 ml-2">
-                                ({product.quantity} available)
-                              </span>
-                              {selectedOilTypes.includes(product.name) && (
-                                <span className="ml-auto text-sm font-medium text-green-600">
-                                  Qty: {quantities[product.name] || 0}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedOilTypes.includes(
+                                    product.name
+                                  )}
+                                  className="mr-3 h-8 w-4 text-green-600 focus:ring-green-500"
+                                  onChange={() => {}} // Handled by parent div click
+                                />
+                                <span className="text-sm">{product.name}</span>
+                                <span className="text-sm text-gray-500 ml-2">
+                                  ({product.quantity} available)
                                 </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                                {selectedOilTypes.includes(product.name) && (
+                                  <span className="ml-auto text-sm font-medium text-green-600">
+                                    Qty: {quantities[product.name] || 0}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </FormControl>
                       <FormMessage className="text-red-500 text-xs mt-1" />
                     </FormItem>

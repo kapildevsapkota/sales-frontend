@@ -57,6 +57,8 @@ export function TableBody({
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
     switch (status) {
+      case "Sent to PicknDrop":
+        return "bg-blue-500"; // Pink for sent to PicknDrop
       case "Delivered":
         return "bg-green-500"; // Green for delivered
       case "Sent to Dash":
@@ -200,6 +202,15 @@ export function TableBody({
                               ></span>
                               Sent to Dash
                             </SelectItem>
+                            <SelectItem value="Sent to PicknDrop">
+                              <span
+                                className={
+                                  getOrderStatusColor("Sent to PicknDrop") +
+                                  " rounded-full w-4 h-4 inline-block mr-2"
+                                }
+                              ></span>
+                              Sent to PicknDrop
+                            </SelectItem>
                             <SelectItem value="Out For Delivery">
                               <span
                                 className={
@@ -309,9 +320,7 @@ export function TableBody({
                             <SelectItem value="YDM">YDM</SelectItem>
                             <SelectItem value="DASH">DASH</SelectItem>
                             <SelectItem value="NCM">NCM</SelectItem>
-                            <SelectItem value="PicknDrop">
-                              PicknDrop
-                            </SelectItem>
+                            <SelectItem value="PicknDrop">PicknDrop</SelectItem>
                             <SelectItem value="none">None</SelectItem>
                           </SelectContent>
                         </Select>
