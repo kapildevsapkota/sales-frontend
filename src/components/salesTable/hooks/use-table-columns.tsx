@@ -44,7 +44,7 @@ export function useTableColumns() {
     {
       id: "phone_number",
       label: "Phone",
-      visible: true,
+      visible: false,
       width: 50,
     },
     {
