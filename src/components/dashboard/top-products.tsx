@@ -22,7 +22,7 @@ export function TopProducts({ id }: { id?: string }) {
       try {
         const token = localStorage.getItem("accessToken");
         const response = await fetch(
-          `https://sales.baliyoventures.com/api/sales/top-products/?filter=${timeRange}${
+          `https://sales.baliyoventures.com/api/sales/top-products/?filter=${timeRange} ${
             id ? `&franchise=${id}` : ""
           }`,
           {
@@ -32,7 +32,7 @@ export function TopProducts({ id }: { id?: string }) {
           }
         );
         const result = await response.json();
-        setProducts(result.data || []);
+        setProducts(result.products || []);
       } catch (error) {
         console.error("Error fetching top products:", error);
         setProducts([]); // Set empty array on error
