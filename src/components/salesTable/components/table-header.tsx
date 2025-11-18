@@ -421,7 +421,7 @@ export function TableHeader({
                 <SelectItem value="YDM">YDM</SelectItem>
                 <SelectItem value="DASH">DASH</SelectItem>
                 <SelectItem value="NCM">NCM</SelectItem>
-                <SelectItem value="Pick and Drop">Pick and Drop</SelectItem>
+                <SelectItem value="PicknDrop">PicknDrop</SelectItem>
                 <SelectItem value="none">None</SelectItem>
               </SelectContent>
             </Select>

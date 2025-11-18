@@ -115,7 +115,7 @@ Please process this order promptly! 🚀
 📱 AltPhone: ${sale.alternate_phone_number}
 📍 Location: ${sale.delivery_address}, ${sale.city}
 
-Tracking Code: ${sale.dash_tracking_code}
+Tracking Code: ${sale.tracking_code}
 `.trim();
 
     // Copy to clipboard
@@ -169,9 +169,7 @@ Tracking Code: ${sale.dash_tracking_code}
             )}
 
             <br />
-            <span className="text-gray-500 text-sm">
-              {sale.dash_tracking_code}
-            </span>
+            <span className="text-gray-500 text-sm">{sale.tracking_code}</span>
           </>
         );
       case "delivery_location":

@@ -18,8 +18,14 @@ export function useTableColumns() {
       width: 150,
     },
     {
-      id: "dash_location_name",
-      label: "Dash Location",
+      id: "logistics_name",
+      label: "Logistics",
+      visible: true,
+      width: 120,
+    },
+    {
+      id: "location_name",
+      label: "Location",
       visible: true,
       width: 350,
     },
@@ -29,12 +35,7 @@ export function useTableColumns() {
       visible: true,
       width: 120,
     },
-    {
-      id: "logistics_name",
-      label: "Logistics",
-      visible: true,
-      width: 120,
-    },
+
     {
       id: "order_status",
       label: "Order Status",

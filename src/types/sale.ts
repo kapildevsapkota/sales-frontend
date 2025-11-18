@@ -19,8 +19,8 @@ export interface DashLocation {
 
 export interface SaleItem {
   order_code: string;
-  dash_tracking_code: string;
-  dash_location_name: string;
+  tracking_code: string;
+  location_name: string;
   logistics_name: string;
   logistics: string | null;
   id: number;

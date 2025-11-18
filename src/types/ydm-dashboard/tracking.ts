@@ -81,8 +81,8 @@ export interface OrderData {
   prepaid_amount: string;
   delivery_type: string;
   logistics: string;
-  dash_location_name: string | null;
-  dash_tracking_code: string | null;
+  location_name: string | null;
+  tracking_code: string | null;
   tracking_history?: TrackingEvent[];
   order_change_log?: OrderChangeLog[];
   order_comment?: OrderComment[];

@@ -35,6 +35,7 @@ interface TableBodyProps {
     saleId: number,
     location: { id: number; name: string }
   ) => void;
+  selectedLogisticFilter?: string;
 }
 
 export function TableBody({
@@ -51,6 +52,7 @@ export function TableBody({
   setSelectedPaymentImage,
   setShowPaymentImageModal,
   onLocationUpdate,
+  selectedLogisticFilter,
 }: TableBodyProps) {
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
@@ -307,8 +309,8 @@ export function TableBody({
                             <SelectItem value="YDM">YDM</SelectItem>
                             <SelectItem value="DASH">DASH</SelectItem>
                             <SelectItem value="NCM">NCM</SelectItem>
-                            <SelectItem value="Pick and Drop">
-                              Pick And Drop
+                            <SelectItem value="PicknDrop">
+                              PicknDrop
                             </SelectItem>
                             <SelectItem value="none">None</SelectItem>
                           </SelectContent>
@@ -383,11 +385,12 @@ export function TableBody({
                           </div>
                         ))}
                       </div>
-                    ) : column.id === "dash_location_name" ? (
+                    ) : column.id === "location_name" ? (
                       <DashLocationCell
-                        key={`${sale.id}-${sale.dash_location_name || ""}`}
+                        key={`${sale.id}-${sale.location_name || ""}`}
                         sale={sale}
                         onLocationUpdate={onLocationUpdate}
+                        fallbackLogistics={selectedLogisticFilter}
                       />
                     ) : (
                       getValueByColumnId(sale, column.id)

@@ -144,7 +144,7 @@ export default function CreateOrderForm({
       .min(0, "Prepaid amount must be at least 0")
       .optional(),
     delivery_type: z.nativeEnum(DeliveryType),
-    dash_location: z.number().optional(),
+    location: z.number().optional(),
   });
 
   type OrderFormValues = z.infer<typeof orderSchema>;
@@ -167,7 +167,7 @@ export default function CreateOrderForm({
       payment_screenshot: undefined,
       prepaid_amount: undefined,
       delivery_type: DeliveryType.Inside,
-      dash_location: undefined,
+      location: undefined,
     },
   });
 
@@ -295,9 +295,9 @@ export default function CreateOrderForm({
           // ADD THIS LINE to fix the delivery_type issue:
           form.setValue("delivery_type", data.delivery_type as DeliveryType);
 
-          // Set dash_location if exists
-          if (data.dash_location) {
-            form.setValue("dash_location", data.dash_location);
+          // Set location if exists
+          if (data.location) {
+            form.setValue("location", data.location);
             // You might need to fetch and set the selected location details here
             // This depends on how your API returns the location data in the order details
           }
@@ -421,9 +421,9 @@ export default function CreateOrderForm({
           : data.prepaid_amount?.toString() || "0"
       );
 
-      // Add dash_location if selected
-      if (data.dash_location) {
-        formData.append("dash_location", data.dash_location.toString());
+      // Add location if selected
+      if (data.location) {
+        formData.append("location", data.location.toString());
       }
 
       // Append payment screenshot if it exists
@@ -784,7 +784,7 @@ export default function CreateOrderForm({
                 <div className="mt-6">
                   <FormField
                     control={form.control}
-                    name="dash_location"
+                    name="location"
                     render={({ field }) => (
                       <FormItem className="form-floating">
                         <FormLabel className="text-sm font-medium">

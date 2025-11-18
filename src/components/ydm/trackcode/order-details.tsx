@@ -231,11 +231,11 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
                     <span className="text-gray-600">Payment:</span>
                     <span>{orderData.payment_method}</span>
                   </div>
-                  {orderData.dash_tracking_code && (
+                  {orderData.tracking_code && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Tracking:</span>
                       <span className="font-mono text-xs">
-                        {orderData.dash_tracking_code}
+                        {orderData.tracking_code}
                       </span>
                     </div>
                   )}

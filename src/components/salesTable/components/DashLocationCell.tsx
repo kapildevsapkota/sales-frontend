@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, SendIcon } from "lucide-react";
 import type { SaleItem, DashLocation } from "@/types/sale";
@@ -14,13 +14,15 @@ interface DashLocationCellProps {
     saleId: number,
     location: { id: number; name: string }
   ) => void;
+  fallbackLogistics?: string;
 }
 
 export function DashLocationCell({
   sale,
   onLocationUpdate,
+  fallbackLogistics,
 }: DashLocationCellProps) {
-  const [searchQuery, setSearchQuery] = useState(sale.dash_location_name || "");
+  const [searchQuery, setSearchQuery] = useState(sale.location_name || "");
   const [locations, setLocations] = useState<DashLocation[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,33 +30,86 @@ export function DashLocationCell({
   const [isSendingOrder, setIsSendingOrder] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const resolveLogisticsLabel = useCallback((value?: string | null) => {
+    if (!value) return undefined;
+    const trimmed = value.trim();
+    if (
+      trimmed.length === 0 ||
+      trimmed.toLowerCase() === "all" ||
+      trimmed.toLowerCase() === "none"
+    ) {
+      return undefined;
+    }
+    return trimmed;
+  }, []);
+
+  const logisticsSource = useMemo(() => {
+    return (
+      resolveLogisticsLabel(sale.logistics) ||
+      resolveLogisticsLabel(sale.logistics_name) ||
+      resolveLogisticsLabel(fallbackLogistics)
+    );
+  }, [
+    resolveLogisticsLabel,
+    sale.logistics,
+    sale.logistics_name,
+    fallbackLogistics,
+  ]);
+
+  const logisticsQueryParam = useMemo<"DASH" | "PicknDrop" | undefined>(() => {
+    if (!logisticsSource) return undefined;
+    const normalized = logisticsSource.replace(/[^a-zA-Z]/g, "").toLowerCase();
+    if (normalized.includes("dash")) {
+      return "DASH";
+    }
+    if (normalized.includes("pick")) {
+      return "PicknDrop";
+    }
+    return undefined;
+  }, [logisticsSource]);
+
+  const logisticsLabel =
+    logisticsQueryParam === "PicknDrop" ? "Pick & Drop" : logisticsQueryParam;
+  const isSearchEnabled = Boolean(logisticsQueryParam);
+
   useEffect(() => {
-    const locationName = sale.dash_location_name || "";
+    const locationName = sale.location_name || "";
     if (searchQuery !== locationName) {
       setSearchQuery(locationName);
     }
-  }, [sale.dash_location_name]);
+  }, [sale.location_name]);
 
-  const fetchLocations = async (query: string) => {
-    if (query.length < 2) {
-      setLocations([]);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await api.get(
-        `/api/sales/locations?search=${encodeURIComponent(query)}`
-      );
-      setLocations(response.data);
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-      setLocations([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchLocations = useCallback(
+    async (query: string) => {
+      if (!logisticsQueryParam) return;
+      if (query.length < 2) {
+        setLocations([]);
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const response = await api.get(
+          `/api/sales/locations?search=${encodeURIComponent(
+            query
+          )}&logistics=${encodeURIComponent(logisticsQueryParam)}`
+        );
+        setLocations(response.data);
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+        setLocations([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [logisticsQueryParam]
+  );
 
   useEffect(() => {
+    if (!isSearchEnabled) {
+      setLocations([]);
+      setIsDropdownOpen(false);
+      return;
+    }
     if (searchQuery.length < 2) {
       setLocations([]);
       return;
@@ -69,13 +124,13 @@ export function DashLocationCell({
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, fetchLocations, isSearchEnabled]);
 
   const handleLocationSelect = async (location: DashLocation) => {
     setIsUpdatingLocation(true);
     try {
       await api.patch(`/api/sales/orders/${sale.id}/`, {
-        dash_location: location.id,
+        location: location.id,
       });
       setSearchQuery(location.name);
       setIsDropdownOpen(false);
@@ -94,13 +149,24 @@ export function DashLocationCell({
   };
 
   const handleSendOrder = async () => {
+    if (!logisticsQueryParam) {
+      toast.error("Select DASH or Pick & Drop logistics before sending.");
+      return;
+    }
+    const endpoint =
+      logisticsQueryParam === "PicknDrop"
+        ? `/api/send-pickndrop/${sale.id}/`
+        : `/api/dash/send-order/${sale.id}/`;
+
     setIsSendingOrder(true);
     try {
-      await api.post(`/api/dash/send-order/${sale.id}/`);
-      toast.success(`Order #${sale.id} sent to dash.`);
+      await api.post(endpoint);
+      toast.success(
+        `Order #${sale.id} sent to ${logisticsLabel ?? "selected logistics"}.`
+      );
     } catch (error) {
-      console.error("Error sending order to dash:", error);
-      toast.error("Failed to send order to dash.");
+      console.error("Error sending order to logistics:", error);
+      toast.error("Failed to send order.");
     } finally {
       setIsSendingOrder(false);
     }
@@ -130,8 +196,14 @@ export function DashLocationCell({
           size={16}
         />
         <Input
-          placeholder="Search location..."
-          className="pl-10"
+          placeholder={
+            isSearchEnabled
+              ? `Search ${logisticsLabel ?? ""} location...`
+              : "Select DASH/Pick & Drop to enable search"
+          }
+          className={`pl-10 ${
+            !isSearchEnabled ? "cursor-not-allowed opacity-70" : ""
+          }`}
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -146,7 +218,7 @@ export function DashLocationCell({
               setIsDropdownOpen(true);
             }
           }}
-          disabled={isUpdatingLocation || isSendingOrder}
+          disabled={isUpdatingLocation || isSendingOrder || !isSearchEnabled}
         />
         {isDropdownOpen && (
           <div className="absolute w-full top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -203,7 +275,10 @@ export function DashLocationCell({
       <Button
         onClick={handleSendOrder}
         disabled={
-          !sale.dash_location_name || isSendingOrder || isUpdatingLocation
+          !sale.location_name ||
+          isSendingOrder ||
+          isUpdatingLocation ||
+          !isSearchEnabled
         }
       >
         {isSendingOrder ? (

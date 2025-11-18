@@ -477,8 +477,8 @@ export default function SalesTable() {
         sale.id === saleId
           ? {
               ...sale,
-              dash_location_id: location.id,
-              dash_location_name: location.name,
+              location_id: location.id,
+              location_name: location.name,
             }
           : sale
       )
@@ -491,8 +491,8 @@ export default function SalesTable() {
           sale.id === saleId
             ? {
                 ...sale,
-                dash_location_id: location.id,
-                dash_location_name: location.name,
+                location_id: location.id,
+                location_name: location.name,
               }
             : sale
         ),
@@ -702,6 +702,7 @@ export default function SalesTable() {
           setSelectedPaymentImage={setSelectedPaymentImage}
           setShowPaymentImageModal={setShowPaymentImageModal}
           onLocationUpdate={handleLocationUpdate}
+          selectedLogisticFilter={logistic}
         />
       </div>
 
