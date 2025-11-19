@@ -35,7 +35,12 @@ export function useTableColumns() {
       visible: true,
       width: 120,
     },
-
+    {
+      id: "delivery_type",
+      label: "Delivery Type",
+      visible: true,
+      width: 50,
+    },
     {
       id: "order_status",
       label: "Order Status",
@@ -100,12 +105,6 @@ export function useTableColumns() {
     {
       id: "delivery_charge",
       label: "Delivery Charge",
-      visible: false,
-      width: 50,
-    },
-    {
-      id: "delivery_type",
-      label: "Delivery Type",
       visible: false,
       width: 50,
     },
