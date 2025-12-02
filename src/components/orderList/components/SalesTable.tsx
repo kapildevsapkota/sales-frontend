@@ -50,8 +50,6 @@ export function SalesTable({
     isCustomer: boolean
   ) => {
     const customerDetails = `
-    THANK YOU FOR YOUR ORDER!
-
 *Customer Details:*
 👤 Name: ${sale.full_name}
 📱 Phone: ${sale.phone_number}
@@ -61,6 +59,7 @@ export function SalesTable({
 🛒 Products: ${sale.order_products
       .map((p) => `${p.product.name} - ${p.quantity}`)
       .join(", ")}
+💰 Delivery Charge: Rs. ${sale.delivery_charge}
 💰 Total Amount: Rs. ${sale.total_amount}
 ${
   sale.payment_method === "Prepaid"
@@ -70,6 +69,9 @@ ${
       }`
     : ""
 }
+
+    Hajurlai courier / rider bata call 📱aauxa receive gardinu hola. 
+    THANK YOU FOR YOUR ORDER!
     `.trim();
 
     // Format the order details
@@ -81,7 +83,6 @@ ${
 📱 Phone: ${sale.phone_number}
 📱 AltPhone: ${sale.alternate_phone_number}
 📍 Location: ${sale.delivery_address}, ${sale.city}
-
 
 *Order Details:*
 🛒 Products: ${sale.order_products
@@ -103,7 +104,8 @@ ${
 *Sales Person:*
 👨‍💼 ${sale.sales_person.first_name} ${sale.sales_person.last_name}
 
-Please process this order promptly! 🚀
+Hajurlai courier / rider bata call 📱aauxa receive gardinu hola. 
+THANK YOU FOR YOUR ORDER!
     `.trim();
 
     const orderDetailsForDashGroup = `
