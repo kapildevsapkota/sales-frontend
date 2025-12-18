@@ -70,9 +70,17 @@ enum DeliveryType {
 }
 
 interface DuplicateOrderError {
+  key?: string;
   error: string;
   status: string | number;
-  existing_order: {
+  requires_prepayment?: string;
+  stats?: {
+    cancelled_count: string;
+    delivered_count: string;
+    cancelled_from_franchises: string[];
+  };
+  message?: string;
+  existing_order?: {
     order_id: string;
     created_at: string;
     salesperson: {
@@ -85,6 +93,19 @@ interface DuplicateOrderError {
     };
     order_status: string;
   };
+  existing_orders?: Array<{
+    order_id: string;
+    created_at: string;
+    salesperson: {
+      name: string;
+      phone: string;
+    };
+    location: {
+      franchise: string;
+      distributor: string;
+    };
+    order_status: string;
+  }>;
 }
 
 export default function CreateOrderForm({
@@ -480,7 +501,9 @@ export default function CreateOrderForm({
             typeof err.response.data === "object" &&
             err.response.data !== null &&
             "error" in err.response.data &&
-            "existing_order" in err.response.data
+            ("existing_order" in err.response.data ||
+              "existing_orders" in err.response.data ||
+              "key" in err.response.data)
           ) {
             duplicateError = err.response.data as DuplicateOrderError;
             // errorMsg = duplicateError.error;
@@ -1343,55 +1366,135 @@ export default function CreateOrderForm({
         open={forceOrderDialogOpen}
         onOpenChange={setForceOrderDialogOpen}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Duplicate Order Detected</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader className="space-y-2 sm:space-y-3">
+            <DialogTitle className="text-lg sm:text-xl">
+              {duplicateOrderError?.key === "Cancelled/Returned order found"
+                ? "Cancelled/Returned Order Found"
+                : "Duplicate Order Detected"}
+            </DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
               {duplicateOrderError
-                ? duplicateOrderError.error
+                ? duplicateOrderError.key === "Cancelled/Returned order found"
+                  ? duplicateOrderError.message || duplicateOrderError.error
+                  : duplicateOrderError.error
                 : forceOrderErrorMsg}
             </DialogDescription>
             {duplicateOrderError && (
               <div className="space-y-2 text-left mt-2">
-                <div className="border rounded p-3 bg-gray-50">
-                  <div>
-                    <span className="font-medium">Order ID:</span>{" "}
-                    {duplicateOrderError.existing_order.order_id}
+                {duplicateOrderError.key === "Cancelled/Returned order found" &&
+                  duplicateOrderError.stats && (
+                    <div className="border rounded p-2 sm:p-3 bg-yellow-50 mb-2 sm:mb-3">
+                      <div className="font-medium mb-1 sm:mb-2 text-sm sm:text-base">
+                        Order Statistics:
+                      </div>
+                      <div className="text-xs sm:text-sm">
+                        <span className="font-medium">Cancelled Orders:</span>{" "}
+                        {duplicateOrderError.stats.cancelled_count}
+                      </div>
+                      <div className="text-xs sm:text-sm">
+                        <span className="font-medium">Delivered Orders:</span>{" "}
+                        {duplicateOrderError.stats.delivered_count}
+                      </div>
+                      {duplicateOrderError.stats.cancelled_from_franchises &&
+                        duplicateOrderError.stats.cancelled_from_franchises
+                          .length > 0 && (
+                          <div className="mt-1 sm:mt-2 text-xs sm:text-sm">
+                            <span className="font-medium">
+                              Cancelled from Franchises:
+                            </span>{" "}
+                            {duplicateOrderError.stats.cancelled_from_franchises.join(
+                              ", "
+                            )}
+                          </div>
+                        )}
+                      {duplicateOrderError.requires_prepayment === "True" && (
+                        <div className="mt-1 sm:mt-2 p-1.5 sm:p-2 bg-red-100 rounded text-red-800 font-medium text-xs sm:text-sm">
+                          ⚠️ Prepayment Required
+                        </div>
+                      )}
+                    </div>
+                  )}
+                {duplicateOrderError.key === "Cancelled/Returned order found" &&
+                duplicateOrderError.existing_orders ? (
+                  <div className="space-y-2 sm:space-y-3">
+                    {duplicateOrderError.existing_orders.map((order) => (
+                      <div
+                        key={order.order_id}
+                        className="border rounded p-2 sm:p-3 bg-gray-50"
+                      >
+                        <div className="text-xs sm:text-sm">
+                          <span className="font-medium">Order ID:</span>{" "}
+                          {order.order_id}
+                        </div>
+                        <div className="text-xs sm:text-sm">
+                          <span className="font-medium">Created At:</span>{" "}
+                          {new Date(order.created_at).toLocaleString()}
+                        </div>
+                        <div className="text-xs sm:text-sm">
+                          <span className="font-medium">Salesperson:</span>{" "}
+                          {order.salesperson.name} (
+                          <a
+                            href={`tel:${order.salesperson.phone}`}
+                            className="text-blue-600 underline"
+                          >
+                            {order.salesperson.phone}
+                          </a>
+                          )
+                        </div>
+                        <div className="text-xs sm:text-sm">
+                          <span className="font-medium">Franchise:</span>{" "}
+                          {order.location.franchise}
+                        </div>
+                        <div className="text-xs sm:text-sm">
+                          <span className="font-medium">Order Status:</span>{" "}
+                          {order.order_status}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <span className="font-medium">Created At:</span>{" "}
-                    {new Date(
-                      duplicateOrderError.existing_order.created_at
-                    ).toLocaleString()}
+                ) : duplicateOrderError.existing_order ? (
+                  <div className="border rounded p-2 sm:p-3 bg-gray-50">
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium">Order ID:</span>{" "}
+                      {duplicateOrderError.existing_order.order_id}
+                    </div>
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium">Created At:</span>{" "}
+                      {new Date(
+                        duplicateOrderError.existing_order.created_at
+                      ).toLocaleString()}
+                    </div>
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium">Salesperson:</span>{" "}
+                      {duplicateOrderError.existing_order.salesperson.name} (
+                      <a
+                        href={`tel:${duplicateOrderError.existing_order.salesperson.phone}`}
+                        className="text-blue-600 underline"
+                      >
+                        {duplicateOrderError.existing_order.salesperson.phone}
+                      </a>
+                      )
+                    </div>
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium">Franchise:</span>{" "}
+                      {duplicateOrderError.existing_order.location.franchise}
+                    </div>
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium">Order Status:</span>{" "}
+                      {duplicateOrderError.existing_order.order_status}
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Salesperson:</span>{" "}
-                    {duplicateOrderError.existing_order.salesperson.name} (
-                    <a
-                      href={`tel:${duplicateOrderError.existing_order.salesperson.phone}`}
-                      className="text-blue-600 underline"
-                    >
-                      {duplicateOrderError.existing_order.salesperson.phone}
-                    </a>
-                    )
-                  </div>
-                  <div>
-                    <span className="font-medium">Franchise:</span>{" "}
-                    {duplicateOrderError.existing_order.location.franchise}
-                  </div>
-                  <div>
-                    <span className="font-medium">Order Status:</span>{" "}
-                    {duplicateOrderError.existing_order.order_status}
-                  </div>
-                </div>
+                ) : null}
               </div>
             )}
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-4 mt-4">
             <Button
               variant="outline"
               onClick={handleCloseForceOrderDialog}
               disabled={loading}
+              className="w-full sm:w-auto h-10 sm:h-[45px] text-sm sm:text-base"
             >
               Cancel
             </Button>
@@ -1404,7 +1507,7 @@ export default function CreateOrderForm({
                 handleCloseForceOrderDialog();
               }}
               disabled={loading}
-              className="h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold"
+              className="w-full sm:w-auto h-10 sm:h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm sm:text-base"
             >
               Force Order
             </Button>
