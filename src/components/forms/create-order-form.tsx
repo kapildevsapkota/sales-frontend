@@ -108,6 +108,17 @@ interface DuplicateOrderError {
   }>;
 }
 
+interface InsufficientInventoryError {
+  key?: string;
+  error: string;
+  status: string | number;
+  inventory_details?: {
+    product_name: string;
+    available_quantity: string;
+    requested_quantity: string;
+  };
+}
+
 export default function CreateOrderForm({
   orderId,
   isEditMode = false,
@@ -132,6 +143,10 @@ export default function CreateOrderForm({
     useState<DuplicateOrderError | null>(null);
   const [pendingForceOrderData, setPendingForceOrderData] =
     useState<OrderFormValues | null>(null);
+  const [insufficientInventoryError, setInsufficientInventoryError] =
+    useState<InsufficientInventoryError | null>(null);
+  const [insufficientInventoryDialogOpen, setInsufficientInventoryDialogOpen] =
+    useState(false);
   const { user } = useAuth();
 
   const router = useRouter();
@@ -494,9 +509,22 @@ export default function CreateOrderForm({
     } catch (error) {
       const err = error as AxiosError;
       if (err.response?.status === 403 || err.response?.status === 400) {
-        // let errorMsg = "Order could not be placed.";
-        let duplicateError: DuplicateOrderError | null = null;
         if (err.response.data) {
+          if (
+            typeof err.response.data === "object" &&
+            err.response.data !== null &&
+            "key" in err.response.data &&
+            err.response.data.key === "Insufficient inventory"
+          ) {
+            // Handle insufficient inventory error
+            const insufficientError = err.response
+              .data as InsufficientInventoryError;
+            setInsufficientInventoryError(insufficientError);
+            setInsufficientInventoryDialogOpen(true);
+            return;
+          }
+
+          // Handle duplicate order error
           if (
             typeof err.response.data === "object" &&
             err.response.data !== null &&
@@ -505,15 +533,13 @@ export default function CreateOrderForm({
               "existing_orders" in err.response.data ||
               "key" in err.response.data)
           ) {
-            duplicateError = err.response.data as DuplicateOrderError;
-            // errorMsg = duplicateError.error;
+            const duplicateError = err.response.data as DuplicateOrderError;
+            setDuplicateOrderError(duplicateError);
+            setPendingForceOrderData(data);
+            setForceOrderDialogOpen(true);
+            return;
           }
         }
-        // setForceOrderErrorMsg(errorMsg);
-        setDuplicateOrderError(duplicateError);
-        setPendingForceOrderData(data);
-        setForceOrderDialogOpen(true);
-        return;
       }
       if (err.response?.data) {
         const errorResponse = err.response.data;
@@ -1510,6 +1536,72 @@ export default function CreateOrderForm({
               className="w-full sm:w-auto h-10 sm:h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm sm:text-base"
             >
               Force Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={insufficientInventoryDialogOpen}
+        onOpenChange={setInsufficientInventoryDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl text-red-600">
+              Insufficient Inventory
+            </DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
+              {insufficientInventoryError?.error ||
+                "There is not enough inventory available for this order."}
+            </DialogDescription>
+          </DialogHeader>
+          {insufficientInventoryError?.inventory_details && (
+            <div className="space-y-3 mt-4">
+              <div className="border rounded-lg p-4 bg-red-50 border-red-200">
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    <span className="font-medium">Product:</span>{" "}
+                    <span className="text-red-800">
+                      {
+                        insufficientInventoryError.inventory_details
+                          .product_name
+                      }
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">Available Quantity:</span>{" "}
+                    <span className="text-green-700 font-semibold">
+                      {
+                        insufficientInventoryError.inventory_details
+                          .available_quantity
+                      }
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">Requested Quantity:</span>{" "}
+                    <span className="text-red-700 font-semibold">
+                      {
+                        insufficientInventoryError.inventory_details
+                          .requested_quantity
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Please adjust the quantity to match the available inventory or
+                wait for more stock to become available.
+              </p>
+            </div>
+          )}
+          <DialogFooter className="mt-6">
+            <Button
+              onClick={() => {
+                setInsufficientInventoryDialogOpen(false);
+                setInsufficientInventoryError(null);
+              }}
+              className="w-full sm:w-auto h-10 sm:h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm sm:text-base"
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
