@@ -155,10 +155,7 @@ export default function CreateOrderForm({
     .object({
       full_name: z.string().min(2, "Name is required"),
       delivery_location: z.string().min(2, "Delivery location is required"),
-      phone_number: z
-        .string()
-        .regex(/^\d{10}$/, "Phone number must be exactly 10 digits")
-        .min(10, "Phone number must be exactly 10 digits"),
+      phone_number: z.string().max(10, "Phone number must be at most 10 digits"),
       alternate_phone_number: z.string().nullable().optional(),
       city: z.string().optional(),
       landmark: z.string().optional(),
