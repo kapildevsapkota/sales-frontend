@@ -70,13 +70,35 @@ const formSchema = z.object({
       required_error: "Role is required",
     }
   ),
-  distributor: z.number().nullable(),
-  franchise: z.number().nullable(),
+  distributor: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return null;
+      const parsed = Number(val);
+      return isNaN(parsed) ? null : parsed;
+    },
+    z.number().nullable()
+  ),
+  franchise: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return null;
+      const parsed = Number(val);
+      return isNaN(parsed) ? null : parsed;
+    },
+    z.number().nullable()
+  ),
   password: z.string().optional(),
-  factory: z.number().nullable(),
+  factory: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return null;
+      const parsed = Number(val);
+      return isNaN(parsed) ? null : parsed;
+    },
+    z.number().nullable()
+  ),
 });
 
 export type CreateUserFormData = z.infer<typeof formSchema>;
+
 
 interface CreateAccountFormProps {
   initialValues?: CreateUserFormData;
@@ -185,8 +207,7 @@ export default function CreateAccountForm({
   }, []);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log("Form submitted with values:", values);
-    console.log("isEditMode:", isEditMode, "userId:", userId);
+
     setLoading(true);
     try {
       if (
@@ -355,6 +376,7 @@ export default function CreateAccountForm({
               <form
                 onSubmit={form.handleSubmit(onSubmit, (errors) => {
                   console.error("Form validation errors:", errors);
+
                   toast({
                     title: "Validation Error",
                     description: "Please check all required fields",
