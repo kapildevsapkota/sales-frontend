@@ -42,7 +42,9 @@ export function useTableData() {
             <>
               {sale.full_name}
               <br />
-              {sale.phone_number}
+              {sale.country_code 
+                ? `+${sale.country_code} ${sale.phone_number}`
+                : sale.phone_number}
               {sale.alternate_phone_number && (
                 <>
                   <br />
@@ -114,7 +116,7 @@ export function useTableData() {
           return sale.payment_method;
         case "delivery_charge":
           return `Rs. ${Number.parseFloat(
-            sale.delivery_charge
+            sale.delivery_charge,
           ).toLocaleString()}`;
         case "delivery_type":
           return sale.delivery_type;
@@ -126,7 +128,7 @@ export function useTableData() {
           return "";
       }
     },
-    []
+    [],
   );
 
   // Handle sort change
@@ -148,7 +150,7 @@ export function useTableData() {
         setSortDirection("asc");
       }
     },
-    [sortField, sortDirection]
+    [sortField, sortDirection],
   );
 
   // Sort data function
@@ -171,7 +173,7 @@ export function useTableData() {
         return 0;
       });
     },
-    [getValueByColumnId]
+    [getValueByColumnId],
   );
 
   // Get sort icon based on current sort state
@@ -184,7 +186,7 @@ export function useTableData() {
         return <ArrowDown className="h-4 w-4 ml-1" />;
       return <ArrowUpDown className="h-4 w-4 ml-1 text-gray-400" />;
     },
-    [sortField, sortDirection]
+    [sortField, sortDirection],
   );
 
   return {

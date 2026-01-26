@@ -41,6 +41,7 @@ export interface SaleItem {
   remaining_amount: number | null;
   alternate_phone_number: string | null;
   delivery_type: string;
+  country_code: string;
 }
 
 interface OrderProduct {

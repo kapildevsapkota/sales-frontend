@@ -42,6 +42,9 @@ import {
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { Role, useAuth } from "@/contexts/AuthContext";
+import { PhoneInput } from "../ui/phone-input";
+import { parsePhoneNumber } from "react-phone-number-input";
+import type * as RPNInput from "react-phone-number-input";
 
 interface CreateOrderFormProps {
   products: Product[];
@@ -131,7 +134,7 @@ export default function CreateOrderForm({
   const [quantities, setQuantities] = useState<{ [key: string]: string }>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<FileWithPreview | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
@@ -155,7 +158,8 @@ export default function CreateOrderForm({
     .object({
       full_name: z.string().min(2, "Name is required"),
       delivery_location: z.string().min(2, "Delivery location is required"),
-      phone_number: z.string().max(10, "Phone number must be at most 10 digits"),
+      phone_number: z.string().min(1, "Phone number is required"),
+      country_code: z.string().optional(),
       alternate_phone_number: z.string().nullable().optional(),
       city: z.string().optional(),
       landmark: z.string().optional(),
@@ -200,6 +204,7 @@ export default function CreateOrderForm({
       full_name: "",
       delivery_location: "",
       phone_number: "",
+      country_code: "",
       delivery_charge: undefined,
       alternate_phone_number: "",
       city: "",
@@ -240,7 +245,7 @@ export default function CreateOrderForm({
             headers: {
               Authorization: `Bearer ${authToken}`,
             },
-          }
+          },
         );
         const data = await response.json();
         console.log("Fetched Oil Types:", data); // Debug: Log fetched data
@@ -256,8 +261,8 @@ export default function CreateOrderForm({
               product_id: product.product_id, // Ensure product_id is included
               name: product.product_name,
               quantity: product.quantity,
-            })
-          )
+            }),
+          ),
         );
       } catch (error) {
         console.error("Error fetching oil types:", error);
@@ -281,23 +286,30 @@ export default function CreateOrderForm({
               headers: {
                 Authorization: `Bearer ${authToken}`,
               },
-            }
+            },
           );
           const data = await response.json();
 
           // Set form values from existing order with proper type conversion
           form.setValue("full_name", data.full_name);
           form.setValue("delivery_location", data.delivery_address);
-          form.setValue("phone_number", data.phone_number);
+          // Handle phone number - if country_code exists, combine it with phone_number
+          const phoneValue = data.country_code
+            ? `+${data.country_code}${data.phone_number}`
+            : data.phone_number.startsWith("+")
+              ? data.phone_number
+              : `+977${data.phone_number}`;
+          form.setValue("phone_number", phoneValue);
+          form.setValue("country_code", data.country_code || "977");
           form.setValue(
             "alternate_phone_number",
-            data.alternate_phone_number || ""
+            data.alternate_phone_number || "",
           );
           form.setValue("city", data.city || "");
           form.setValue("landmark", data.landmark || "");
           form.setValue(
             "amount",
-            parseFloat(data.total_amount) - parseFloat(data.delivery_charge)
+            parseFloat(data.total_amount) - parseFloat(data.delivery_charge),
           );
           form.setValue("prepaid_amount", parseFloat(data.prepaid_amount));
           form.setValue("delivery_charge", parseFloat(data.delivery_charge));
@@ -317,7 +329,7 @@ export default function CreateOrderForm({
 
           // Set selected oil types and quantities
           const selectedTypes = data.order_products.map(
-            (item: { product: { name: string } }) => item.product.name
+            (item: { product: { name: string } }) => item.product.name,
           );
           setSelectedOilTypes(selectedTypes);
           form.setValue("oil_type", selectedTypes);
@@ -326,7 +338,7 @@ export default function CreateOrderForm({
           data.order_products.forEach(
             (item: { product: { name: string }; quantity: number }) => {
               quantitiesMap[item.product.name] = item.quantity.toString();
-            }
+            },
           );
           setQuantities(quantitiesMap);
 
@@ -372,8 +384,8 @@ export default function CreateOrderForm({
       paymentMethod === PaymentMethod.OfficeVisit
         ? 0
         : typeof deliveryCharge === "number" && !Number.isNaN(deliveryCharge)
-        ? deliveryCharge
-        : undefined;
+          ? deliveryCharge
+          : undefined;
     const hasDeliveryCharge =
       typeof computedDeliveryCharge === "number" &&
       !Number.isNaN(computedDeliveryCharge);
@@ -406,27 +418,74 @@ export default function CreateOrderForm({
           };
         })
         .filter(
-          (product) => product.product_id !== null && product.quantity > 0
+          (product) => product.product_id !== null && product.quantity > 0,
         );
 
       if (orderProducts.length === 0) {
         throw new Error(
-          "At least one product with a valid quantity is required."
+          "At least one product with a valid quantity is required.",
         );
       }
 
       // Create FormData instance
       const formData = new FormData();
 
+      // Parse phone number to extract country code and phone number
+      let phoneNumber = "";
+      let countryCode = "";
+
+      if (data.phone_number) {
+        try {
+          const parsed = parsePhoneNumber(data.phone_number as RPNInput.Value);
+          if (parsed) {
+            countryCode = parsed.countryCallingCode;
+            phoneNumber = parsed.nationalNumber;
+          } else {
+            // Fallback: if parsing fails, try to extract manually
+            const phoneValue = data.phone_number.trim();
+            if (phoneValue.startsWith("+")) {
+              const match = phoneValue.match(/^\+(\d{1,3})(.+)$/);
+              if (match) {
+                countryCode = match[1];
+                phoneNumber = match[2];
+              } else {
+                phoneNumber = phoneValue.replace(/^\+/, "");
+                countryCode = data.country_code || "977";
+              }
+            } else {
+              phoneNumber = phoneValue;
+              countryCode = data.country_code || "977";
+            }
+          }
+        } catch (error) {
+          // Fallback: if parsing fails, use the value as is
+          const phoneValue = data.phone_number.trim();
+          if (phoneValue.startsWith("+")) {
+            const match = phoneValue.match(/^\+(\d{1,3})(.+)$/);
+            if (match) {
+              countryCode = match[1];
+              phoneNumber = match[2];
+            } else {
+              phoneNumber = phoneValue.replace(/^\+/, "");
+              countryCode = data.country_code || "977";
+            }
+          } else {
+            phoneNumber = phoneValue;
+            countryCode = data.country_code || "977";
+          }
+        }
+      }
+
       // Add all the fields to FormData
       formData.append("full_name", data.full_name);
       formData.append("city", data.city || "");
       formData.append("delivery_address", data.delivery_location);
       formData.append("landmark", data.landmark || "");
-      formData.append("phone_number", data.phone_number.trim());
+      formData.append("phone_number", phoneNumber);
+      formData.append("country_code", countryCode);
       formData.append(
         "alternate_phone_number",
-        (data.alternate_phone_number || "").trim()
+        (data.alternate_phone_number || "").trim(),
       );
       formData.append("payment_method", data.payment_method);
       formData.append("total_amount", data.total_amount.toString());
@@ -435,14 +494,14 @@ export default function CreateOrderForm({
       const deliveryChargeToSend =
         data.payment_method === PaymentMethod.OfficeVisit
           ? 0
-          : data.delivery_charge ?? 0;
+          : (data.delivery_charge ?? 0);
       formData.append("delivery_charge", deliveryChargeToSend.toString());
       formData.append("delivery_type", data.delivery_type);
       formData.append(
         "prepaid_amount",
         data.payment_method === "Office Visit"
           ? data.total_amount.toString()
-          : data.prepaid_amount?.toString() || "0"
+          : data.prepaid_amount?.toString() || "0",
       );
 
       // Add location if selected
@@ -471,7 +530,7 @@ export default function CreateOrderForm({
               Authorization: `Bearer ${authToken}`,
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
       } else {
         // Send POST request for create mode
@@ -483,13 +542,13 @@ export default function CreateOrderForm({
               Authorization: `Bearer ${authToken}`,
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
       }
 
       if (response.status === 200 || response.status === 201) {
         toast.success(
-          `Order ${isEditMode ? "updated" : "submitted"} successfully!`
+          `Order ${isEditMode ? "updated" : "submitted"} successfully!`,
         );
         form.reset();
         await onSuccess?.();
@@ -552,7 +611,7 @@ export default function CreateOrderForm({
           toast.error(
             `An error occurred while ${
               isEditMode ? "updating" : "submitting"
-            } the order.`
+            } the order.`,
           );
         }
       } else {
@@ -664,44 +723,34 @@ export default function CreateOrderForm({
                           <span className="text-red-500 ml-1">*</span>
                         </FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <PhoneIcon
-                              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                              size={16}
-                            />
-                            <Input
-                              type="tel"
-                              placeholder="Enter 10 digit phone number"
-                              className="h-[60px] pl-10 border-gray-300 focus:border-green-500 focus-visible:ring-green-500"
-                              maxLength={10}
-                              {...field}
-                              onPaste={(e) => {
-                                e.preventDefault();
-                                let value = e.clipboardData.getData("text");
-                                // First, remove all non-digit characters (spaces, dashes, plus signs, etc.)
-                                value = value.replace(/\D/g, "");
-                                // Then, remove 977 prefix if present (Nepal country code)
-                                if (value.startsWith("977")) {
-                                  value = value.slice(3);
+                          <PhoneInput
+                            value={field.value as RPNInput.Value}
+                            onChange={(value) => {
+                              field.onChange(value);
+                              // Extract and store country code
+                              if (value) {
+                                try {
+                                  const parsed = parsePhoneNumber(value);
+                                  if (parsed) {
+                                    form.setValue(
+                                      "country_code",
+                                      parsed.countryCallingCode,
+                                    );
+                                  }
+                                } catch (error) {
+                                  // If parsing fails, try to extract manually
+                                  if (value.startsWith("+")) {
+                                    const match = value.match(/^\+(\d{1,3})/);
+                                    if (match) {
+                                      form.setValue("country_code", match[1]);
+                                    }
+                                  }
                                 }
-                                // Limit to 10 digits
-                                value = value.slice(0, 10);
-                                field.onChange(value);
-                              }}
-                              onChange={(e) => {
-                                let value = e.target.value;
-                                // First, remove all non-digit characters (spaces, dashes, plus signs, etc.)
-                                value = value.replace(/\D/g, "");
-                                // Then, remove 977 prefix if present (Nepal country code)
-                                if (value.startsWith("977")) {
-                                  value = value.slice(3);
-                                }
-                                // Limit to 10 digits
-                                value = value.slice(0, 10);
-                                field.onChange(value);
-                              }}
-                            />
-                          </div>
+                              }
+                            }}
+                            defaultCountry="NP"
+                            className="[&>button]:h-[60px] [&>input]:h-[60px] [&>input]:border-gray-300 [&>input]:focus:border-green-500 [&>input]:focus-visible:ring-green-500"
+                          />
                         </FormControl>
                         <FormMessage className="text-red-500 text-xs mt-1" />
                       </FormItem>
@@ -873,7 +922,7 @@ export default function CreateOrderForm({
                                 <input
                                   type="checkbox"
                                   checked={selectedOilTypes.includes(
-                                    product.name
+                                    product.name,
                                   )}
                                   className="mr-3 h-8 w-4 text-green-600 focus:ring-green-500"
                                   onChange={() => {}} // Handled by parent div click
@@ -935,7 +984,7 @@ export default function CreateOrderForm({
                             onChange={(e) => {
                               const value = e.target.value;
                               field.onChange(
-                                value === "" ? undefined : parseFloat(value)
+                                value === "" ? undefined : parseFloat(value),
                               );
                             }}
                           />
@@ -963,8 +1012,8 @@ export default function CreateOrderForm({
                               paymentMethod === PaymentMethod.OfficeVisit
                                 ? 0
                                 : typeof field.value === "number"
-                                ? field.value
-                                : ""
+                                  ? field.value
+                                  : ""
                             }
                             disabled={
                               paymentMethod === PaymentMethod.OfficeVisit
@@ -976,7 +1025,7 @@ export default function CreateOrderForm({
                               }
                               const value = e.target.value;
                               field.onChange(
-                                value === "" ? undefined : parseFloat(value)
+                                value === "" ? undefined : parseFloat(value),
                               );
                             }}
                           />
@@ -1169,8 +1218,8 @@ export default function CreateOrderForm({
                             {paymentMethod === PaymentMethod.Prepaid
                               ? "Prepaid Amount"
                               : paymentMethod === PaymentMethod.Indrive
-                              ? "Indrive Amount"
-                              : "Office Visit Amount"}{" "}
+                                ? "Indrive Amount"
+                                : "Office Visit Amount"}{" "}
                             <span className="text-red-500 ml-1">*</span>
                           </FormLabel>
                           <FormControl>
@@ -1193,7 +1242,9 @@ export default function CreateOrderForm({
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   field.onChange(
-                                    value === "" ? undefined : parseFloat(value)
+                                    value === ""
+                                      ? undefined
+                                      : parseFloat(value),
                                   );
                                 }}
                               />
@@ -1427,7 +1478,7 @@ export default function CreateOrderForm({
                               Cancelled from Franchises:
                             </span>{" "}
                             {duplicateOrderError.stats.cancelled_from_franchises.join(
-                              ", "
+                              ", ",
                             )}
                           </div>
                         )}
@@ -1485,7 +1536,7 @@ export default function CreateOrderForm({
                     <div className="text-xs sm:text-sm">
                       <span className="font-medium">Created At:</span>{" "}
                       {new Date(
-                        duplicateOrderError.existing_order.created_at
+                        duplicateOrderError.existing_order.created_at,
                       ).toLocaleString()}
                     </div>
                     <div className="text-xs sm:text-sm">

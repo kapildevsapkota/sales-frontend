@@ -47,7 +47,7 @@ export function SalesTable({
   const handleSendOrder = (
     sale: SaleItem,
     isDash: boolean,
-    isCustomer: boolean
+    isCustomer: boolean,
   ) => {
     const customerDetails = `
 *Customer Details:*
@@ -126,13 +126,13 @@ Tracking Code: ${sale.tracking_code}
         isDash
           ? orderDetailsForDashGroup
           : isCustomer
-          ? customerDetails
-          : orderDetails
+            ? customerDetails
+            : orderDetails,
       )
       .then(() => {
         // Show success message
         alert(
-          "Order details copied to clipboard! Please paste it in your WhatsApp group."
+          "Order details copied to clipboard! Please paste it in your WhatsApp group.",
         );
       })
       .catch((err) => {
@@ -177,7 +177,9 @@ Tracking Code: ${sale.tracking_code}
       case "delivery_location":
         return `${sale.delivery_address}, ${sale.city}`;
       case "phone_number":
-        return sale.phone_number;
+        return sale.country_code 
+          ? `+${sale.country_code} ${sale.phone_number}`
+          : sale.phone_number;
       case "remarks":
         return sale.remarks;
       case "oil_type":
