@@ -70,7 +70,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, status }) => {
       try {
         // Fetch products
         const productsResponse = await fetch(
-          `https://sales.baliyoventures.com/api/sales/all-products/?status=${status}`,
+          `https://sales.baliyoventures.com/api/sales/all-products/?status=${status}&&page_size=33`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -191,7 +191,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, status }) => {
                         <SelectTrigger>
                           <SelectValue placeholder="Select a product" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-[300px]">
                           {products.map((product) => (
                             <SelectItem
                               key={product.id}

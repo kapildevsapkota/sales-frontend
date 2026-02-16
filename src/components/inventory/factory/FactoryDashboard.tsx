@@ -20,12 +20,7 @@ const FactoryDashboard = () => {
       icon: <Leaf className="h-5 w-5 mr-2" />,
       content: <RawMaterialsInventory />,
     },
-    {
-      id: "finished-products",
-      label: "Finished Products",
-      icon: <Package className="h-5 w-5 mr-2" />,
-      content: <FinishedProductsInventory />,
-    },
+
     {
       id: "bottle-case",
       label: "Bottle Case",
@@ -37,6 +32,12 @@ const FactoryDashboard = () => {
       label: "Sticker Case",
       icon: <Package className="h-5 w-5 mr-2" />,
       content: <StickerCaseInventory />,
+    },
+    {
+      id: "finished-products",
+      label: "Finished Products",
+      icon: <Package className="h-5 w-5 mr-2" />,
+      content: <FinishedProductsInventory />,
     },
   ];
 
