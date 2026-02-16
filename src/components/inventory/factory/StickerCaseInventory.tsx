@@ -62,7 +62,7 @@ const StickerCaseInventory = () => {
 
     // Use SWR to fetch data
     const { data, error } = useSWR<ApiResponse>(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=stickers",
+        "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=stickers",
         fetcher
     );
 
@@ -77,7 +77,7 @@ const StickerCaseInventory = () => {
     const handleSaveEdit = async (updatedItem: InventoryItem) => {
         const accessToken = localStorage.getItem("accessToken");
         const response = await fetch(
-            `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${updatedItem.id}/`,
+            `https://sales.baliyoventures.com/api/sales/inventory/${updatedItem.id}/`,
             {
                 method: "PATCH",
                 headers: {
@@ -91,7 +91,7 @@ const StickerCaseInventory = () => {
         );
 
         if (response.ok) {
-            mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=stickers");
+            mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/?status=stickers");
             setEditingItem(null);
         }
     };
@@ -103,7 +103,7 @@ const StickerCaseInventory = () => {
         const productId = updatingQuantityItem.product_id;
 
         const response = await fetch(
-            `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/`,
+            `https://sales.baliyoventures.com/api/sales/inventory/`,
             {
                 method: "POST",
                 headers: {
@@ -118,7 +118,7 @@ const StickerCaseInventory = () => {
         );
 
         if (response.ok) {
-            mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=stickers");
+            mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/?status=stickers");
             setUpdatingQuantityItem(null);
             setAddQuantity("");
         }

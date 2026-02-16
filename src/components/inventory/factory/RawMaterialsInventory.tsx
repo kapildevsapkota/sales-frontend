@@ -77,7 +77,7 @@ const RawMaterialsInventory = () => {
 
   // Use SWR to fetch data
   const { data, error } = useSWR<ApiResponse>(
-    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=raw_material",
+    "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=raw_material",
     fetcher
   );
 
@@ -92,7 +92,7 @@ const RawMaterialsInventory = () => {
   const handleSaveEdit = async (updatedMaterial: RawMaterial) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${updatedMaterial.id}/`,
+      `https://sales.baliyoventures.com/api/sales/inventory/${updatedMaterial.id}/`,
       {
         method: "PATCH",
         headers: {
@@ -107,7 +107,7 @@ const RawMaterialsInventory = () => {
 
     if (response.ok) {
       // Revalidate the data to reflect changes immediately
-      mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=raw_material");
+      mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/?status=raw_material");
       setEditingMaterial(null);
     }
   };
@@ -116,7 +116,7 @@ const RawMaterialsInventory = () => {
   const handleAddMaterial = async () => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/",
+      "https://sales.baliyoventures.com/api/sales/inventory/",
       {
         method: "POST",
         headers: {
@@ -132,7 +132,7 @@ const RawMaterialsInventory = () => {
 
     if (response.ok) {
       // Revalidate the data to reflect changes immediately
-      mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=raw_material");
+      mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/?status=raw_material");
 
       // Reset the form and close it
       setNewMaterial({
@@ -151,7 +151,7 @@ const RawMaterialsInventory = () => {
     const productId = updatingQuantityMaterial.product_id;
 
     const response = await fetch(
-      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/`,
+      `https://sales.baliyoventures.com/api/sales/inventory/`,
       {
         method: "POST",
         headers: {
@@ -166,7 +166,7 @@ const RawMaterialsInventory = () => {
     );
 
     if (response.ok) {
-      mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=raw_material");
+      mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/?status=raw_material");
       setUpdatingQuantityMaterial(null);
       setAddQuantity("");
     }

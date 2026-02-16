@@ -24,7 +24,7 @@ export function Stats() {
       try {
         const authToken = localStorage.getItem("accessToken");
         const response = await fetch(
-          "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/statistics/",
+          "https://sales.baliyoventures.com/api/sales/statistics/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,

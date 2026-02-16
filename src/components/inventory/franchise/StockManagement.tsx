@@ -54,12 +54,12 @@ const StockManagement = () => {
   );
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const handleProductAdded = () => {
-    mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/franchise-inventory/");
+    mutate("https://sales.baliyoventures.com/api/sales/franchise-inventory/");
   };
 
   // Use SWR to fetch data
   const { data, error } = useSWR<InventoryData>(
-    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/franchise-inventory/",
+    "https://sales.baliyoventures.com/api/sales/franchise-inventory/",
     fetcher
   );
 
@@ -74,7 +74,7 @@ const StockManagement = () => {
   const handleSaveEdit = async (product: InventoryItem) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${product.id}/`,
+      `https://sales.baliyoventures.com/api/sales/inventory/${product.id}/`,
       {
         method: "PATCH",
         headers: {
@@ -89,7 +89,7 @@ const StockManagement = () => {
 
     if (response.ok) {
       // Revalidate the data to reflect changes immediately
-      mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/franchise-inventory/");
+      mutate("https://sales.baliyoventures.com/api/sales/franchise-inventory/");
       setEditingProduct(null); // Close the editing modal
     }
   };

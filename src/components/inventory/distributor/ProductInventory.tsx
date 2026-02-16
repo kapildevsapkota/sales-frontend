@@ -52,7 +52,7 @@ const ProductInventory = () => {
 
   // Use SWR to fetch data
   const { data, error } = useSWR<DistributorInventory>(
-    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/distributor-inventory/",
+    "https://sales.baliyoventures.com/api/sales/distributor-inventory/",
     fetcher
   );
 
@@ -73,7 +73,7 @@ const ProductInventory = () => {
   const handleSaveEdit = async (product: InventoryItem) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${product.id}/`,
+      `https://sales.baliyoventures.com/api/sales/inventory/${product.id}/`,
       {
         method: "PATCH",
         headers: {
@@ -89,7 +89,7 @@ const ProductInventory = () => {
     if (response.ok) {
       // Revalidate the data to reflect changes immediately
       mutate(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/distributor-inventory/"
+        "https://sales.baliyoventures.com/api/sales/distributor-inventory/"
       );
       setEditingProduct(null); // Close the editing modal
     }

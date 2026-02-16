@@ -118,7 +118,7 @@ export function SalesFestView({ id }: { id?: string }) {
       params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
     }
 
-    return `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/top-salespersons/?${params.toString()}`;
+    return `https://sales.baliyoventures.com/api/sales/top-salespersons/?${params.toString()}`;
   };
 
   // Use SWR to fetch data with 5-second polling

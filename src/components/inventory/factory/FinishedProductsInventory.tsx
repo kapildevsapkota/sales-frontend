@@ -57,7 +57,7 @@ const FinishedProductsInventory = () => {
   const [addQuantity, setAddQuantity] = useState<number | "">("");
 
   const { data, error } = useSWR<ApiResponse>(
-    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch",
+    "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=ready_to_dispatch",
     fetcher
   );
 
@@ -82,14 +82,14 @@ const FinishedProductsInventory = () => {
   });
 
   const handleProductAdded = (newProduct: InventoryItem) => {
-    mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch");
+    mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/?status=ready_to_dispatch");
     setIsAddingProduct(false);
   };
 
   const handleSaveEdit = async (product: InventoryItem) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${product.id}/`,
+      `https://sales.baliyoventures.com/api/sales/inventory/${product.id}/`,
       {
         method: "PATCH",
         headers: {
@@ -103,7 +103,7 @@ const FinishedProductsInventory = () => {
     );
 
     if (response.ok) {
-      mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch");
+      mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/?status=ready_to_dispatch");
       setEditingProduct(null);
     }
   };
@@ -118,7 +118,7 @@ const FinishedProductsInventory = () => {
     const accessToken = localStorage.getItem("accessToken");
 
     const response = await fetch(
-      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/`,
+      `https://sales.baliyoventures.com/api/sales/inventory/`,
       {
         method: "POST",
         headers: {
@@ -135,7 +135,7 @@ const FinishedProductsInventory = () => {
     if (response.ok) {
       // Revalidate the data to reflect changes immediately
       mutate(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch"
+        "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=ready_to_dispatch"
       );
 
       // Reset state and close modal

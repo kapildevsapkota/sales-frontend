@@ -18,7 +18,7 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
     const fetchStatistics = async () => {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/statistics/${id ? `?franchise=${id}` : ""
+        `https://sales.baliyoventures.com/api/sales/statistics/${id ? `?franchise=${id}` : ""
         }`,
         {
           headers: {

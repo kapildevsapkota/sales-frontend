@@ -50,15 +50,15 @@ export default function UseInventoryPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { data: rawMaterials, error: rawError, isLoading: rawLoading, mutate: mutateRaw } = useSWR<FactoryInventory>(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=raw_material",
+        "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=raw_material",
         fetcher
     );
     const { data: bottles, error: bottlesError, isLoading: bottlesLoading, mutate: mutateBottles } = useSWR<FactoryInventory>(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=bottles",
+        "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=bottles",
         fetcher
     );
     const { data: stickers, error: stickersError, isLoading: stickersLoading, mutate: mutateStickers } = useSWR<FactoryInventory>(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=stickers",
+        "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=stickers",
         fetcher
     );
 

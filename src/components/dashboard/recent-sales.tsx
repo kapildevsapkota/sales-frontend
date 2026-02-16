@@ -62,7 +62,7 @@ export function RecentSales({ id }: { id?: string }) {
           params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
         }
 
-        const url = `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/top-salespersons/?${params.toString()}`;
+        const url = `https://sales.baliyoventures.com/api/sales/top-salespersons/?${params.toString()}`;
 
         console.log("Fetching URL:", url); // Debug log to see the actual URL being called
 

@@ -33,7 +33,7 @@ export function SalesChart({
       try {
         const token = localStorage.getItem("accessToken"); // Get the access token from local storage
         const response = await fetch(
-          `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/revenue/?filter=${timeframe}${id ? `&franchise=${id}` : ""
+          `https://sales.baliyoventures.com/api/sales/revenue/?filter=${timeframe}${id ? `&franchise=${id}` : ""
           }`,
           {
             headers: {

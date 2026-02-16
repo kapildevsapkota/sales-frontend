@@ -73,7 +73,7 @@ export default function DispatchHistoryDialog() {
     const [page, setPage] = useState(1);
 
     const { data: requestsData, isLoading } = useSWR<PaginatedResponse<InventoryRequest>>(
-        `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory-request/?page=${page}`,
+        `https://sales.baliyoventures.com/api/sales/inventory-request/?page=${page}`,
         fetcher
     );
 

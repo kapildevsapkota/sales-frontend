@@ -87,17 +87,17 @@ export default function DispatchManagement() {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
     const { data: inventoryData } = useSWR<{ inventory: InventoryItem[] }>(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch",
+        "https://sales.baliyoventures.com/api/sales/factory-inventory/?status=ready_to_dispatch",
         fetcher
     );
 
     const { data: franchiseData } = useSWR<Franchise[] | { results: Franchise[] }>(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/account/my-franchises",
+        "https://sales.baliyoventures.com/api/account/my-franchises",
         fetcher
     );
 
     const { data: requestsData, mutate: mutateRequests } = useSWR<PaginatedResponse<InventoryRequest>>(
-        `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory-request/?page=${page}`,
+        `https://sales.baliyoventures.com/api/sales/inventory-request/?page=${page}`,
         fetcher
     );
 

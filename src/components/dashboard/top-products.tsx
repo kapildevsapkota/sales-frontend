@@ -22,7 +22,7 @@ export function TopProducts({ id }: { id?: string }) {
       try {
         const token = localStorage.getItem("accessToken");
         const response = await fetch(
-          `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/top-products/?filter=${timeRange} ${id ? `&franchise=${id}` : ""
+          `https://sales.baliyoventures.com/api/sales/top-products/?filter=${timeRange} ${id ? `&franchise=${id}` : ""
           }`,
           {
             headers: {

@@ -61,7 +61,7 @@ export default function InventoryRequestList() {
     const [page, setPage] = useState(1);
 
     const { data, error, isLoading } = useSWR<PaginatedResponse<InventoryRequest>>(
-        `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory-request/?page=${page}`,
+        `https://sales.baliyoventures.com/api/sales/inventory-request/?page=${page}`,
         fetcher
     );
 
@@ -71,7 +71,7 @@ export default function InventoryRequestList() {
             const response = await api.patch(`/api/sales/inventory-request/${id}/`, { status });
             if (response.status === 200) {
                 toast.success(`Request ${status.toLowerCase()} successfully`);
-                mutate(`https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory-request/?page=${page}`);
+                mutate(`https://sales.baliyoventures.com/api/sales/inventory-request/?page=${page}`);
             }
         } catch (error) {
             console.error("Status update error:", error);

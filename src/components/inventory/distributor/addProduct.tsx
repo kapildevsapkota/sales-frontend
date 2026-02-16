@@ -78,7 +78,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
       try {
         // Fetch products
         const productsResponse = await fetch(
-          "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/all-products/",
+          "https://sales.baliyoventures.com/api/sales/all-products/",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -92,7 +92,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
 
         // Fetch distributors
         const distributorsResponse = await fetch(
-          "https://zone-kind-centuries-finding.trycloudflare.com/api/account/distributors/"
+          "https://sales.baliyoventures.com/api/account/distributors/"
         );
         if (distributorsResponse.ok) {
           const distributorsData = await distributorsResponse.json();
@@ -130,7 +130,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
     try {
       const productId = Number.parseInt(values.product);
       const response = await fetch(
-        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/",
+        "https://sales.baliyoventures.com/api/sales/inventory/",
         {
           method: "POST",
           headers: {
