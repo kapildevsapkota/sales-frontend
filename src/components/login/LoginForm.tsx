@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { User, Lock } from "lucide-react";
+import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { LoginFormData } from "./types";
 
@@ -55,6 +55,9 @@ export function LoginForm({
   });
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleDialogClose = (open: boolean) => {
     setIsDialogOpen(open);
@@ -204,11 +207,22 @@ export function LoginForm({
                   <div className="relative group">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 group-hover:text-purple-500 transition-colors" />
                     <Input
-                      type="password"
-                      className="pl-10 h-12 border-gray-200 focus:border-purple-400 focus:ring-purple-400 transition-all"
+                      type={showPassword ? "text" : "password"}
+                      className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-400 focus:ring-purple-400 transition-all"
                       placeholder="Enter your password"
                       {...field}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-4 text-gray-400 hover:text-purple-500 transition-colors"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -254,7 +268,7 @@ export function LoginForm({
                         className={cn(
                           "pl-10 h-12 border-gray-200 focus:border-purple-400 focus:ring-purple-400 transition-all",
                           resetErrors.phone_number &&
-                            "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          "border-red-500 focus:border-red-500 focus:ring-red-500"
                         )}
                       />
                     </div>
@@ -271,7 +285,7 @@ export function LoginForm({
                     <div className="relative group">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 group-hover:text-purple-500 transition-colors" />
                       <Input
-                        type="password"
+                        type={showNewPassword ? "text" : "password"}
                         value={resetPayload.new_password}
                         onChange={(event) =>
                           setResetPayload((prev) => ({
@@ -282,11 +296,22 @@ export function LoginForm({
                         placeholder="Enter new password"
                         disabled={isResetting}
                         className={cn(
-                          "pl-10 h-12 border-gray-200 focus:border-purple-400 focus:ring-purple-400 transition-all",
+                          "pl-10 pr-10 h-12 border-gray-200 focus:border-purple-400 focus:ring-purple-400 transition-all",
                           resetErrors.new_password &&
-                            "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          "border-red-500 focus:border-red-500 focus:ring-red-500"
                         )}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-purple-500 transition-colors"
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
                     {resetErrors.new_password && (
                       <p className="text-red-600 text-sm">
@@ -301,7 +326,7 @@ export function LoginForm({
                     <div className="relative group">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 group-hover:text-purple-500 transition-colors" />
                       <Input
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         value={resetPayload.confirm_password}
                         onChange={(event) =>
                           setResetPayload((prev) => ({
@@ -312,11 +337,24 @@ export function LoginForm({
                         placeholder="Confirm new password"
                         disabled={isResetting}
                         className={cn(
-                          "pl-10 h-12 border-gray-200 focus:border-purple-400 focus:ring-purple-400 transition-all",
+                          "pl-10 pr-10 h-12 border-gray-200 focus:border-purple-400 focus:ring-purple-400 transition-all",
                           resetErrors.confirm_password &&
-                            "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          "border-red-500 focus:border-red-500 focus:ring-red-500"
                         )}
                       />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute right-3 top-3 text-gray-400 hover:text-purple-500 transition-colors"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
                     {resetErrors.confirm_password && (
                       <p className="text-red-600 text-sm">

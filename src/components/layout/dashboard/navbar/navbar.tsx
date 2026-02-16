@@ -11,6 +11,7 @@ import {
   Users,
   Key,
   Calendar,
+  NotepadText,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -194,6 +195,12 @@ export function AppHeader() {
         label: "Sales Groups",
         icon: Users,
         href: "/admin/salesgroup",
+        visible: (_u, fest) => fest === true,
+      },
+      {
+        label: "Reports",
+        icon: NotepadText,
+        href: "/admin/reports",
         visible: (_u, fest) => fest === true,
       },
       // {

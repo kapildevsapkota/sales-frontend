@@ -12,13 +12,20 @@ import {
   Plus,
   Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import AddProduct from "@/components/inventory/factory/addProduct";
 
 // Define types for the API response
+type Product = {
+  id: number;
+  name: string;
+  description: string;
+};
+
 type InventoryItem = {
   id: number;
   product_id: number;
-  product: string;
+  product: Product | string; // Handle both old and new response formats if needed
   quantity: number;
   status: string;
   allocated?: number;
@@ -29,6 +36,8 @@ type FactoryInventory = {
   factory: string;
   inventory: InventoryItem[];
 };
+
+type ApiResponse = FactoryInventory;
 
 const fetcher = (url: string) =>
   fetch(url, {
@@ -44,26 +53,15 @@ const FinishedProductsInventory = () => {
   const [editingProduct, setEditingProduct] = useState<InventoryItem | null>(
     null
   );
+  const [updatingQuantityProduct, setUpdatingQuantityProduct] = useState<InventoryItem | null>(null);
+  const [addQuantity, setAddQuantity] = useState<number | "">("");
 
-  const { data, error } = useSWR<FactoryInventory[]>(
-    "https://sales.baliyoventures.com/api/sales/factory-inventory/",
+  const { data, error } = useSWR<ApiResponse>(
+    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch",
     fetcher
   );
 
-  const products = data
-    ? data
-        .flatMap((factory) =>
-          factory.inventory.filter(
-            (item) => item.status === "ready_to_dispatch"
-          )
-        )
-        .map((product) => ({
-          ...product,
-          allocated: 0,
-          available: product.quantity,
-          sku: `SKU-${product.product_id}`,
-        }))
-    : [];
+  const products = data?.inventory || [];
 
   const determineStatus = (
     quantity: number
@@ -74,8 +72,9 @@ const FinishedProductsInventory = () => {
   };
 
   const filteredProducts = products.filter((product) => {
+    const productName = typeof product.product === "string" ? product.product : product.product.name;
     const displayStatus = determineStatus(product.quantity);
-    const matchesSearch = product.product
+    const matchesSearch = productName
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter ? displayStatus === statusFilter : true;
@@ -83,24 +82,14 @@ const FinishedProductsInventory = () => {
   });
 
   const handleProductAdded = (newProduct: InventoryItem) => {
-    mutate<FactoryInventory[]>(
-      "https://sales.baliyoventures.com/api/sales/factory-inventory/",
-      (currentData) => {
-        if (!currentData) return [];
-        return currentData.map((factory) => ({
-          ...factory,
-          inventory: [...factory.inventory, newProduct],
-        }));
-      },
-      false
-    );
+    mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch");
     setIsAddingProduct(false);
   };
 
   const handleSaveEdit = async (product: InventoryItem) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      `https://sales.baliyoventures.com/api/sales/inventory/${product.id}/`,
+      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${product.id}/`,
       {
         method: "PATCH",
         headers: {
@@ -114,13 +103,45 @@ const FinishedProductsInventory = () => {
     );
 
     if (response.ok) {
-      mutate("https://sales.baliyoventures.com/api/sales/factory-inventory/");
+      mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch");
       setEditingProduct(null);
     }
   };
 
   const handleEditClick = (product: InventoryItem) => {
     setEditingProduct(product);
+  };
+
+  const handleUpdateQuantity = async () => {
+    if (!updatingQuantityProduct) return;
+
+    const accessToken = localStorage.getItem("accessToken");
+
+    const response = await fetch(
+      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          product_id: updatingQuantityProduct.product_id,
+          quantity: Number(addQuantity) || 0,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      // Revalidate the data to reflect changes immediately
+      mutate(
+        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=ready_to_dispatch"
+      );
+
+      // Reset state and close modal
+      setUpdatingQuantityProduct(null);
+      setAddQuantity("");
+    }
   };
 
   return (
@@ -149,10 +170,10 @@ const FinishedProductsInventory = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
+            <Input
               type="text"
               placeholder="Search by product name..."
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -226,10 +247,9 @@ const FinishedProductsInventory = () => {
                 <span>Product Name</span>
                 <ArrowUpDown className="ml-2 h-4 w-4" />
               </div>
-              <div className="col-span-2">SKU</div>
-              <div className="col-span-1 text-center">Available</div>
+              <div className="col-span-2 text-center">Available</div>
               <div className="col-span-2 text-center">Status</div>
-              <div className="col-span-1 text-right">Actions</div>
+              <div className="col-span-2 text-right">Actions</div>
             </div>
 
             {/* Rows */}
@@ -240,88 +260,89 @@ const FinishedProductsInventory = () => {
                   return (
                     <div
                       key={product.id}
-                      className="py-4 px-4 grid grid-cols-1 sm:grid-cols-10 gap-y-2 sm:gap-y-0 text-sm bg-white rounded-md"
+                      className="bg-white"
                     >
-                      {/* Mobile card layout */}
-                      <div className="block sm:hidden space-y-1">
-                        <div className="flex items-center font-medium">
-                          <Package className="mr-2 h-4 w-4 text-purple-600" />
-                          {product.product}
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">SKU: </span>
-                          {`SKU-${product.product_id}`}
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">
-                            Available:{" "}
-                          </span>
-                          {product.available || product.quantity}
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">
-                            Status:{" "}
-                          </span>
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                              displayStatus === "optimal"
-                                ? "bg-green-100 text-green-800"
-                                : displayStatus === "low"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {displayStatus !== "optimal" && (
-                              <AlertCircle className="mr-1 h-3 w-3" />
-                            )}
-                            {displayStatus.charAt(0).toUpperCase() +
-                              displayStatus.slice(1)}
-                          </span>
-                        </div>
-                        <div className="flex justify-end">
-                          <button
-                            className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
-                            onClick={() => handleEditClick(product)}
-                          >
-                            <span className="sr-only">Edit</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="h-4 w-4"
+                      {/* Mobile View */}
+                      <div className="sm:hidden p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center font-bold text-base">
+                            <Package className="mr-2 h-4 w-4 text-purple-600 shrink-0" />
+                            <span>{typeof product.product === "string" ? product.product : product.product.name}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+                              onClick={() => handleEditClick(product)}
                             >
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                              <path d="m15 5 4 4"></path>
-                            </svg>
-                          </button>
+                              <span className="sr-only">Edit</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="h-4 w-4"
+                              >
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                                <path d="m15 5 4 4"></path>
+                              </svg>
+                            </button>
+                            <button
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+                              onClick={() => setUpdatingQuantityProduct(product)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Available</p>
+                            <p className="font-semibold text-sm">{product.available || product.quantity}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Status</p>
+                            <div>
+                              <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${displayStatus === "optimal"
+                                  ? "bg-green-100 text-green-800"
+                                  : displayStatus === "low"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                                  }`}
+                              >
+                                {displayStatus !== "optimal" && (
+                                  <AlertCircle className="mr-1 h-3 w-3" />
+                                )}
+                                {displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Desktop grid layout */}
-                      <div className="hidden sm:contents">
+                      {/* Desktop View */}
+                      <div className="hidden sm:grid sm:grid-cols-10 sm:items-center py-3 px-4 text-sm">
                         <div className="col-span-4 flex items-center">
                           <Package className="mr-2 h-4 w-4 text-purple-600" />
-                          <span>{product.product}</span>
+                          <span>{typeof product.product === "string" ? product.product : product.product.name}</span>
                         </div>
-                        <div className="col-span-2">{`SKU-${product.product_id}`}</div>
-                        <div className="col-span-1 text-center">
+                        <div className="col-span-2 text-center">
                           {product.available || product.quantity}
                         </div>
                         <div className="col-span-2 text-center">
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                              displayStatus === "optimal"
-                                ? "bg-green-100 text-green-800"
-                                : displayStatus === "low"
-                                ? "bg-yellow-100 text-yellow-800"
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${displayStatus === "optimal"
+                              ? "bg-green-100 text-green-800"
+                              : displayStatus === "low"
+                                ? "bg-yellow-101 text-yellow-800"
                                 : "bg-red-100 text-red-800"
-                            }`}
+                              }`}
                           >
                             {displayStatus !== "optimal" && (
                               <AlertCircle className="mr-1 h-3 w-3" />
@@ -330,28 +351,36 @@ const FinishedProductsInventory = () => {
                               displayStatus.slice(1)}
                           </span>
                         </div>
-                        <div className="col-span-1 text-right">
-                          <button
-                            className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
-                            onClick={() => handleEditClick(product)}
-                          >
-                            <span className="sr-only">Edit</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="h-4 w-4"
+                        <div className="col-span-2">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+                              onClick={() => handleEditClick(product)}
                             >
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                              <path d="m15 5 4 4"></path>
-                            </svg>
-                          </button>
+                              <span className="sr-only">Edit</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="h-4 w-4"
+                              >
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                                <path d="m15 5 4 4"></path>
+                              </svg>
+                            </button>
+                            <button
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+                              onClick={() => setUpdatingQuantityProduct(product)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -368,73 +397,119 @@ const FinishedProductsInventory = () => {
       </div>
 
       {/* Add Product Modal */}
-      {isAddingProduct && (
-        <AddProduct
-          onClose={() => setIsAddingProduct(false)}
-          onProductAdded={handleProductAdded}
-        />
-      )}
+      {
+        isAddingProduct && (
+          <AddProduct
+            onClose={() => setIsAddingProduct(false)}
+            onProductAdded={handleProductAdded}
+          />
+        )
+      }
 
-      {editingProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-2xl font-semibold mb-6 text-center">
-              Edit Product
-            </h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveEdit(editingProduct);
-              }}
-            >
+      {
+        editingProduct && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+              <h2 className="text-2xl font-semibold mb-6 text-center">
+                Edit Product
+              </h2>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveEdit(editingProduct);
+                }}
+              >
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Product Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={typeof editingProduct.product === "string" ? editingProduct.product : editingProduct.product.name}
+                    readOnly
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Quantity
+                  </label>
+                  <Input
+                    type="number"
+                    value={editingProduct.quantity}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        quantity: parseInt(e.target.value),
+                      })
+                    }
+                    placeholder="Enter quantity"
+                  />
+                </div>
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    className="p-2 bg-gray-300 rounded-md hover:bg-gray-400 transition duration-200"
+                    onClick={() => setEditingProduct(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="p-2 bg-black text-white rounded-md hover:bg-black transition duration-200"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        updatingQuantityProduct && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+              <h2 className="text-2xl font-semibold mb-6 text-center">
+                Update {typeof updatingQuantityProduct.product === "string" ? updatingQuantityProduct.product : updatingQuantityProduct.product.name}
+              </h2>
+
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-2">
-                  Product Name
+                  Add Quantity
                 </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={editingProduct.product}
-                  readOnly
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">
-                  Quantity
-                </label>
-                <input
+                <Input
                   type="number"
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={editingProduct.quantity}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      quantity: parseInt(e.target.value),
-                    })
-                  }
-                  placeholder="Enter quantity"
+                  value={addQuantity}
+                  onChange={(e) => setAddQuantity(e.target.value === "" ? "" : parseInt(e.target.value) || 0)}
+                  placeholder="Enter quantity to add"
                 />
               </div>
               <div className="flex justify-between">
                 <button
                   type="button"
                   className="p-2 bg-gray-300 rounded-md hover:bg-gray-400 transition duration-200"
-                  onClick={() => setEditingProduct(null)}
+                  onClick={() => {
+                    setUpdatingQuantityProduct(null);
+                    setAddQuantity("");
+                  }}
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="button"
                   className="p-2 bg-black text-white rounded-md hover:bg-black transition duration-200"
+                  onClick={handleUpdateQuantity}
                 >
-                  Save
+                  Add
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

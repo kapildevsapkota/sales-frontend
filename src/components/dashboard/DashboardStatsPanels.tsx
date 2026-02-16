@@ -18,8 +18,7 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
     const fetchStatistics = async () => {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `https://sales.baliyoventures.com/api/sales/statistics/${
-          id ? `?franchise=${id}` : ""
+        `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/statistics/${id ? `?franchise=${id}` : ""
         }`,
         {
           headers: {
@@ -142,11 +141,11 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
             <Users className="inline mr-1 h-3 w-3" />
             {statistics
               ? (
-                  ((statistics.all_time_orders -
-                    statistics.cancelled_orders_count) /
-                    statistics.all_time_orders) *
-                  100
-                ).toFixed(1)
+                ((statistics.all_time_orders -
+                  statistics.cancelled_orders_count) /
+                  statistics.all_time_orders) *
+                100
+              ).toFixed(1)
               : "--"}
             % success rate
           </div>
@@ -154,8 +153,8 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
             Total:{" "}
             {statistics
               ? formatNumber(
-                  statistics.all_time_orders + statistics.cancelled_orders_count
-                )
+                statistics.all_time_orders + statistics.cancelled_orders_count
+              )
               : "--"}{" "}
             | Cancelled:{" "}
             {statistics
@@ -179,11 +178,11 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
             <Package className="inline mr-1 h-3 w-3" />
             {statistics
               ? (
-                  ((statistics.all_time_sales -
-                    statistics.all_time_cancelled_sales) /
-                    statistics.all_time_sales) *
-                  100
-                ).toFixed(1)
+                ((statistics.all_time_sales -
+                  statistics.all_time_cancelled_sales) /
+                  statistics.all_time_sales) *
+                100
+              ).toFixed(1)
               : "--"}
             % of gross sales
           </div>
@@ -191,9 +190,9 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
             Gross:{" "}
             {statistics
               ? formatCurrency(
-                  statistics.all_time_sales +
-                    statistics.all_time_cancelled_sales
-                )
+                statistics.all_time_sales +
+                statistics.all_time_cancelled_sales
+              )
               : "--"}{" "}
             | Lost:{" "}
             {statistics
@@ -236,8 +235,8 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                   {formatCurrency(
                     (statistics.all_time_sales -
                       statistics.all_time_cancelled_sales) /
-                      (statistics.all_time_orders -
-                        statistics.cancelled_orders_count || 1)
+                    (statistics.all_time_orders -
+                      statistics.cancelled_orders_count || 1)
                   )}
                 </div>
                 <div className="text-xs text-gray-500">Per Active Order</div>
@@ -250,10 +249,10 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                 <div className="text-2xl font-bold text-red-600">
                   {statistics
                     ? (
-                        (statistics.all_time_cancelled_sales /
-                          statistics.all_time_sales) *
-                        100
-                      ).toFixed(1)
+                      (statistics.all_time_cancelled_sales /
+                        statistics.all_time_sales) *
+                      100
+                    ).toFixed(1)
                     : "--"}
                   %
                 </div>
@@ -269,11 +268,10 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                   Daily Performance
                 </div>
                 <div
-                  className={`text-2xl font-bold ${
-                    statistics.total_sales >= statistics.total_sales_yesterday
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
+                  className={`text-2xl font-bold ${statistics.total_sales >= statistics.total_sales_yesterday
+                    ? "text-green-600"
+                    : "text-red-600"
+                    }`}
                 >
                   {statistics.total_sales >= statistics.total_sales_yesterday
                     ? "↗️ Better"
@@ -284,7 +282,7 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                     ((statistics.total_sales -
                       statistics.total_sales_yesterday) /
                       (statistics.total_sales_yesterday || 1)) *
-                      100
+                    100
                   ).toFixed(1)}
                   %
                 </div>
@@ -297,20 +295,20 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                 <div className="text-2xl font-bold text-purple-600">
                   {statistics
                     ? (
-                        ((statistics.all_time_orders -
-                          statistics.cancelled_orders_count) /
-                          statistics.all_time_orders) *
-                        100
-                      ).toFixed(1)
+                      ((statistics.all_time_orders -
+                        statistics.cancelled_orders_count) /
+                        statistics.all_time_orders) *
+                      100
+                    ).toFixed(1)
                     : "--"}
                   %
                 </div>
                 <div className="text-xs text-gray-500">
                   {statistics
                     ? formatNumber(
-                        statistics.all_time_orders -
-                          statistics.cancelled_orders_count
-                      )
+                      statistics.all_time_orders -
+                      statistics.cancelled_orders_count
+                    )
                     : "--"}{" "}
                   of{" "}
                   {statistics ? formatNumber(statistics.all_time_orders) : "--"}
@@ -324,7 +322,7 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                 <div className="text-2xl font-bold text-orange-600">
                   {formatCurrency(
                     statistics.all_time_cancelled_sales /
-                      (statistics.cancelled_orders_count || 1)
+                    (statistics.cancelled_orders_count || 1)
                   )}
                 </div>
                 <div className="text-xs text-gray-500">Avg Loss Per Cancel</div>
@@ -337,11 +335,11 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                 <div className="text-2xl font-bold text-teal-600">
                   {statistics
                     ? (
-                        (statistics.total_sales /
-                          (statistics.all_time_sales -
-                            statistics.all_time_cancelled_sales)) *
-                        100
-                      ).toFixed(2)
+                      (statistics.total_sales /
+                        (statistics.all_time_sales -
+                          statistics.all_time_cancelled_sales)) *
+                      100
+                    ).toFixed(2)
                     : "--"}
                   %
                 </div>
@@ -355,11 +353,11 @@ export function DashboardStatsPanels({ id }: { id?: string }) {
                 <div className="text-2xl font-bold text-indigo-600">
                   {statistics
                     ? (
-                        ((statistics.all_time_sales -
-                          statistics.all_time_cancelled_sales) /
-                          statistics.all_time_sales) *
-                        100
-                      ).toFixed(1)
+                      ((statistics.all_time_sales -
+                        statistics.all_time_cancelled_sales) /
+                        statistics.all_time_sales) *
+                      100
+                    ).toFixed(1)
                     : "--"}
                   %
                 </div>

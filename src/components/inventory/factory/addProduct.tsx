@@ -79,7 +79,12 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
       try {
         // Fetch products
         const productsResponse = await fetch(
-          "https://sales.baliyoventures.com/api/sales/all-products/"
+          "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/all-products/?status=finished_product",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
         );
         if (productsResponse.ok) {
           const productsData = await productsResponse.json();
@@ -119,7 +124,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
     try {
       const productId = Number.parseInt(values.product);
       const response = await fetch(
-        "https://sales.baliyoventures.com/api/sales/inventory/",
+        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/",
         {
           method: "POST",
           headers: {

@@ -45,6 +45,7 @@ interface User {
   phone_number: string;
   role: Role;
   franchise: string | null;
+  franchise_name: string | null;
   is_active?: boolean;
 }
 
@@ -101,12 +102,12 @@ export default function UserManagementPage() {
   }, []);
 
   const handleCreateUser = () => {
-    router.push("/admin/usermanagement/createuser");
+    router.push("/super-admin/usermanagement/createuser");
   };
 
   const handleEditUser = (phoneNumber: string) => {
     router.push(
-      `/admin/usermanagement/edituser/${encodeURIComponent(phoneNumber)}`
+      `/super-admin/usermanagement/edituser/${encodeURIComponent(phoneNumber)}`
     );
   };
 
@@ -285,7 +286,7 @@ export default function UserManagementPage() {
                           <TableCell>
                             <Badge variant="outline">{user.role}</Badge>
                           </TableCell>
-                          <TableCell>{user.franchise || "-"}</TableCell>
+                          <TableCell className="capitalize">{user.franchise_name || "-"}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Button

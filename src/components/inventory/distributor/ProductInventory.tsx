@@ -52,7 +52,7 @@ const ProductInventory = () => {
 
   // Use SWR to fetch data
   const { data, error } = useSWR<DistributorInventory>(
-    "https://sales.baliyoventures.com/api/sales/distributor-inventory/",
+    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/distributor-inventory/",
     fetcher
   );
 
@@ -73,7 +73,7 @@ const ProductInventory = () => {
   const handleSaveEdit = async (product: InventoryItem) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      `https://sales.baliyoventures.com/api/sales/inventory/${product.id}/`,
+      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${product.id}/`,
       {
         method: "PATCH",
         headers: {
@@ -89,7 +89,7 @@ const ProductInventory = () => {
     if (response.ok) {
       // Revalidate the data to reflect changes immediately
       mutate(
-        "https://sales.baliyoventures.com/api/sales/distributor-inventory/"
+        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/distributor-inventory/"
       );
       setEditingProduct(null); // Close the editing modal
     }
@@ -235,13 +235,12 @@ const ProductInventory = () => {
                       {/* Status */}
                       <div className="sm:col-span-2 text-left sm:text-center">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            product.status === "ready_to_dispatch"
-                              ? "bg-green-100 text-green-800"
-                              : product.status === "incoming"
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${product.status === "ready_to_dispatch"
+                            ? "bg-green-100 text-green-800"
+                            : product.status === "incoming"
                               ? "bg-yellow-100 text-yellow-800"
                               : "bg-red-100 text-red-800"
-                          }`}
+                            }`}
                         >
                           {product.status === "incoming" && (
                             <AlertCircle className="mr-1 h-3 w-3" />

@@ -118,7 +118,7 @@ export function SalesFestView({ id }: { id?: string }) {
       params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
     }
 
-    return `https://sales.baliyoventures.com/api/sales/top-salespersons/?${params.toString()}`;
+    return `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/top-salespersons/?${params.toString()}`;
   };
 
   // Use SWR to fetch data with 5-second polling
@@ -374,11 +374,10 @@ export function SalesFestView({ id }: { id?: string }) {
             <button
               key={f}
               onClick={() => handleFilterChange(f)}
-              className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
-                filter === f
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted hover:bg-muted/80"
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${filter === f
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted hover:bg-muted/80"
+                }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
@@ -458,10 +457,10 @@ export function SalesFestView({ id }: { id?: string }) {
                         </span>
                         {sp.first_name.toLowerCase() ===
                           group.leader.toLowerCase() && (
-                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                            Leader
-                          </span>
-                        )}
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                              Leader
+                            </span>
+                          )}
                       </div>
                       <div className="flex flex-col text-xs">
                         <span className="text-gray-500">

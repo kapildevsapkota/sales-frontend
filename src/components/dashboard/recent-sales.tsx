@@ -62,7 +62,7 @@ export function RecentSales({ id }: { id?: string }) {
           params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
         }
 
-        const url = `https://sales.baliyoventures.com/api/sales/top-salespersons/?${params.toString()}`;
+        const url = `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/top-salespersons/?${params.toString()}`;
 
         console.log("Fetching URL:", url); // Debug log to see the actual URL being called
 
@@ -109,11 +109,10 @@ export function RecentSales({ id }: { id?: string }) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
-                filter === f
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted hover:bg-muted/80"
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${filter === f
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted hover:bg-muted/80"
+                }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>

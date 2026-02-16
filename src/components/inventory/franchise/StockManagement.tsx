@@ -16,8 +16,10 @@ import {
   Package,
   Plus,
   Search,
+  Bell,
 } from "lucide-react";
 import AddProduct from "@/components/inventory/franchise/addproduct";
+import Link from "next/link";
 
 // Define the types for inventory items
 type InventoryItem = {
@@ -52,12 +54,12 @@ const StockManagement = () => {
   );
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const handleProductAdded = () => {
-    mutate("https://sales.baliyoventures.com/api/sales/franchise-inventory/");
+    mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/franchise-inventory/");
   };
 
   // Use SWR to fetch data
   const { data, error } = useSWR<InventoryData>(
-    "https://sales.baliyoventures.com/api/sales/franchise-inventory/",
+    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/franchise-inventory/",
     fetcher
   );
 
@@ -72,7 +74,7 @@ const StockManagement = () => {
   const handleSaveEdit = async (product: InventoryItem) => {
     const accessToken = localStorage.getItem("accessToken");
     const response = await fetch(
-      `https://sales.baliyoventures.com/api/sales/inventory/${product.id}/`,
+      `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/${product.id}/`,
       {
         method: "PATCH",
         headers: {
@@ -87,7 +89,7 @@ const StockManagement = () => {
 
     if (response.ok) {
       // Revalidate the data to reflect changes immediately
-      mutate("https://sales.baliyoventures.com/api/sales/franchise-inventory/");
+      mutate("https://zone-kind-centuries-finding.trycloudflare.com/api/sales/franchise-inventory/");
       setEditingProduct(null); // Close the editing modal
     }
   };
@@ -123,7 +125,7 @@ const StockManagement = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 transition-all active:scale-95"
                 onClick={handleAddProductClick}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -231,19 +233,18 @@ const StockManagement = () => {
                               Status:{" "}
                             </span>
                             <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                item.quantity > 50
-                                  ? "bg-green-100 text-green-800"
-                                  : item.quantity > 20
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.quantity > 50
+                                ? "bg-green-100 text-green-800"
+                                : item.quantity > 20
                                   ? "bg-yellow-100 text-yellow-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {item.quantity > 50
                                 ? "Optimal"
                                 : item.quantity > 20
-                                ? "Low Stock"
-                                : "Critical"}
+                                  ? "Low Stock"
+                                  : "Critical"}
                             </span>
                           </div>
                           <div className="flex justify-end">
@@ -283,19 +284,18 @@ const StockManagement = () => {
                           </div>
                           <div className="col-span-2 text-center">
                             <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                item.quantity > 50
-                                  ? "bg-green-100 text-green-800"
-                                  : item.quantity > 20
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.quantity > 50
+                                ? "bg-green-100 text-green-800"
+                                : item.quantity > 20
                                   ? "bg-yellow-100 text-yellow-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {item.quantity > 50
                                 ? "Optimal"
                                 : item.quantity > 20
-                                ? "Low Stock"
-                                : "Critical"}
+                                  ? "Low Stock"
+                                  : "Critical"}
                             </span>
                           </div>
                           <div className="col-span-2 text-right">

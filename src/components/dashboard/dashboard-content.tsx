@@ -4,6 +4,7 @@ import { DashboardTopSalesPersons } from "@/components/dashboard/DashboardTopSal
 import { DashboardTopProducts } from "@/components/dashboard/DashboardTopProducts";
 import { DashboardRevenueByCategory } from "@/components/dashboard/DashboardRevenueByCategory";
 import { InventoryBanner } from "@/components/dashboard/inventory-banner";
+import { InventoryRequestBanner } from "@/components/dashboard/inventory-request-banner";
 import { DashboardBarchart } from "@/components/dashboard/DashboardBarchart";
 import { BulkOrders } from "./bulk-orders";
 
@@ -11,6 +12,7 @@ export const DashboardContent: React.FC<{ id?: string }> = ({ id }) => {
   return (
     <div className="container mx-auto space-y-6  sm:p-4 md:p-6 ">
       <InventoryBanner id={id} />
+      <InventoryRequestBanner />
 
       {/* Modern Stat Panels */}
       <DashboardStatsPanels id={id} />

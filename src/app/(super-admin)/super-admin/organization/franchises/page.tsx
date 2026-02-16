@@ -13,9 +13,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Building2, Search } from "lucide-react";
+import { Building2, Search, Plus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Franchise {
   id: number;
@@ -29,6 +39,9 @@ export default function FranchisesPage() {
   const [filteredFranchises, setFilteredFranchises] = useState<Franchise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newFranchiseName, setNewFranchiseName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -77,6 +90,53 @@ export default function FranchisesPage() {
     router.push(`/super-admin/organization/franchises/${franchiseId}`);
   };
 
+  const handleAddFranchise = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFranchiseName.trim()) {
+      toast({
+        title: "Error",
+        description: "Franchise name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await api.post(
+        "/api/account/franchises/",
+        { name: newFranchiseName },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 201 || response.status === 200) {
+        toast({
+          title: "Success",
+          description: "Franchise added successfully",
+        });
+        setIsAddDialogOpen(false);
+        setNewFranchiseName("");
+        fetchFranchises();
+      } else {
+        throw new Error("Failed to add franchise");
+      }
+    } catch (error) {
+      console.error("Error adding franchise:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add franchise. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
@@ -122,15 +182,68 @@ export default function FranchisesPage() {
           </Badge>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search franchises..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        {/* Search and Add Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search franchises..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add Franchise
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <form onSubmit={handleAddFranchise}>
+                <DialogHeader>
+                  <DialogTitle>Add New Franchise</DialogTitle>
+                  <DialogDescription>
+                    Enter the name of the new franchise you want to add.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Franchise Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g. Kathmandu Franchise"
+                      value={newFranchiseName}
+                      onChange={(e) => setNewFranchiseName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddDialogOpen(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      "Add Franchise"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -158,26 +271,17 @@ export default function FranchisesPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1">
+                    <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1 capitalize">
                       {franchise.name}
                     </CardTitle>
-                    {franchise.short_form && (
-                      <CardDescription className="text-sm text-gray-500 mt-1">
-                        {franchise.short_form}
-                      </CardDescription>
-                    )}
+
                   </div>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-4">
                 {/* Distributor Info */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Building2 className="h-4 w-4" />
-                  <span className="truncate">
-                    Distributor ID: {franchise.distributor}
-                  </span>
-                </div>
+
 
                 {/* Action Button */}
                 <Button

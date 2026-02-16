@@ -8,6 +8,7 @@ import {
   type LucideIcon,
   Menu,
   Crown,
+  NotepadText,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -77,19 +78,16 @@ const superAdminItems: MenuItem[] = [
     ],
   },
   {
-    label: "Organization",
+    label: "Franchise Management",
     icon: Building2,
-    items: [
-      {
-        label: "Franchises",
-        href: "/super-admin/organization/franchises",
-      },
-      {
-        label: "Distributors",
-        href: "/super-admin/organization/distributors",
-      },
-    ],
+    href: "/super-admin/organization/franchises",
+
   },
+  {
+    label: "Reports",
+    icon: NotepadText,
+    href: "/super-admin/reports",
+  }
 ];
 
 export function SuperAdminHeader() {
@@ -159,7 +157,7 @@ export function SuperAdminHeader() {
                               className={cn(
                                 "flex w-full items-center rounded-lg px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer",
                                 pathname === subItem.href &&
-                                  "bg-purple-100 font-medium text-purple-700"
+                                "bg-purple-100 font-medium text-purple-700"
                               )}
                             >
                               <span className="truncate">{subItem.label}</span>
@@ -263,7 +261,7 @@ export function SuperAdminHeader() {
                                     className={cn(
                                       "block px-3 py-2 text-sm font-medium rounded-lg hover:bg-purple-50 hover:text-purple-700 transition-colors",
                                       pathname === subItem.href &&
-                                        "bg-purple-100 text-purple-700 font-semibold"
+                                      "bg-purple-100 text-purple-700 font-semibold"
                                     )}
                                   >
                                     {subItem.label}

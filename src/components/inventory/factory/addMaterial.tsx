@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
+import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,6 +42,7 @@ interface Product {
 
 interface AddProductProps {
   onClose: () => void;
+  status: string;
 }
 
 const formSchema = z.object({
@@ -48,7 +50,7 @@ const formSchema = z.object({
   quantity: z.number().min(1, "Quantity must be at least 1"),
 });
 
-const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
+const AddProduct: React.FC<AddProductProps> = ({ onClose, status }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,8 +70,14 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
       try {
         // Fetch products
         const productsResponse = await fetch(
-          "https://sales.baliyoventures.com/api/sales/all-products/"
+          `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/all-products/?status=${status}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
         );
+
         if (productsResponse.ok) {
           const productsData = await productsResponse.json();
           setProducts(productsData.results || []);
@@ -108,7 +116,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
     try {
       const productId = Number.parseInt(values.product);
       const response = await fetch(
-        "https://sales.baliyoventures.com/api/sales/inventory/",
+        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory/",
         {
           method: "POST",
           headers: {
@@ -118,7 +126,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
           body: JSON.stringify({
             product_id: productId,
             quantity: values.quantity,
-            status: "raw_material",
+            status: status,
           }),
         }
       );
@@ -126,6 +134,9 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose }) => {
       if (!response.ok) {
         throw new Error("Failed to add product");
       }
+
+      // Invalidate the cache for the relevant inventory
+      mutate(`https://zone-kind-centuries-finding.trycloudflare.com/api/sales/factory-inventory/?status=${status}`);
 
       toast({
         title: "Success",

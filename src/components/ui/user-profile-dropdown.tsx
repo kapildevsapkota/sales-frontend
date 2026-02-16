@@ -132,10 +132,9 @@ export function UserProfileDropdown({
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
+        <button
           className={cn(
-            "flex items-center gap-3 h-10 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800",
+            "flex items-center gap-3 h-10 px-3 rounded-md ",
             className
           )}
         >
@@ -146,15 +145,15 @@ export function UserProfileDropdown({
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-medium text-white dark:text-gray-300">
               {getUserDisplayName()}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-white dark:text-gray-400">
               {user.role}
             </span>
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-        </Button>
+          <ChevronDown className="h-4 w-4 text-white dark:text-gray-400" />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <div className="flex items-center gap-3 p-3">

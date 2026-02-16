@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,11 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Role } from "@/contexts/AuthContext";
 
-interface Distributor {
-  id: number;
-  name: string;
-  short_form: string;
-}
+// Removed Distributor interface
 
 interface Franchise {
   id: number;
@@ -44,6 +40,11 @@ interface Franchise {
 }
 
 interface Factory {
+  id: number;
+  name: string;
+  short_form: string | null;
+}
+interface SuperAdmin {
   id: number;
   name: string;
   short_form: string | null;
@@ -58,12 +59,8 @@ const formSchema = z.object({
   role: z.enum(
     [
       "SuperAdmin",
-      "Distributor",
       "Franchise",
       "SalesPerson",
-      "Others",
-      "Logistic",
-      "Treatment Staff",
       "Packaging",
     ],
     {
@@ -113,18 +110,14 @@ function cleanFormData(values: z.infer<typeof formSchema>) {
 
   // Remove fields not relevant for the selected role
   if (role === Role.SuperAdmin) {
-    // All fields relevant
-  } else if (role === Role.Distributor) {
-    cleaned.factory = null;
-    cleaned.distributor = null;
-  } else if (role === Role.Franchise) {
-    cleaned.factory = null;
     cleaned.distributor = null;
     cleaned.franchise = null;
+    cleaned.factory = null;
   } else {
-    cleaned.factory = null;
     cleaned.distributor = null;
-    cleaned.franchise = null;
+    // Keep franchise for SalesPerson, Franchise, Packaging
+    // factory is not used anymore based on latest reqs
+    cleaned.factory = null;
   }
   return cleaned;
 }
@@ -138,9 +131,9 @@ export default function CreateAccountForm({
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [factories, setFactories] = useState<Factory[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<CreateUserFormData>({
     resolver: zodResolver(formSchema),
@@ -157,6 +150,7 @@ export default function CreateAccountForm({
       factory: null,
     },
   });
+  // Token retrieval will be moved to where it's used to be SSR-safe
 
   useEffect(() => {
     if (isEditMode && initialValues) {
@@ -165,31 +159,45 @@ export default function CreateAccountForm({
   }, [isEditMode, initialValues, form]);
 
   useEffect(() => {
-    const fetchDistributors = async () => {
+    const fetchFranchises = async () => {
       try {
+        const currentToken = localStorage.getItem("accessToken");
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/distributors/`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/my-franchises/`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${currentToken}`,
+            },
+          }
         );
         const data = await response.json();
-        setDistributors(data);
+        // Ensure franchises is always an array to prevent .map() from failing
+        const franchisesList = Array.isArray(data) ? data : (data.results && Array.isArray(data.results) ? data.results : []);
+        setFranchises(franchisesList);
       } catch (error) {
-        console.error("Error fetching distributors:", error);
+        console.error("Error fetching franchises:", error);
       }
     };
-    fetchDistributors();
+    fetchFranchises();
   }, []);
 
-  const fetchFranchises = async (distributorId: number) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account/distributors/${distributorId}/franchises/`
-      );
-      const data = await response.json();
-      setFranchises(data);
-    } catch (error) {
-      console.error("Error fetching franchises:", error);
+  // Map franchise name to ID in edit mode when franchises list is loaded
+  useEffect(() => {
+    if (isEditMode && franchises.length > 0) {
+      const currentFranchise = form.getValues("franchise");
+      // Use type assertion to handle the runtime case where the field might hold a string from the API
+      if (typeof (currentFranchise as unknown) === "string") {
+        const franchiseName = (currentFranchise as unknown) as string;
+        const foundFranchise = franchises.find(
+          (f) => f.name.toLowerCase() === franchiseName.toLowerCase()
+        );
+        if (foundFranchise) {
+          form.setValue("franchise", foundFranchise.id);
+        }
+      }
     }
-  };
+  }, [isEditMode, franchises, form]);
 
   useEffect(() => {
     const fetchFactories = async () => {
@@ -233,14 +241,14 @@ export default function CreateAccountForm({
           address: cleanedValues.address,
           role: cleanedValues.role,
           distributor: cleanedValues.distributor,
-          franchise: cleanedValues.franchise,
-          password: isEditMode ? undefined : cleanedValues.password, // Exclude password in edit mode
+          franchise: user?.role === Role.Franchise ? user.franchise_id : cleanedValues.franchise,
+          password: isEditMode ? undefined : cleanedValues.password,
           factory: cleanedValues.factory,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         }).filter(([_, v]) => v !== null && v !== undefined && v !== "")
       );
 
-      const token = localStorage.getItem("accessToken"); // Retrieve the token from local storage
+
+      const currentToken = localStorage.getItem("accessToken");
 
       let response;
       if (isEditMode) {
@@ -250,7 +258,7 @@ export default function CreateAccountForm({
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+              Authorization: `Bearer ${currentToken}`, // Add the token to the Authorization header
             },
             credentials: "include",
             body: JSON.stringify(formData),
@@ -263,7 +271,7 @@ export default function CreateAccountForm({
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+              Authorization: `Bearer ${currentToken}`, // Add the token to the Authorization header
             },
 
             credentials: "include",
@@ -287,7 +295,11 @@ export default function CreateAccountForm({
         variant: "default",
       });
 
-      router.push("/admin/usermanagement");
+      if (user?.role === Role.SuperAdmin) {
+        router.push("/super-admin/usermanagement");
+      } else {
+        router.push("/admin/usermanagement");
+      }
     } catch (error) {
       console.error("Submission error:", error);
       toast({
@@ -307,13 +319,15 @@ export default function CreateAccountForm({
     let options: string[] = [];
     switch (user.role) {
       case Role.SuperAdmin:
-        options = [Role.Distributor, Role.Franchise, Role.Logistic];
+        options = [
+          Role.SuperAdmin,
+          Role.Franchise,
+          Role.SalesPerson,
+          Role.Packaging,
+        ];
         break;
       case Role.Franchise:
-        options = [Role.SalesPerson, Role.TreatmentStaff, Role.Packaging];
-        break;
-      case Role.Distributor:
-        options = [Role.Franchise];
+        options = [Role.SalesPerson, Role.Packaging];
         break;
       default:
         options = [];
@@ -332,30 +346,29 @@ export default function CreateAccountForm({
   };
 
   const showFieldsByRole = (selectedRole: string | undefined) => {
-    if (!selectedRole)
+    if (!selectedRole || !user)
       return {
         showFactory: false,
-        showDistributor: false,
         showFranchise: false,
       };
 
     switch (selectedRole) {
       case Role.SuperAdmin:
         return {
-          showFactory: true,
-          showDistributor: true,
-          showFranchise: true,
+          showFactory: false,
+          showFranchise: false,
         };
-      case Role.Distributor:
+      case Role.Franchise:
+      case Role.SalesPerson:
+      case Role.Packaging:
+        // Only show franchise selection if the creator is NOT a Franchise user
         return {
           showFactory: false,
-          showDistributor: false,
-          showFranchise: true,
+          showFranchise: user.role !== Role.Franchise,
         };
       default:
         return {
           showFactory: false,
-          showDistributor: false,
           showFranchise: false,
         };
     }
@@ -550,12 +563,25 @@ export default function CreateAccountForm({
                               Password
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="password"
-                                placeholder="Enter password"
-                                {...field}
-                                className="h-11 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
-                              />
+                              <div className="relative">
+                                <Input
+                                  type={showPassword ? "text" : "password"}
+                                  placeholder="Enter password"
+                                  {...field}
+                                  className="h-11 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm pr-10"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute right-3 top-3 text-gray-400 hover:text-blue-500 transition-colors"
+                                >
+                                  {showPassword ? (
+                                    <EyeOff className="h-5 w-5" />
+                                  ) : (
+                                    <Eye className="h-5 w-5" />
+                                  )}
+                                </button>
+                              </div>
                             </FormControl>
                             <FormMessage className="text-red-500" />
                           </FormItem>
@@ -598,46 +624,7 @@ export default function CreateAccountForm({
                         )}
                       />
                     )}
-                    {showFieldsByRole(form.watch("role")).showDistributor && (
-                      <FormField
-                        control={form.control}
-                        name="distributor"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              Distributor
-                            </FormLabel>
-                            <Select
-                              onValueChange={(value) => {
-                                const numValue = Number(value);
-                                field.onChange(numValue);
-                                fetchFranchises(numValue);
-                                form.setValue("franchise", null);
-                                form.setValue("factory", null);
-                              }}
-                              value={field.value?.toString()}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="h-11 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                                  <SelectValue placeholder="Select a distributor" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="shadow-lg border-gray-200">
-                                {distributors.map((distributor) => (
-                                  <SelectItem
-                                    key={distributor.id}
-                                    value={distributor.id.toString()}
-                                  >
-                                    {distributor.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage className="text-red-500" />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    {/* Distributor selection removed */}
                     {showFieldsByRole(form.watch("role")).showFranchise && (
                       <FormField
                         control={form.control}
@@ -652,7 +639,6 @@ export default function CreateAccountForm({
                                 field.onChange(Number(value));
                               }}
                               value={field.value?.toString()}
-                              disabled={!form.watch("distributor")}
                             >
                               <FormControl>
                                 <SelectTrigger className="h-11 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
@@ -660,7 +646,7 @@ export default function CreateAccountForm({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="shadow-lg border-gray-200">
-                                {franchises.map((franchise) => (
+                                {Array.isArray(franchises) && franchises.map((franchise) => (
                                   <SelectItem
                                     key={franchise.id}
                                     value={franchise.id.toString()}

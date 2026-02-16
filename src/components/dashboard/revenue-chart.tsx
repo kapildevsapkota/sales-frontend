@@ -24,8 +24,7 @@ export function RevenueChart({ id }: { id?: string }) {
       try {
         const token = localStorage.getItem("accessToken"); // Get the access token from local storage
         const response = await fetch(
-          `https://sales.baliyoventures.com/api/sales/revenue-by-product/?filter=${timeRange}${
-            id ? `&franchise=${id}` : ""
+          `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/revenue-by-product/?filter=${timeRange}${id ? `&franchise=${id}` : ""
           }`,
           {
             headers: {

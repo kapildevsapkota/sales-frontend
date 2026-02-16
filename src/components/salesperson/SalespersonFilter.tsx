@@ -13,10 +13,11 @@ import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 
 interface SalespersonFilterProps {
-  timeframe: Timeframe;
-  setTimeframe: (value: Timeframe) => void;
+  timeframe?: Timeframe;
+  setTimeframe?: (value: Timeframe) => void;
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
+  showTimeframe?: boolean;
 }
 
 export function SalespersonFilter({
@@ -24,24 +25,27 @@ export function SalespersonFilter({
   setTimeframe,
   dateRange,
   setDateRange,
+  showTimeframe = true,
 }: SalespersonFilterProps) {
-  const isFiltered = dateRange !== undefined || timeframe !== "daily";
+  const isFiltered = dateRange !== undefined || (showTimeframe && timeframe !== "daily");
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
       {/* Timeframe Tabs */}
-      <Tabs
-        value={timeframe}
-        onValueChange={(value) => setTimeframe(value as Timeframe)}
-        className="w-full sm:w-auto"
-      >
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="daily">Daily</TabsTrigger>
-          <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          <TabsTrigger value="yearly">Yearly</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {showTimeframe && timeframe && setTimeframe && (
+        <Tabs
+          value={timeframe}
+          onValueChange={(value) => setTimeframe(value as Timeframe)}
+          className="w-full sm:w-auto"
+        >
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="daily">Daily</TabsTrigger>
+            <TabsTrigger value="weekly">Weekly</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsTrigger value="yearly">Yearly</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* Date Range Picker */}
       <Popover>
@@ -83,10 +87,12 @@ export function SalespersonFilter({
       {isFiltered && (
         <Button
           variant="ghost"
-          className="text-sm bg-red-500 hover:bg-red-600"
+          className="text-sm text-gray-800 border"
           onClick={() => {
             setDateRange(undefined);
-            setTimeframe("daily"); // reset to default
+            if (showTimeframe && setTimeframe) {
+              setTimeframe("daily"); // reset to default
+            }
           }}
         >
           Clear Filters

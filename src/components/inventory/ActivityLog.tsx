@@ -80,7 +80,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
   useEffect(() => {
     if (isOpen) {
       fetchActivityLogs(
-        "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/user-inventory-logs/"
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,7 +90,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
   useEffect(() => {
     if (isOpen) {
       fetchActivityLogs(
-        "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+        "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/user-inventory-logs/"
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,7 +115,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
           }
         }
 
-        const url = `https://sales.baliyoventures.com/api/sales/inventory-date-product/?date=${encodeURIComponent(
+        const url = `https://zone-kind-centuries-finding.trycloudflare.com/api/sales/inventory-date-product/?date=${encodeURIComponent(
           date
         )}`;
         const response = await fetch(url, {
@@ -245,7 +245,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
         <button
           onClick={() =>
             fetchActivityLogs(
-              "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+              "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/user-inventory-logs/"
             )
           }
           className="mb-4 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md flex items-center"
@@ -312,7 +312,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
               <button
                 onClick={() =>
                   fetchActivityLogs(
-                    "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
+                    "https://zone-kind-centuries-finding.trycloudflare.com/api/sales/user-inventory-logs/"
                   )
                 }
                 className="mt-2 text-sm underline"
