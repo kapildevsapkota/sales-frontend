@@ -201,7 +201,6 @@ export function AppHeader() {
         label: "Reports",
         icon: NotepadText,
         href: "/admin/reports",
-        visible: (_u, fest) => fest === true,
       },
       // {
       //   label: "Lucky Draw",
@@ -275,7 +274,7 @@ export function AppHeader() {
                               className={cn(
                                 "flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors",
                                 pathname === subItem.href &&
-                                  "bg-blue-50 font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                "bg-blue-50 font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
                               )}
                             >
                               <span className="truncate">{subItem.label}</span>
@@ -373,7 +372,7 @@ export function AppHeader() {
                                     className={cn(
                                       "block px-3 py-2 text-base font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
                                       pathname === subItem.href &&
-                                        "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                      "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
                                     )}
                                   >
                                     {subItem.label}
