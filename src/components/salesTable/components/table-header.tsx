@@ -1,5 +1,5 @@
 "use client";
-import { Search, ChevronDown, Eye, EyeOff, PlusIcon } from "lucide-react";
+import { Search, ChevronDown, Eye, EyeOff, PlusIcon, Database } from "lucide-react";
 import type React from "react";
 import { useState, useEffect } from "react";
 import type { SaleItem } from "@/types/sale";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import CreateOrderForm from "@/components/forms/create-order-form";
+import { useRouter, usePathname } from "next/navigation";
 
 import {
   DropdownMenu,
@@ -122,6 +123,8 @@ export function TableHeader({
   const [summaryDate, setSummaryDate] = useState<Date | undefined>(undefined);
   const [isExportingSummary, setIsExportingSummary] = useState(false);
   const [showCreateOrderModal, setShowCreateOrderModal] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   const handleOrderCreated = async () => {
     await fetchSales(currentPage);
@@ -336,6 +339,25 @@ export function TableHeader({
               >
                 Export Report
               </Button>
+              {user?.franchise_name === "Sankhamul Franchise" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1 whitespace-nowrap bg-purple-500 hover:bg-purple-600 px-2 h-8 min-w-0 text-white border-0"
+                  onClick={() => {
+                    if (pathname.startsWith("/admin")) {
+                      router.push("/admin/old-data");
+                    } else if (pathname.startsWith("/super-admin")) {
+                      router.push("/super-admin/old-data");
+                    } else {
+                      router.push("/sales/old-data");
+                    }
+                  }}
+                >
+                  <Database className="h-4 w-4" />
+                  Old Data
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -461,15 +483,15 @@ export function TableHeader({
           deliveryType !== "all" ||
           (user?.role === "Packaging" && logistic !== "all") ||
           dateRange !== undefined) && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1 whitespace-nowrap bg-red-400 hover:bg-red-500 px-2 h-8 min-w-0"
-            onClick={handleClearFilters}
-          >
-            Clear Filters
-          </Button>
-        )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1 whitespace-nowrap bg-red-400 hover:bg-red-500 px-2 h-8 min-w-0"
+              onClick={handleClearFilters}
+            >
+              Clear Filters
+            </Button>
+          )}
       </div>
       {/* Export Summary Modal */}
       <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>

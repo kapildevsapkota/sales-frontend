@@ -28,6 +28,7 @@ interface SearchBarProps {
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
   onSearchResults: (results: SalesResponse) => void;
+  endpoint?: string;
 }
 
 export function SearchBar({
@@ -39,6 +40,7 @@ export function SearchBar({
   dateRange,
   setDateRange,
   onSearchResults,
+  endpoint = "/api/sales/orders/",
 }: SearchBarProps) {
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +54,11 @@ export function SearchBar({
 
     // Set a timeout to avoid making too many requests while typing
     searchTimeout.current = setTimeout(async () => {
+      // 🚨 Fix: Prevent unwanted extra API calls if no active search/filters
+      if (!searchInput && (!paymentMethod || paymentMethod === "all") && !dateRange) {
+        return;
+      }
+
       try {
         setIsSearching(true);
         const token = localStorage.getItem("accessToken");
@@ -97,16 +104,14 @@ export function SearchBar({
         }
 
         // Make API call to backend with search and filter parameters
-        const response = await axios.get(
-          `${
-            process.env.NEXT_PUBLIC_API_URL
-          }/api/sales/orders/?${queryParams.toString()}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const queryString = queryParams.toString();
+        const url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}${queryString ? `?${queryString}` : ""}`;
+
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         // Pass search results to parent component
         onSearchResults(response.data);

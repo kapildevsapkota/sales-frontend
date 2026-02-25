@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { HomeIcon, PlusCircleIcon, ClipboardListIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define TypeScript interfaces
 interface TabItem {
@@ -39,6 +40,14 @@ const TabBar: React.FC<TabBarProps> = ({
       path: "/sales/orders",
     },
   ];
+  const { user } = useAuth();
+  if (user?.franchise_name === "Sankhamul Franchise") {
+    defaultTabs.push({
+      label: "Old data",
+      icon: <ClipboardListIcon size={14} />,
+      path: "/sales/old-data",
+    });
+  }
 
   // Use provided tabs or default tabs
   const tabItems = tabs || defaultTabs;
@@ -75,11 +84,10 @@ const TabBar: React.FC<TabBarProps> = ({
         <button
           key={index}
           onClick={() => handleTabClick(index, tab.path)}
-          className={` py-2 px-1.5 rounded-md text-sm font-semibold transition-colors ${
-            activeTab === index
-              ? "bg-black text-white"
-              : "bg-white text-gray-800 border border-gray-300 hover:bg-gray-100"
-          } flex-1 mx-0.5 flex items-center justify-center`}
+          className={` py-2 px-1.5 rounded-md text-sm font-semibold transition-colors ${activeTab === index
+            ? "bg-black text-white"
+            : "bg-white text-gray-800 border border-gray-300 hover:bg-gray-100"
+            } flex-1 mx-0.5 flex items-center justify-center`}
         >
           {tab.icon && <span className="mr-1">{tab.icon}</span>}
           {tab.label}

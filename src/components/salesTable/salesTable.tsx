@@ -18,7 +18,11 @@ import { api } from "@/lib/api";
 import { ErrorDialog } from "@/components/ErrorDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function SalesTable() {
+export default function SalesTable({
+  endpoint = "/api/sales/orders/",
+}: {
+  endpoint?: string;
+}) {
   const [sales, setSales] = useState<SalesResponse | null>(null);
   const [displayData, setDisplayData] = useState<SaleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -104,7 +108,7 @@ export default function SalesTable() {
         const token = localStorage.getItem("accessToken");
 
         // Build URL with search and filters
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/?page=${page}&page_size=${size}`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}&page_size=${size}`;
 
         // Add search parameter if present
         if (filterTerm) {
@@ -430,12 +434,12 @@ export default function SalesTable() {
             prevData.map((sale) =>
               sale.id.toString() === saleId
                 ? {
-                    ...sale,
-                    logistics: updatedLogistics,
-                    ...(updatedOrderStatus && {
-                      order_status: updatedOrderStatus,
-                    }),
-                  }
+                  ...sale,
+                  logistics: updatedLogistics,
+                  ...(updatedOrderStatus && {
+                    order_status: updatedOrderStatus,
+                  }),
+                }
                 : sale
             )
           );
@@ -446,12 +450,12 @@ export default function SalesTable() {
               results: prevSales.results.map((sale) =>
                 sale.id.toString() === saleId
                   ? {
-                      ...sale,
-                      logistics: updatedLogistics,
-                      ...(updatedOrderStatus && {
-                        order_status: updatedOrderStatus,
-                      }),
-                    }
+                    ...sale,
+                    logistics: updatedLogistics,
+                    ...(updatedOrderStatus && {
+                      order_status: updatedOrderStatus,
+                    }),
+                  }
                   : sale
               ),
             };
@@ -476,10 +480,10 @@ export default function SalesTable() {
       prevData.map((sale) =>
         sale.id === saleId
           ? {
-              ...sale,
-              location_id: location.id,
-              location_name: location.name,
-            }
+            ...sale,
+            location_id: location.id,
+            location_name: location.name,
+          }
           : sale
       )
     );
@@ -490,10 +494,10 @@ export default function SalesTable() {
         results: prevSales.results.map((sale) =>
           sale.id === saleId
             ? {
-                ...sale,
-                location_id: location.id,
-                location_name: location.name,
-              }
+              ...sale,
+              location_id: location.id,
+              location_name: location.name,
+            }
             : sale
         ),
       };

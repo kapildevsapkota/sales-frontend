@@ -14,7 +14,11 @@ import { useSalesData } from "@/hooks/useSalesData";
 import type { SalesResponse } from "@/types/sale";
 import type { DateRange } from "react-day-picker";
 
-export default function OrderList() {
+export default function OrderList({
+  endpoint = "/api/sales/orders/",
+}: {
+  endpoint?: string;
+}) {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
@@ -39,7 +43,7 @@ export default function OrderList() {
     setFilterTerm,
     setSales,
     setDisplayData,
-  } = useSalesData();
+  } = useSalesData(endpoint);
 
   // Handle search input change
   const handleSearchInputChange = useCallback(
@@ -67,12 +71,12 @@ export default function OrderList() {
           setSales((prevSales: SalesResponse | null) =>
             prevSales
               ? {
-                  ...prevSales,
-                  results: data.results,
-                  count: data.count,
-                  next: data.next,
-                  previous: data.previous,
-                }
+                ...prevSales,
+                results: data.results,
+                count: data.count,
+                next: data.next,
+                previous: data.previous,
+              }
               : null
           );
         }
@@ -126,6 +130,7 @@ export default function OrderList() {
               dateRange={dateRange}
               setDateRange={setDateRange}
               onSearchResults={handleSearchResults}
+              endpoint={endpoint}
             />
           </div>
         </div>

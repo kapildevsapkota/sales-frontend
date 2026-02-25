@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import axios from "axios";
 import type { SaleItem, SalesResponse } from "@/types/sale";
 
-export function useSalesData() {
+export function useSalesData(endpoint: string = "/api/sales/orders/") {
   const [sales, setSales] = useState<SalesResponse | null>(null);
   const [displayData, setDisplayData] = useState<SaleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,11 +26,7 @@ export function useSalesData() {
         const token = localStorage.getItem("accessToken");
 
         // Add sorting parameters to API request if supported by backend
-        const url = `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/api/sales/orders/?page=${page}&page_size=${size}&search=${encodeURIComponent(
-          filterTerm
-        )}`;
+        const url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}${filterTerm ? `&search=${encodeURIComponent(filterTerm)}` : ""}`;
 
         const response = await axios.get<SalesResponse>(url, {
           headers: {

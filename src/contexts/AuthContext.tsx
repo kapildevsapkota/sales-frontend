@@ -47,6 +47,9 @@ interface User {
   is_active: boolean;
   distributor: string;
   franchise_id: number;
+  distributor_name?: string;
+  franchise_name?: string;
+  factory_name?: string;
 }
 
 interface AuthResponse {
