@@ -1,5 +1,19 @@
 export interface Report {
   id: number;
+  date?: string;
+  reported_by?: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone_number: string;
+    address: string;
+    role: string;
+    factory: string;
+    distributor: string;
+    franchise: string;
+  };
   message_received_fb: number | null;
   message_received_whatsapp: number | null;
   message_received_tiktok: number | null;

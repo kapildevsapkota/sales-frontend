@@ -26,7 +26,7 @@ import { useAuth, Role } from "@/contexts/AuthContext";
 const fetcher = (url: string): Promise<any> =>
     api.get(url).then((res): any => res.data);
 
-export default function AdminReportsPage() {
+export default function SalesReport() {
     // const { toast } = useToast(); // Removed
     const { user } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -140,13 +140,12 @@ export default function AdminReportsPage() {
                 showTimeframe={false}
                 salespersonId={salespersonId}
                 onSalespersonChange={setSalespersonId}
-                showSalespersonFilter={true}
+                showSalespersonFilter={[Role.SuperAdmin, Role.Factory, Role.Franchise, Role.Distributor].includes(user?.role as Role)}
             />
 
             <ReportsTable
                 reports={reports}
                 isLoading={isLoading}
-                showReportedBy={user?.role === Role.Factory || user?.role === Role.Franchise || user?.role === Role.SuperAdmin || user?.role === Role.Distributor}
                 onEdit={handleOpenDialog}
                 onDelete={handleDelete}
             />

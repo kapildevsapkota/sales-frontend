@@ -35,6 +35,7 @@ export default function SuperAdminReportsPage() {
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const [selectedFranchiseId, setSelectedFranchiseId] = useState<string>("all");
+    const [salespersonId, setSalespersonId] = useState<string>("all");
     const [page, setPage] = useState(1);
 
     // Dialog state
@@ -55,6 +56,10 @@ export default function SuperAdminReportsPage() {
 
     if (selectedFranchiseId && selectedFranchiseId !== "all") {
         params.append("franchise", selectedFranchiseId);
+    }
+
+    if (salespersonId && salespersonId !== "all") {
+        params.append("reported_by", salespersonId);
     }
 
     const { data: reportsData, isLoading } = useSWR<ReportsResponse>(
@@ -124,6 +129,9 @@ export default function SuperAdminReportsPage() {
                                 dateRange={dateRange}
                                 setDateRange={setDateRange}
                                 showTimeframe={false}
+                                salespersonId={salespersonId}
+                                onSalespersonChange={setSalespersonId}
+                                showSalespersonFilter={true}
                             />
                         </div>
                     </div>
@@ -134,6 +142,7 @@ export default function SuperAdminReportsPage() {
                 reports={reports}
                 isLoading={isLoading}
                 showFranchise={selectedFranchiseId === "all"}
+                showReportedBy={true}
                 onView={handleViewReport}
             />
 

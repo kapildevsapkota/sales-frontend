@@ -39,6 +39,11 @@ const TabBar: React.FC<TabBarProps> = ({
       icon: <ClipboardListIcon size={14} />,
       path: "/sales/orders",
     },
+    {
+      label: "Reports",
+      icon: <ClipboardListIcon size={14} />,
+      path: "/sales/reports",
+    },
   ];
   const { user } = useAuth();
   if (user?.franchise_name === "Sankhamul Franchise") {

@@ -15,6 +15,7 @@ interface ReportsTableProps {
     reports: Report[];
     isLoading?: boolean;
     showFranchise?: boolean;
+    showReportedBy?: boolean;
     onEdit?: (report: Report) => void;
     onDelete?: (id: number) => void;
     onView?: (report: Report) => void;
@@ -24,6 +25,7 @@ export function ReportsTable({
     reports,
     isLoading,
     showFranchise = false,
+    showReportedBy = false,
     onEdit,
     onDelete,
     onView,
@@ -36,6 +38,7 @@ export function ReportsTable({
                     >
                         <TableHead className="w-[120px]">Date</TableHead>
                         {showFranchise && <TableHead>Franchise</TableHead>}
+                        {showReportedBy && <TableHead>Reported By</TableHead>}
                         <TableHead>Facebook Msgs</TableHead>
                         <TableHead>Whatsapp Msgs</TableHead>
                         <TableHead>Tiktok Msgs</TableHead>
@@ -53,7 +56,7 @@ export function ReportsTable({
                     {isLoading ? (
                         <TableRow>
                             <TableCell
-                                colSpan={showFranchise ? 13 : 12}
+                                colSpan={12 + (showFranchise ? 1 : 0) + (showReportedBy ? 1 : 0)}
                                 className="h-24 text-center text-muted-foreground animate-pulse"
                             >
                                 Loading reports...
@@ -62,7 +65,7 @@ export function ReportsTable({
                     ) : reports.length === 0 ? (
                         <TableRow>
                             <TableCell
-                                colSpan={showFranchise ? 13 : 12}
+                                colSpan={12 + (showFranchise ? 1 : 0) + (showReportedBy ? 1 : 0)}
                                 className="h-24 text-center text-muted-foreground"
                             >
                                 No reports found.
@@ -79,11 +82,16 @@ export function ReportsTable({
                                 }}
                             >
                                 <TableCell className="font-medium">
-                                    {format(new Date(report.created_at), "MMM dd, yyyy")}
+                                    {report.date ? format(new Date(report.date), "MMM dd, yyyy") : "-"}
                                 </TableCell>
                                 {showFranchise && (
                                     <TableCell className="font-medium text-gray-600 capitalize">
                                         {report.franchise_name || "-"}
+                                    </TableCell>
+                                )}
+                                {showReportedBy && (
+                                    <TableCell className="font-medium text-gray-600">
+                                        {report.reported_by?.first_name || " -"} {report.reported_by?.last_name || "-"}
                                     </TableCell>
                                 )}
                                 <TableCell>{report.message_received_fb ?? "-"}</TableCell>
