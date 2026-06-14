@@ -102,6 +102,13 @@ const rankStyles = [
   "bg-orange-50 border-orange-200 text-orange-700",
 ];
 
+const getFranchiseSalesAmount = (entry: FranchiseSalesEntry) =>
+  entry.salespersons.reduce((sum, sp) => sum + sp.total_sales, 0) ||
+  (entry.statistics?.total_sales ?? 0);
+
+const sortSalespersonsByAmount = (salespersons: Salesperson[]) =>
+  [...salespersons].sort((a, b) => b.total_sales - a.total_sales);
+
 function buildTopSalesParams(
   filter: SalesFilter,
   dateRange: DateRange | undefined,
@@ -791,7 +798,9 @@ export function SuperAdminSalesFestView() {
             return {
               franchise,
               statistics: statsRes.data,
-              salespersons: topRes.data.results ?? [],
+              salespersons: sortSalespersonsByAmount(
+                topRes.data.results ?? []
+              ),
             };
           } catch {
             return {
@@ -803,8 +812,7 @@ export function SuperAdminSalesFestView() {
         })
       );
       return entries.sort(
-        (a, b) =>
-          (b.statistics?.total_sales ?? 0) - (a.statistics?.total_sales ?? 0)
+        (a, b) => getFranchiseSalesAmount(b) - getFranchiseSalesAmount(a)
       );
     },
     { refreshInterval: REFRESH_INTERVAL }
