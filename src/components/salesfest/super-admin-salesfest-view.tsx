@@ -333,6 +333,8 @@ function TopSalespersonsList({
   loading: boolean;
   subtitle: string;
 }) {
+  const rankedSalespersons = sortSalespersonsByAmount(salespersons);
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -349,13 +351,13 @@ function TopSalespersonsList({
               <Skeleton key={i} className="h-16 w-full rounded-lg" />
             ))}
           </div>
-        ) : salespersons.length === 0 ? (
+        ) : rankedSalespersons.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
             No salesperson data found for this period.
           </div>
         ) : (
           <Accordion type="single" collapsible className="w-full space-y-2">
-            {salespersons.map((sp, idx) => (
+            {rankedSalespersons.map((sp, idx) => (
               <AccordionItem
                 key={`${sp.first_name}-${sp.last_name}-${idx}`}
                 value={`${sp.first_name}-${sp.last_name}-${idx}`}
