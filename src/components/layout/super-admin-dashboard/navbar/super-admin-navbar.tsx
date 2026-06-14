@@ -9,6 +9,7 @@ import {
   Menu,
   Crown,
   NotepadText,
+  Calendar,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -81,13 +82,17 @@ const superAdminItems: MenuItem[] = [
     label: "Franchise Management",
     icon: Building2,
     href: "/super-admin/organization/franchises",
-
   },
   {
     label: "Reports",
     icon: NotepadText,
     href: "/super-admin/reports",
-  }
+  },
+  {
+    label: "Sales Fest",
+    icon: Calendar,
+    href: "/super-admin/salesfest",
+  },
 ];
 
 export function SuperAdminHeader() {
@@ -157,7 +162,7 @@ export function SuperAdminHeader() {
                               className={cn(
                                 "flex w-full items-center rounded-lg px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer",
                                 pathname === subItem.href &&
-                                "bg-purple-100 font-medium text-purple-700"
+                                  "bg-purple-100 font-medium text-purple-700",
                               )}
                             >
                               <span className="truncate">{subItem.label}</span>
@@ -178,7 +183,7 @@ export function SuperAdminHeader() {
                           "flex items-center",
                           pathname === item.href
                             ? "bg-white/20 font-medium"
-                            : ""
+                            : "",
                         )}
                       >
                         <item.icon className="h-4 w-4 mr-1.5" />
@@ -261,7 +266,7 @@ export function SuperAdminHeader() {
                                     className={cn(
                                       "block px-3 py-2 text-sm font-medium rounded-lg hover:bg-purple-50 hover:text-purple-700 transition-colors",
                                       pathname === subItem.href &&
-                                      "bg-purple-100 text-purple-700 font-semibold"
+                                        "bg-purple-100 text-purple-700 font-semibold",
                                     )}
                                   >
                                     {subItem.label}
@@ -277,7 +282,7 @@ export function SuperAdminHeader() {
                               "flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-purple-50 hover:text-purple-700 transition-colors",
                               pathname === item.href
                                 ? "text-purple-700 bg-purple-100 font-semibold"
-                                : "text-gray-700"
+                                : "text-gray-700",
                             )}
                           >
                             <item.icon className="mr-3 h-5 w-5 text-gray-500" />
