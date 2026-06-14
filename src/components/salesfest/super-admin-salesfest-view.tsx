@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
+import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowUp,
@@ -451,10 +452,12 @@ function FranchiseSalesGrid({
   entries,
   loading,
   filterLabel,
+  onFranchiseSelect,
 }: {
   entries: FranchiseSalesEntry[];
   loading: boolean;
   filterLabel: string;
+  onFranchiseSelect: (franchise: Franchise) => void;
 }) {
   if (loading) {
     return (
@@ -488,7 +491,11 @@ function FranchiseSalesGrid({
           key={entry.franchise.id}
           className="bg-white rounded-xl shadow-sm p-3 h-fit border min-w-0"
         >
-          <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+          <button
+            type="button"
+            onClick={() => onFranchiseSelect(entry.franchise)}
+            className="mb-3 w-full p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg text-left transition-colors hover:from-blue-100 hover:to-indigo-100 cursor-pointer"
+          >
             <h3 className="text-sm font-semibold text-gray-800 mb-1 truncate">
               {entry.franchise.name}
             </h3>
@@ -515,7 +522,10 @@ function FranchiseSalesGrid({
             ) : (
               <p className="text-sm text-muted-foreground">Stats unavailable</p>
             )}
-          </div>
+            <p className="text-[11px] text-primary font-medium mt-2">
+              Click to view orders
+            </p>
+          </button>
 
           <p className="text-xs text-muted-foreground mb-3 px-1">
             {filterLabel} · Top salespersons
@@ -715,6 +725,7 @@ function FranchiseLeaderboard({
 }
 
 export function SuperAdminSalesFestView() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<ViewTab>("overview");
   const [filter, setFilter] = useState<SalesFilter>("daily");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -820,8 +831,13 @@ export function SuperAdminSalesFestView() {
 
   const filterLabel = filter.charAt(0).toUpperCase() + filter.slice(1);
 
-  const handleFranchiseSelect = () => {
-    setActiveTab("franchise");
+  const handleFranchiseSelect = (franchise: Franchise) => {
+    const params = new URLSearchParams({
+      name: franchise.name,
+    });
+    router.push(
+      `/super-admin/salesfest/franchise/${franchise.id}?${params.toString()}`
+    );
   };
 
   const totalFranchiseRevenue =
@@ -898,7 +914,7 @@ export function SuperAdminSalesFestView() {
             entries={franchiseLeaderboard ?? []}
             loading={leaderboardLoading || franchisesLoading}
             totalRevenue={totalFranchiseRevenue}
-            onSelectFranchise={handleFranchiseSelect}
+            onSelectFranchise={() => setActiveTab("franchise")}
           />
 
           <TopSalespersonsList
@@ -913,6 +929,7 @@ export function SuperAdminSalesFestView() {
             entries={franchiseSalesData ?? []}
             loading={franchiseSalesLoading || franchisesLoading}
             filterLabel={filterLabel}
+            onFranchiseSelect={handleFranchiseSelect}
           />
         </TabsContent>
       </Tabs>
