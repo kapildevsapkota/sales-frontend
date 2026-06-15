@@ -2,9 +2,18 @@
 
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { useRouter } from "next/navigation";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   ArrowDown,
   ArrowUp,
@@ -79,7 +88,17 @@ interface FranchiseSalesEntry {
 }
 
 type SalesFilter = "all" | "daily" | "weekly" | "monthly";
-type ViewTab = "overview" | "franchise";
+type ViewTab = "overview" | "franchise" | "rankings";
+
+const RANKINGS_START_DATE = new Date(2026, 5, 14);
+
+const GROUP_A_FRANCHISE_MATCHERS = [
+  "sankhamul",
+  "swayambhu",
+  "swyambhu",
+  "swyamhu",
+  "main page",
+];
 
 const HIDDEN_FRANCHISE_NAMES = new Set([
   "biratnagar",
@@ -90,6 +109,14 @@ const REFRESH_INTERVAL = 60_000;
 
 const isHiddenFranchise = (name: string) =>
   HIDDEN_FRANCHISE_NAMES.has(name.trim().toLowerCase());
+
+const getFranchiseLabel = (franchise: Franchise) =>
+  `${franchise.name} ${franchise.short_form ?? ""}`.trim().toLowerCase();
+
+const isGroupAFranchise = (franchise: Franchise) =>
+  GROUP_A_FRANCHISE_MATCHERS.some((matcher) =>
+    getFranchiseLabel(franchise).includes(matcher),
+  );
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
@@ -108,13 +135,13 @@ const getFranchiseSalesAmount = (entry: FranchiseSalesEntry) =>
   entry.salespersons.reduce((sum, sp) => sum + sp.total_sales, 0) ||
   (entry.statistics?.total_sales ?? 0);
 
-const sortSalespersonsByAmount = (salespersons: Salesperson[]) =>
+const sortSalespersonsByAmount = <T extends Salesperson>(salespersons: T[]) =>
   [...salespersons].sort((a, b) => b.total_sales - a.total_sales);
 
 function buildTopSalesParams(
   filter: SalesFilter,
   dateRange: DateRange | undefined,
-  franchiseId?: string
+  franchiseId?: string,
 ) {
   const params = new URLSearchParams();
   params.append("filter", filter);
@@ -126,6 +153,201 @@ function buildTopSalesParams(
     params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
   }
   return params.toString();
+}
+
+function buildRankingsParams(franchiseId?: string) {
+  const params = new URLSearchParams();
+  params.append("filter", "all");
+  params.append("start_date", format(RANKINGS_START_DATE, "yyyy-MM-dd"));
+  params.append("end_date", format(new Date(), "yyyy-MM-dd"));
+  if (franchiseId) params.append("franchise", franchiseId);
+  return params.toString();
+}
+
+function buildFestTrendParams() {
+  const params = new URLSearchParams();
+  params.append("filter", "daily");
+  params.append("start_date", format(RANKINGS_START_DATE, "yyyy-MM-dd"));
+  params.append("end_date", format(new Date(), "yyyy-MM-dd"));
+  return params.toString();
+}
+
+interface RevenueTrendPoint {
+  period: string;
+  total_revenue: number;
+  order_count: number;
+}
+
+interface RevenueTrendResponse {
+  data: RevenueTrendPoint[];
+}
+
+const formatChartDate = (period: string) => {
+  try {
+    return format(parseISO(period), "MMM d");
+  } catch {
+    return period;
+  }
+};
+
+const formatCompactCurrency = (value: number) => {
+  if (value >= 1_000_000) return `Rs. ${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `Rs. ${(value / 1_000).toFixed(0)}K`;
+  return formatCurrency(value);
+};
+
+function FestSalesTrendChart() {
+  const trendParams = buildFestTrendParams();
+
+  const { data, isLoading } = useSWR<RevenueTrendResponse>(
+    `/api/sales/revenue-with-cancelled/?${trendParams}`,
+    fetcher,
+    { refreshInterval: REFRESH_INTERVAL },
+  );
+
+  const chartData = useMemo(() => {
+    const points = data?.data ?? [];
+    let cumulative = 0;
+
+    return points.map((point) => {
+      cumulative += point.total_revenue;
+      return {
+        date: formatChartDate(point.period),
+        revenue: point.total_revenue,
+        orders: point.order_count,
+        cumulative,
+      };
+    });
+  }, [data]);
+
+  const totals = useMemo(() => {
+    const revenue = chartData.reduce((sum, point) => sum + point.revenue, 0);
+    const orders = chartData.reduce((sum, point) => sum + point.orders, 0);
+    const days = chartData.length || 1;
+
+    return {
+      revenue,
+      orders,
+      avgDaily: revenue / days,
+    };
+  }, [chartData]);
+
+  const periodLabel = `${format(RANKINGS_START_DATE, "MMM d, yyyy")} – ${format(new Date(), "MMM d, yyyy")}`;
+
+  return (
+    <Card className="shadow-sm overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-indigo-600" />
+              Fest Sales Trend
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">{periodLabel}</p>
+          </div>
+          {!isLoading && chartData.length > 0 && (
+            <div className="flex flex-wrap gap-4 sm:gap-6">
+              <div>
+                <p className="text-xs text-muted-foreground">Total revenue</p>
+                <p className="text-lg font-bold text-indigo-600">
+                  {formatCurrency(totals.revenue)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total orders</p>
+                <p className="text-lg font-bold">{formatNumber(totals.orders)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Daily average</p>
+                <p className="text-lg font-bold">
+                  {formatCurrency(totals.avgDaily)}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Skeleton className="h-[280px] w-full rounded-lg" />
+        ) : chartData.length === 0 ? (
+          <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
+            No sales data for this period yet.
+          </div>
+        ) : (
+          <div className="h-[280px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={chartData}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="festRevenueFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#e5e7eb"
+                />
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#6b7280", fontSize: 12 }}
+                  dy={8}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#6b7280", fontSize: 12 }}
+                  tickFormatter={formatCompactCurrency}
+                  width={72}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const point = payload[0].payload as (typeof chartData)[number];
+
+                    return (
+                      <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-sm">
+                        <p className="font-medium mb-1">{point.date}</p>
+                        <p className="text-indigo-600">
+                          Revenue: {formatCurrency(point.revenue)}
+                        </p>
+                        <p className="text-muted-foreground">
+                          Orders: {formatNumber(point.orders)}
+                        </p>
+                        <p className="text-muted-foreground">
+                          Cumulative: {formatCurrency(point.cumulative)}
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  fill="url(#festRevenueFill)"
+                  dot={{ r: 4, fill: "#6366f1", strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: "#4f46e5" }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface RankedSalesperson extends Salesperson {
+  franchiseName: string;
+  group: "A" | "B";
 }
 
 function calcTrend(current: number, previous: number) {
@@ -226,16 +448,16 @@ function StatisticsSection({
 
   const salesTrend = calcTrend(
     statistics.total_sales,
-    statistics.total_sales_yesterday
+    statistics.total_sales_yesterday,
   );
   const ordersTrend = calcTrend(
     statistics.total_orders,
-    statistics.total_orders_yesterday
+    statistics.total_orders_yesterday,
   );
 
   return (
     <>
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         <StatCard
           label="Revenue Today"
           sublabel={statistics.date}
@@ -254,72 +476,6 @@ function StatisticsSection({
           footer={`Yesterday: ${formatNumber(statistics.total_orders_yesterday)} orders`}
           className="border-blue-100"
         />
-        <StatCard
-          label="All-Time Orders"
-          value={formatNumber(statistics.all_time_orders)}
-          icon={<Package className="h-4 w-4 text-purple-600" />}
-          footer={`Cancelled: ${formatNumber(statistics.cancelled_orders_count)}`}
-          className="border-purple-100"
-        />
-        <StatCard
-          label="All-Time Revenue"
-          value={formatCurrency(statistics.all_time_sales)}
-          icon={<TrendingUp className="h-4 w-4 text-amber-600" />}
-          footer={`Cancelled: ${formatCurrency(statistics.all_time_cancelled_sales)}`}
-          className="border-amber-100"
-        />
-      </div>
-
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-orange-500" />
-              Cancelled Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.entries(statistics.cancelled_orders).map(([key, count]) => (
-                <div
-                  key={key}
-                  className="rounded-lg border bg-muted/30 px-3 py-2"
-                >
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {key.replace(/_/g, " ")}
-                  </p>
-                  <p className="text-lg font-semibold">{count}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-red-500" />
-              Cancelled Amount
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.entries(statistics.cancelled_amount).map(([key, amount]) => (
-                <div
-                  key={key}
-                  className="rounded-lg border bg-muted/30 px-3 py-2"
-                >
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {key.replace(/_/g, " ")}
-                  </p>
-                  <p className="text-sm font-semibold">
-                    {formatCurrency(amount)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </>
   );
@@ -559,7 +715,9 @@ function FranchiseSalesGrid({
                         </span>
                         <span className="text-gray-500">
                           Orders:{" "}
-                          <span className="font-semibold">{sp.sales_count}</span>
+                          <span className="font-semibold">
+                            {sp.sales_count}
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -662,7 +820,7 @@ function FranchiseLeaderboard({
                       : 0;
                   const ordersTrend = calcTrend(
                     entry.statistics.total_orders,
-                    entry.statistics.total_orders_yesterday
+                    entry.statistics.total_orders_yesterday,
                   );
 
                   return (
@@ -690,9 +848,7 @@ function FranchiseLeaderboard({
                         </div>
                         <div
                           className={`text-xs ${
-                            ordersTrend >= 0
-                              ? "text-green-600"
-                              : "text-red-600"
+                            ordersTrend >= 0 ? "text-green-600" : "text-red-600"
                           }`}
                         >
                           {ordersTrend >= 0 ? "+" : ""}
@@ -727,6 +883,273 @@ function FranchiseLeaderboard({
   );
 }
 
+function RankBadge({ rank }: { rank: number }) {
+  return (
+    <span
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+        rank === 1
+          ? "bg-amber-400 text-white"
+          : rank === 2
+            ? "bg-slate-400 text-white"
+            : rank === 3
+              ? "bg-orange-400 text-white"
+              : "bg-muted text-muted-foreground"
+      }`}
+    >
+      {rank}
+    </span>
+  );
+}
+
+function GroupRankingsPanel({
+  title,
+  description,
+  group,
+  franchiseEntries,
+  salespersons,
+  loading,
+}: {
+  title: string;
+  description: string;
+  group: "A" | "B";
+  franchiseEntries: FranchiseSalesEntry[];
+  salespersons: RankedSalesperson[];
+  loading: boolean;
+}) {
+  const rankedFranchises = [...franchiseEntries].sort(
+    (a, b) => getFranchiseSalesAmount(b) - getFranchiseSalesAmount(a),
+  );
+  const rankedSalespersons = sortSalespersonsByAmount(salespersons);
+  const totalGroupRevenue = rankedFranchises.reduce(
+    (sum, entry) => sum + getFranchiseSalesAmount(entry),
+    0,
+  );
+
+  return (
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-amber-500" />
+          {title}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">{description}</p>
+        {!loading && (
+          <p className="text-sm font-semibold text-primary">
+            Group total: {formatCurrency(totalGroupRevenue)}
+          </p>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-blue-600" />
+                Franchise Rankings
+              </h3>
+              {rankedFranchises.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  No franchise data in this group.
+                </p>
+              ) : (
+                <div className="rounded-lg border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/40">
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead>Franchise</TableHead>
+                        <TableHead className="text-right">Orders</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rankedFranchises.map((entry, idx) => {
+                        const revenue = getFranchiseSalesAmount(entry);
+                        const orders = entry.salespersons.reduce(
+                          (sum, sp) => sum + sp.sales_count,
+                          0,
+                        );
+
+                        return (
+                          <TableRow key={entry.franchise.id}>
+                            <TableCell>
+                              <RankBadge rank={idx + 1} />
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">
+                                {entry.franchise.name}
+                              </div>
+                              {entry.franchise.short_form && (
+                                <div className="text-xs text-muted-foreground">
+                                  {entry.franchise.short_form}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatNumber(orders)}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold text-primary">
+                              {formatCurrency(revenue)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                Salesperson Rankings {group}
+              </h3>
+              {rankedSalespersons.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  No salesperson data in this group.
+                </p>
+              ) : (
+                <div className="rounded-lg border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/40">
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead>Salesperson</TableHead>
+                        <TableHead>Group</TableHead>
+                        <TableHead>Franchise</TableHead>
+                        <TableHead className="text-right">Orders</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rankedSalespersons.map((sp, idx) => (
+                        <TableRow
+                          key={`${sp.franchiseName}-${sp.first_name}-${sp.last_name}-${idx}`}
+                        >
+                          <TableCell>
+                            <RankBadge rank={idx + 1} />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {sp.first_name} {sp.last_name}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                sp.group === "A"
+                                  ? "border-amber-300 text-amber-800 bg-amber-50"
+                                  : "border-blue-300 text-blue-800 bg-blue-50"
+                              }
+                            >
+                              Group {sp.group}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {sp.franchiseName}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatNumber(sp.sales_count)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-primary">
+                            {formatCurrency(sp.total_sales)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function FestRankingsSection({
+  entries,
+  loading,
+}: {
+  entries: FranchiseSalesEntry[];
+  loading: boolean;
+}) {
+  const groupAEntries = entries.filter((entry) =>
+    isGroupAFranchise(entry.franchise),
+  );
+  const groupBEntries = entries.filter(
+    (entry) => !isGroupAFranchise(entry.franchise),
+  );
+
+  const toRankedSalespersons = (
+    groupEntries: FranchiseSalesEntry[],
+    group: "A" | "B",
+  ): RankedSalesperson[] =>
+    groupEntries.flatMap((entry) =>
+      entry.salespersons.map((sp) => ({
+        ...sp,
+        franchiseName: entry.franchise.name,
+        group,
+      })),
+    );
+
+  const trackingLabel = `Since ${format(RANKINGS_START_DATE, "MMM d, yyyy")}`;
+
+  return (
+    <div className="space-y-6">
+      <FestSalesTrendChart />
+
+      <Card className="shadow-sm border-amber-100 bg-amber-50/40">
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-amber-900">
+                Fest Rankings Period
+              </p>
+              <p className="text-sm text-amber-800/80">
+                Sales are counted from June 14, 2026 onward only. Rankings
+                refresh automatically every minute.
+              </p>
+            </div>
+            <Badge
+              variant="outline"
+              className="w-fit border-amber-300 text-amber-900 bg-white"
+            >
+              {trackingLabel}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <GroupRankingsPanel
+          title="Group A"
+          description="Sankhamul, Swyambhu, and Main Page"
+          group="A"
+          franchiseEntries={groupAEntries}
+          salespersons={toRankedSalespersons(groupAEntries, "A")}
+          loading={loading}
+        />
+        <GroupRankingsPanel
+          title="Group B"
+          description="All other franchises"
+          group="B"
+          franchiseEntries={groupBEntries}
+          salespersons={toRankedSalespersons(groupBEntries, "B")}
+          loading={loading}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function SuperAdminSalesFestView() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ViewTab>("overview");
@@ -748,20 +1171,19 @@ export function SuperAdminSalesFestView() {
   }, [franchisesData]);
 
   const overviewFilterKey = buildTopSalesParams(filter, dateRange);
+  const rankingsFilterKey = buildRankingsParams();
   const franchiseIds = franchises.map((f) => f.id).join(",");
 
   const { data: overallStats, isLoading: overallStatsLoading } =
-    useSWR<Statistics>(
-      `/api/sales/statistics/?${overviewFilterKey}`,
-      fetcher,
-      { refreshInterval: REFRESH_INTERVAL }
-    );
+    useSWR<Statistics>(`/api/sales/statistics/?${overviewFilterKey}`, fetcher, {
+      refreshInterval: REFRESH_INTERVAL,
+    });
 
   const { data: overallTopSales, isLoading: overallTopSalesLoading } =
     useSWR<TopSalespersonsResponse>(
       `/api/sales/top-salespersons/?${overviewFilterKey}`,
       fetcher,
-      { refreshInterval: REFRESH_INTERVAL }
+      { refreshInterval: REFRESH_INTERVAL },
     );
 
   const { data: franchiseLeaderboard, isLoading: leaderboardLoading } = useSWR<
@@ -777,22 +1199,22 @@ export function SuperAdminSalesFestView() {
             const params = buildTopSalesParams(
               filter,
               dateRange,
-              franchise.id.toString()
+              franchise.id.toString(),
             );
             const { data } = await api.get<Statistics>(
-              `/api/sales/statistics/?${params}`
+              `/api/sales/statistics/?${params}`,
             );
             return { franchise, statistics: data };
           } catch {
             return null;
           }
-        })
+        }),
       );
       return entries
         .filter((e): e is FranchiseStatsEntry => e !== null)
         .sort((a, b) => b.statistics.total_sales - a.statistics.total_sales);
     },
-    { refreshInterval: REFRESH_INTERVAL }
+    { refreshInterval: REFRESH_INTERVAL },
   );
 
   const { data: franchiseSalesData, isLoading: franchiseSalesLoading } = useSWR<
@@ -807,21 +1229,19 @@ export function SuperAdminSalesFestView() {
           const filterParams = buildTopSalesParams(
             filter,
             dateRange,
-            franchise.id.toString()
+            franchise.id.toString(),
           );
           try {
             const [statsRes, topRes] = await Promise.all([
               api.get<Statistics>(`/api/sales/statistics/?${filterParams}`),
               api.get<TopSalespersonsResponse>(
-                `/api/sales/top-salespersons/?${filterParams}`
+                `/api/sales/top-salespersons/?${filterParams}`,
               ),
             ]);
             return {
               franchise,
               statistics: statsRes.data,
-              salespersons: sortSalespersonsByAmount(
-                topRes.data.results ?? []
-              ),
+              salespersons: sortSalespersonsByAmount(topRes.data.results ?? []),
             };
           } catch {
             return {
@@ -830,13 +1250,49 @@ export function SuperAdminSalesFestView() {
               salespersons: [],
             };
           }
-        })
+        }),
       );
       return entries.sort(
-        (a, b) => getFranchiseSalesAmount(b) - getFranchiseSalesAmount(a)
+        (a, b) => getFranchiseSalesAmount(b) - getFranchiseSalesAmount(a),
       );
     },
-    { refreshInterval: REFRESH_INTERVAL }
+    { refreshInterval: REFRESH_INTERVAL },
+  );
+
+  const { data: rankingsData, isLoading: rankingsLoading } = useSWR<
+    FranchiseSalesEntry[]
+  >(
+    activeTab === "rankings" && franchises.length > 0
+      ? ["fest-rankings", franchiseIds, rankingsFilterKey]
+      : null,
+    async () => {
+      const entries = await Promise.all(
+        franchises.map(async (franchise) => {
+          const filterParams = buildRankingsParams(franchise.id.toString());
+          try {
+            const [statsRes, topRes] = await Promise.all([
+              api.get<Statistics>(`/api/sales/statistics/?${filterParams}`),
+              api.get<TopSalespersonsResponse>(
+                `/api/sales/top-salespersons/?${filterParams}`,
+              ),
+            ]);
+            return {
+              franchise,
+              statistics: statsRes.data,
+              salespersons: sortSalespersonsByAmount(topRes.data.results ?? []),
+            };
+          } catch {
+            return {
+              franchise,
+              statistics: null,
+              salespersons: [],
+            };
+          }
+        }),
+      );
+      return entries;
+    },
+    { refreshInterval: REFRESH_INTERVAL },
   );
 
   const filterLabel = filter.charAt(0).toUpperCase() + filter.slice(1);
@@ -846,14 +1302,14 @@ export function SuperAdminSalesFestView() {
       name: franchise.name,
     });
     router.push(
-      `/super-admin/salesfest/franchise/${franchise.id}?${params.toString()}`
+      `/super-admin/salesfest/franchise/${franchise.id}?${params.toString()}`,
     );
   };
 
   const totalFranchiseRevenue =
     franchiseLeaderboard?.reduce(
       (sum, e) => sum + e.statistics.total_sales,
-      0
+      0,
     ) ?? 0;
 
   const hasActiveFilters = filter !== "daily" || !!dateRange?.from;
@@ -883,37 +1339,44 @@ export function SuperAdminSalesFestView() {
 
       <Card className="shadow-sm">
         <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-wrap gap-2">
-              {(["daily", "weekly", "monthly", "all"] as const).map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFilter(f)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === f
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted hover:bg-muted/80 text-foreground"
-                  }`}
-                >
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
-              ))}
+          {activeTab === "rankings" ? (
+            <p className="text-sm text-muted-foreground">
+              Date filters apply to Overall and Franchise tabs only. Rankings
+              use the fixed fest period starting June 14, 2026.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-wrap gap-2">
+                {(["daily", "weekly", "monthly", "all"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFilter(f)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      filter === f
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted hover:bg-muted/80 text-foreground"
+                    }`}
+                  >
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-end gap-2">
+                <DateRangePicker value={dateRange} onChange={setDateRange} />
+                {hasActiveFilters && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearFilters}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap items-end gap-2">
-              <DateRangePicker value={dateRange} onChange={setDateRange} />
-              {hasActiveFilters && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearFilters}
-                >
-                  Clear filters
-                </Button>
-              )}
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -922,7 +1385,7 @@ export function SuperAdminSalesFestView() {
         onValueChange={(v) => setActiveTab(v as ViewTab)}
         className="space-y-6"
       >
-        <TabsList className="grid w-full max-w-md grid-cols-2 h-11">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3 h-11">
           <TabsTrigger value="overview" className="gap-2">
             <LayoutGrid className="h-4 w-4" />
             Overall
@@ -930,6 +1393,10 @@ export function SuperAdminSalesFestView() {
           <TabsTrigger value="franchise" className="gap-2">
             <Store className="h-4 w-4" />
             Franchise
+          </TabsTrigger>
+          <TabsTrigger value="rankings" className="gap-2">
+            <Trophy className="h-4 w-4" />
+            Rankings
           </TabsTrigger>
         </TabsList>
 
@@ -959,6 +1426,13 @@ export function SuperAdminSalesFestView() {
             loading={franchiseSalesLoading || franchisesLoading}
             filterLabel={filterLabel}
             onFranchiseSelect={handleFranchiseSelect}
+          />
+        </TabsContent>
+
+        <TabsContent value="rankings" className="space-y-6 mt-0">
+          <FestRankingsSection
+            entries={rankingsData ?? []}
+            loading={rankingsLoading || franchisesLoading}
           />
         </TabsContent>
       </Tabs>
