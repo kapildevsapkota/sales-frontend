@@ -40,6 +40,10 @@ interface FranchiseOrdersTableHeaderProps {
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
   onClearFilters: () => void;
+  minDate?: Date;
+  maxDate?: Date;
+  dateClearable?: boolean;
+  dateEmptyLabel?: string;
 }
 
 export function FranchiseOrdersTableHeader({
@@ -59,6 +63,10 @@ export function FranchiseOrdersTableHeader({
   dateRange,
   setDateRange,
   onClearFilters,
+  minDate,
+  maxDate,
+  dateClearable,
+  dateEmptyLabel,
 }: FranchiseOrdersTableHeaderProps) {
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -163,7 +171,14 @@ export function FranchiseOrdersTableHeader({
             </SelectContent>
           </Select>
 
-          <DateRangePicker value={dateRange} onChange={setDateRange} />
+          <DateRangePicker
+            value={dateRange}
+            onChange={setDateRange}
+            minDate={minDate}
+            maxDate={maxDate}
+            clearable={dateClearable}
+            emptyLabel={dateEmptyLabel}
+          />
 
           <Button variant="outline" size="sm" onClick={onClearFilters}>
             Clear

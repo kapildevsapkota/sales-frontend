@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import axios from "axios";
+import { startOfDay } from "date-fns";
 import { DateRange } from "react-day-picker";
 import type { SaleItem, SalesResponse } from "@/types/sale";
 import { FranchiseOrdersTableHeader } from "./components/franchise-orders-table-header";
@@ -15,10 +16,50 @@ import { ErrorDialog } from "@/components/ErrorDialog";
 
 interface FranchiseOrdersTableProps {
   franchiseId: string;
+  festMode?: boolean;
+  minDate?: Date;
 }
+
+const formatApiDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getTodayRange = (): DateRange => {
+  const today = startOfDay(new Date());
+  return { from: today, to: today };
+};
+
+const getFestFullRange = (minDate: Date): DateRange => ({
+  from: startOfDay(minDate),
+  to: startOfDay(new Date()),
+});
+
+const clampFestDateRange = (
+  range: DateRange,
+  minDate: Date,
+): DateRange => {
+  const today = startOfDay(new Date());
+  const festStart = startOfDay(minDate);
+
+  let from = startOfDay(range.from!);
+  let to = range.to ? startOfDay(range.to) : from;
+
+  if (from < festStart) from = festStart;
+  if (from > today) from = today;
+  if (to < festStart) to = festStart;
+  if (to > today) to = today;
+  if (from > to) to = from;
+
+  return { from, to };
+};
 
 export default function FranchiseOrdersTable({
   franchiseId,
+  festMode = false,
+  minDate,
 }: FranchiseOrdersTableProps) {
   const [sales, setSales] = useState<SalesResponse | null>(null);
   const [displayData, setDisplayData] = useState<SaleItem[]>([]);
@@ -30,7 +71,9 @@ export default function FranchiseOrdersTable({
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [orderStatus, setOrderStatus] = useState("all");
   const [deliveryType, setDeliveryType] = useState("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(
+    festMode ? getTodayRange() : undefined,
+  );
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState("");
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
@@ -47,6 +90,27 @@ export default function FranchiseOrdersTable({
     setErrorDialogMessage(message);
     setErrorDialogOpen(true);
   }, []);
+
+  const effectiveDateRange = useMemo(() => {
+    if (!festMode || !minDate) return dateRange;
+    if (!dateRange?.from) return getFestFullRange(minDate);
+    return clampFestDateRange(dateRange, minDate);
+  }, [dateRange, festMode, minDate]);
+
+  const handleDateRangeChange = useCallback(
+    (range: DateRange | undefined) => {
+      if (!festMode || !minDate) {
+        setDateRange(range);
+        return;
+      }
+      if (!range?.from) {
+        setDateRange(undefined);
+        return;
+      }
+      setDateRange(clampFestDateRange(range, minDate));
+    },
+    [festMode, minDate],
+  );
 
   const fetchOrders = useCallback(
     async (page = 1) => {
@@ -68,18 +132,16 @@ export default function FranchiseOrdersTable({
           url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
         }
 
-        const formatDate = (date: Date) => {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const day = String(date.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        };
-
-        if (dateRange?.from) {
-          url += `&start_date=${formatDate(dateRange.from)}`;
+        if (effectiveDateRange?.from) {
+          url += `&start_date=${formatApiDate(effectiveDateRange.from)}`;
+        } else if (festMode && minDate) {
+          url += `&start_date=${formatApiDate(startOfDay(minDate))}`;
         }
-        if (dateRange?.to) {
-          url += `&end_date=${formatDate(dateRange.to)}`;
+
+        if (effectiveDateRange?.to) {
+          url += `&end_date=${formatApiDate(effectiveDateRange.to)}`;
+        } else if (festMode && minDate) {
+          url += `&end_date=${formatApiDate(startOfDay(new Date()))}`;
         }
 
         const response = await axios.get<SalesResponse>(url, {
@@ -103,9 +165,11 @@ export default function FranchiseOrdersTable({
       paymentMethod,
       orderStatus,
       deliveryType,
-      dateRange,
+      effectiveDateRange,
+      festMode,
+      minDate,
       showError,
-    ]
+    ],
   );
 
   const handleGlobalSearch = useCallback(
@@ -182,7 +246,9 @@ export default function FranchiseOrdersTable({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [paymentMethod, orderStatus, deliveryType, dateRange, filterTerm]);
+  }, [paymentMethod, orderStatus, deliveryType, effectiveDateRange, filterTerm]);
+
+  const festMaxDate = startOfDay(new Date());
 
   return (
     <div className="relative flex flex-col min-h-[60vh]">
@@ -201,8 +267,16 @@ export default function FranchiseOrdersTable({
         deliveryType={deliveryType}
         setDeliveryType={setDeliveryType}
         dateRange={dateRange}
-        setDateRange={setDateRange}
+        setDateRange={handleDateRangeChange}
         onClearFilters={handleClearFilters}
+        minDate={festMode ? minDate : undefined}
+        maxDate={festMode ? festMaxDate : undefined}
+        dateClearable={festMode}
+        dateEmptyLabel={
+          festMode && minDate
+            ? `All fest dates (${formatApiDate(minDate)} – today)`
+            : undefined
+        }
       />
 
       {showPaymentImageModal && (

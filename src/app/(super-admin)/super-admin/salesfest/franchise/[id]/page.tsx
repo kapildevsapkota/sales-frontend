@@ -4,7 +4,9 @@ import Link from "next/link";
 import { use } from "react";
 import { ArrowLeft } from "lucide-react";
 import FranchiseOrdersTable from "@/components/franchiseOrdersTable/franchise-orders-table";
+import { RANKINGS_START_DATE } from "@/components/salesfest/super-admin/constants";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 
 export default function FranchiseOrdersPage({
   params,
@@ -17,7 +19,7 @@ export default function FranchiseOrdersPage({
   const { name } = use(searchParams);
 
   return (
-    <div className="container mx-auto max-w-[1800px] space-y-4 py-4">
+    <div className="container mx-auto max-w-[1800px] space-y-4 px-3 sm:px-4 py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button variant="outline" className="w-fit gap-2" asChild>
           <Link href="/super-admin/salesfest">
@@ -25,15 +27,22 @@ export default function FranchiseOrdersPage({
             Back to Sales Fest
           </Link>
         </Button>
-        <div className="text-right">
-          <h1 className="text-2xl font-bold">
+        <div className="sm:text-right">
+          <h1 className="text-xl sm:text-2xl font-bold">
             {name ? decodeURIComponent(name) : "Franchise"} Orders
           </h1>
-          <p className="text-sm text-muted-foreground">Franchise ID: {id}</p>
+          <p className="text-sm text-muted-foreground">
+            Showing today by default · Fest data from{" "}
+            {format(RANKINGS_START_DATE, "MMM d, yyyy")} onward
+          </p>
         </div>
       </div>
 
-      <FranchiseOrdersTable franchiseId={id} />
+      <FranchiseOrdersTable
+        franchiseId={id}
+        festMode
+        minDate={RANKINGS_START_DATE}
+      />
     </div>
   );
 }
