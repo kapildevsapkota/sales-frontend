@@ -20,6 +20,7 @@ import {
   Users,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 import { Statistics } from "@/components/dashboard/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -746,17 +747,19 @@ export function SuperAdminSalesFestView() {
     return raw.filter((f) => !isHiddenFranchise(f.name));
   }, [franchisesData]);
 
-  const overviewTopSalesKey = buildTopSalesParams(filter, dateRange);
+  const overviewFilterKey = buildTopSalesParams(filter, dateRange);
   const franchiseIds = franchises.map((f) => f.id).join(",");
 
   const { data: overallStats, isLoading: overallStatsLoading } =
-    useSWR<Statistics>("/api/sales/statistics/", fetcher, {
-      refreshInterval: REFRESH_INTERVAL,
-    });
+    useSWR<Statistics>(
+      `/api/sales/statistics/?${overviewFilterKey}`,
+      fetcher,
+      { refreshInterval: REFRESH_INTERVAL }
+    );
 
   const { data: overallTopSales, isLoading: overallTopSalesLoading } =
     useSWR<TopSalespersonsResponse>(
-      `/api/sales/top-salespersons/?${overviewTopSalesKey}`,
+      `/api/sales/top-salespersons/?${overviewFilterKey}`,
       fetcher,
       { refreshInterval: REFRESH_INTERVAL }
     );
@@ -764,13 +767,20 @@ export function SuperAdminSalesFestView() {
   const { data: franchiseLeaderboard, isLoading: leaderboardLoading } = useSWR<
     FranchiseStatsEntry[]
   >(
-    franchises.length > 0 ? ["franchise-leaderboard", franchiseIds] : null,
+    franchises.length > 0
+      ? ["franchise-leaderboard", franchiseIds, overviewFilterKey]
+      : null,
     async () => {
       const entries = await Promise.all(
         franchises.map(async (franchise) => {
           try {
+            const params = buildTopSalesParams(
+              filter,
+              dateRange,
+              franchise.id.toString()
+            );
             const { data } = await api.get<Statistics>(
-              `/api/sales/statistics/?franchise=${franchise.id}`
+              `/api/sales/statistics/?${params}`
             );
             return { franchise, statistics: data };
           } catch {
@@ -789,23 +799,21 @@ export function SuperAdminSalesFestView() {
     FranchiseSalesEntry[]
   >(
     activeTab === "franchise" && franchises.length > 0
-      ? ["franchise-sales-all", franchiseIds, overviewTopSalesKey]
+      ? ["franchise-sales-all", franchiseIds, overviewFilterKey]
       : null,
     async () => {
       const entries = await Promise.all(
         franchises.map(async (franchise) => {
-          const topParams = buildTopSalesParams(
+          const filterParams = buildTopSalesParams(
             filter,
             dateRange,
             franchise.id.toString()
           );
           try {
             const [statsRes, topRes] = await Promise.all([
-              api.get<Statistics>(
-                `/api/sales/statistics/?franchise=${franchise.id}`
-              ),
+              api.get<Statistics>(`/api/sales/statistics/?${filterParams}`),
               api.get<TopSalespersonsResponse>(
-                `/api/sales/top-salespersons/?${topParams}`
+                `/api/sales/top-salespersons/?${filterParams}`
               ),
             ]);
             return {
@@ -848,6 +856,13 @@ export function SuperAdminSalesFestView() {
       0
     ) ?? 0;
 
+  const hasActiveFilters = filter !== "daily" || !!dateRange?.from;
+
+  const handleClearFilters = () => {
+    setFilter("daily");
+    setDateRange(undefined);
+  };
+
   return (
     <div className="container mx-auto max-w-[1800px] space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -885,7 +900,19 @@ export function SuperAdminSalesFestView() {
                 </button>
               ))}
             </div>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
+            <div className="flex flex-wrap items-end gap-2">
+              <DateRangePicker value={dateRange} onChange={setDateRange} />
+              {hasActiveFilters && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                >
+                  Clear filters
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
