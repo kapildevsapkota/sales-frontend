@@ -69,9 +69,10 @@ export default function InfoForm({
           },
           body: JSON.stringify({
             ...data,
-            lucky_draw_system: "1",
+            lucky_draw_system: "16",
+            random: "true",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -106,8 +107,8 @@ export default function InfoForm({
         `${
           process.env.NEXT_PUBLIC_API_URL
         }/api/get-gift-list/?lucky_draw_system_id=${
-          result.gift[0]?.lucky_draw_system || initialOrgData?.id || 1
-        }`
+          result.gift[0]?.lucky_draw_system || initialOrgData?.id || 16
+        }`,
       );
 
       if (!giftListResponse.ok) {
@@ -136,7 +137,7 @@ export default function InfoForm({
       {/* Background with Gradient SVG */}
       <div className="absolute inset-0">
         <img
-          src="/newtestframe.png"
+          src="https://img.magnific.com/premium-photo/festival-background-white-space_198067-714677.jpg?semt=ais_hybrid&w=740&q=80"
           alt="Background gradient"
           style={{
             position: "absolute",

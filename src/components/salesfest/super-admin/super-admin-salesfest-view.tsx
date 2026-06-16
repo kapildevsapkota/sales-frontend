@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { useRouter } from "next/navigation";
 import { LayoutGrid, Store, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FestRankingsSection } from "./fest-rankings-section";
 import { FranchiseLeaderboard } from "./franchise-leaderboard";
@@ -114,6 +115,24 @@ export function SuperAdminSalesFestView() {
         </TabsContent>
 
         <TabsContent value="franchise" className="space-y-4 sm:space-y-6 mt-0">
+          <div className="rounded-xl border bg-muted/20 px-4 py-3 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="space-y-1">
+              <h2 className="text-sm sm:text-base font-semibold">
+                Lucky Draw Spinner
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Open the spinner page and let franchise users spin now.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() => router.push("/super-admin/salesfest/spinner")}
+              className="w-full sm:w-auto"
+            >
+              Open Spinner
+            </Button>
+          </div>
+
           <FranchiseSalesGrid
             entries={franchiseSalesData ?? []}
             loading={franchiseSalesLoading || franchisesLoading}

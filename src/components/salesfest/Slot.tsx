@@ -7,7 +7,6 @@ import {
   SpriteWheelItem as UtilSpriteWheelItem,
   calculateRotationForItem,
 } from "./spriteWheel";
-import Image from "next/image";
 
 const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
@@ -22,10 +21,10 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
 
   // Single sprite wheel state (no categories)
   const [singleWheel, setSingleWheel] = useState<UtilSpriteWheelItem[] | null>(
-    null
+    null,
   );
   const [winningItem, setWinningItem] = useState<UtilSpriteWheelItem | null>(
-    null
+    null,
   );
   const [wheelRotation, setWheelRotation] = useState<number>(0);
   const [initialOffset, setInitialOffset] = useState<number>(0);
@@ -38,6 +37,15 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
   // Ref for single wheel container
   const wheelRef = useRef<HTMLDivElement>(null);
   const wheelContainerRef = useRef<HTMLDivElement>(null);
+
+  const shuffleWheelItems = (items: UtilSpriteWheelItem[]) => {
+    const shuffled = [...items];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.map((item, index) => ({ ...item, index }));
+  };
 
   useEffect(() => {
     // Lock body scroll while SlotMachine is mounted
@@ -99,19 +107,27 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
         const { singleWheel, winningItem } = processSubmissionForSingleWheel(
           parsedSubmissionData,
           giftList,
-          "/betterlucknexttime.png"
+          "/betterlucknexttime.png",
         );
 
-        setSingleWheel(singleWheel);
-        setWinningItem(winningItem);
+        const randomizedWheel = shuffleWheelItems(singleWheel);
+        const randomizedWinningItem =
+          winningItem.id === -1
+            ? randomizedWheel.find((item) => item.id === -1)
+            : randomizedWheel.find((item) => item.id === winningItem.id);
+        const resolvedWinningItem =
+          randomizedWinningItem ?? randomizedWheel[randomizedWheel.length - 1];
+
+        setSingleWheel(randomizedWheel);
+        setWinningItem(resolvedWinningItem);
 
         // Measure container height to precisely center the winning item
         const measuredHeight = wheelContainerRef.current?.clientHeight ?? 672; // fallback 42rem (3 x 14rem)
         const rotation = calculateRotationForItem(
-          winningItem.index,
-          singleWheel.length,
+          resolvedWinningItem.index,
+          randomizedWheel.length,
           224,
-          measuredHeight
+          measuredHeight,
         );
         setWheelRotation(rotation);
 
@@ -162,7 +178,7 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
 
   const spinSpriteWheel = async (
     wheelRef: React.RefObject<HTMLDivElement | null>,
-    duration: number = 10000 // Max 10 seconds
+    duration: number = 10000, // Max 10 seconds
   ): Promise<void> => {
     return new Promise((resolve) => {
       if (!wheelRef.current || !singleWheel || !winningItem) {
@@ -294,8 +310,8 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
           isMobile && shouldShow
             ? "opacity-100 scale-100"
             : isMobile
-            ? "opacity-0 scale-95"
-            : ""
+              ? "opacity-0 scale-95"
+              : ""
         }`}
       >
         {/* Sprite Wheel Container */}
@@ -361,23 +377,21 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
                               isWinning ? "scale-[0.95]" : "scale-100"
                             }`}
                           >
-                            <Image
-                              src={`${item.image}`}
+                            <img
+                              src={item.image}
                               alt={item.name}
-                              width={400}
-                              height={400}
-                              priority
                               className={`object-contain bg-transparent transition-all duration-500 ${
                                 isWinning
                                   ? "w-[120%] h-[120%] drop-shadow-2xl"
                                   : "w-[100%] h-[100%]"
                               }`}
+                              loading="lazy"
                             />
                           </div>
                         );
                       })()}
                     </div>
-                  ))
+                  )),
                 )}
               </div>
 
@@ -456,7 +470,7 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
                 window.location.reload();
               } else {
                 // If on different page, navigate to home
-                router.push("/admin/salesfest");
+                router.push("/super-admin/salesfest");
               }
             }}
             className="hover:scale-105 active:scale-95"

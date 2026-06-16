@@ -54,7 +54,7 @@ const SubmissionResult: React.FC<SubmissionResultProps> = ({
   };
 
   const goToHome = () => {
-    router.push("/");
+    router.back();
   };
 
   return (
@@ -83,13 +83,11 @@ const SubmissionResult: React.FC<SubmissionResultProps> = ({
       )} */}
       <div
         className="h-screen"
-        style={{
-          backgroundImage: `url(/newtestframe.png)`,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          backgroundPositionX: "center",
-          backgroundPositionY: "top",
-        }}
+        // style={{
+        //   backgroundImage: `url(https://img.magnific.com/premium-photo/festival-background-white-space_198067-714677.jpg?semt=ais_hybrid&w=740&q=80)`,
+        //   backgroundSize: "cover",
+        //   backgroundRepeat: "no-repeat",
+        // }}
       >
         <SlotMachine giftList={giftList} />
       </div>
@@ -107,7 +105,7 @@ const SubmissionResult: React.FC<SubmissionResultProps> = ({
               {submissionResponse.gift &&
               submissionResponse.gift.length > 0 &&
               submissionResponse.gift.some(
-                (gift) => gift.name !== "Better Luck"
+                (gift) => gift.name !== "Better Luck",
               ) ? (
                 <>
                   <Gift className="mr-2" size={24} />
@@ -123,14 +121,14 @@ const SubmissionResult: React.FC<SubmissionResultProps> = ({
             {submissionResponse.gift &&
             submissionResponse.gift.length > 0 &&
             submissionResponse.gift.some(
-              (gift) => gift.name !== "Better Luck"
+              (gift) => gift.name !== "Better Luck",
             ) ? (
               <>
                 <p className="text-xl mb-4">
                   You&apos;ve won{" "}
                   {
                     submissionResponse.gift.filter(
-                      (gift) => gift.name !== "Better Luck"
+                      (gift) => gift.name !== "Better Luck",
                     ).length
                   }{" "}
                   amazing prize(s)!
@@ -144,12 +142,11 @@ const SubmissionResult: React.FC<SubmissionResultProps> = ({
                     .map((gift) => (
                       <div key={gift.id} className="text-center">
                         <p className="text-lg font-bold mb-2">{gift.name}</p>
-                        <Image
+                        <img
                           src={gift.image}
                           alt={gift.name}
-                          width={120}
-                          height={120}
-                          className="mx-auto object-contain"
+                          className="mx-auto h-[120px] w-[120px] object-contain"
+                          loading="lazy"
                         />
                         <p className="text-sm text-gray-600 capitalize">
                           {gift.category} Prize
@@ -173,9 +170,9 @@ const SubmissionResult: React.FC<SubmissionResultProps> = ({
                 />
               </>
             )}
-            <p className="text-2xl font-bold mt-6 mb-8 text-[#ff8c00]">
+            {/* <p className="text-2xl font-bold mt-6 mb-8 text-[#ff8c00]">
               Happy Dashain 2082!
-            </p>
+            </p> */}
             <button
               onClick={goToHome}
               className="w-full bg-[#ff6666] text-white px-6 py-2 rounded-full text-lg font-bold uppercase tracking-wide hover:bg-[#ff8080] transition duration-300 ease-in-out transform hover:scale-105 shadow-lg flex items-center justify-center"
