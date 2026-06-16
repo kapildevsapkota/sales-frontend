@@ -465,7 +465,7 @@ const SlotMachine = ({ giftList }: { giftList: GiftItem[] }) => {
           <button
             onClick={() => {
               // Check if we're already on the home page
-              if (window.location.pathname === "/admin/salesfest") {
+              if (window.location.pathname === "/super-admin/salesfest") {
                 // If already on home page, just refresh
                 window.location.reload();
               } else {

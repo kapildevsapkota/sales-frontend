@@ -67,7 +67,7 @@ export function AppHeader() {
       try {
         if (!user?.franchise_id) return;
         const response = await api.get(
-          `/api/fest-config/${user.franchise_id}/`
+          `/api/fest-config/${user.franchise_id}/`,
         );
         // expecting shape { has_sales_fest: boolean, ... }
         const data = response.data?.data ?? response.data;
@@ -121,14 +121,14 @@ export function AppHeader() {
     if (typeof window !== "undefined") {
       window.addEventListener(
         "salesfest:updated",
-        handleSalesFestUpdated as EventListener
+        handleSalesFestUpdated as EventListener,
       );
     }
     return () => {
       if (typeof window !== "undefined") {
         window.removeEventListener(
           "salesfest:updated",
-          handleSalesFestUpdated as EventListener
+          handleSalesFestUpdated as EventListener,
         );
       }
     };
@@ -167,18 +167,18 @@ export function AppHeader() {
         icon: Home,
         href: "/admin/ydm",
       },
-      {
-        label: "Sales Fest",
-        icon: Calendar,
-        href: "/admin/salesfest",
-        visible: (u) =>
-          !!u &&
-          (u.role === Role.SuperAdmin ||
-            u.role === Role.Distributor ||
-            u.role === Role.Franchise) &&
-          typeof u.phone_number === "string" &&
-          u.phone_number.replace(/\D/g, "") === "9841751148",
-      },
+      // {
+      //   label: "Sales Fest",
+      //   icon: Calendar,
+      //   href: "/admin/salesfest",
+      //   visible: (u) =>
+      //     !!u &&
+      //     (u.role === Role.SuperAdmin ||
+      //       u.role === Role.Distributor ||
+      //       u.role === Role.Franchise) &&
+      //     typeof u.phone_number === "string" &&
+      //     u.phone_number.replace(/\D/g, "") === "9841751148",
+      // },
       {
         label: "Fest Groups",
         icon: Users,
@@ -210,15 +210,15 @@ export function AppHeader() {
       //   visible: () => hasLuckyDraw === true,
       // },
     ],
-    [hasSalesFest, hasLuckyDraw]
+    [hasSalesFest, hasLuckyDraw],
   );
 
   const visibleItems = React.useMemo(
     () =>
       items.filter((item) =>
-        item.visible ? item.visible(user, hasSalesFest) : true
+        item.visible ? item.visible(user, hasSalesFest) : true,
       ),
-    [items, user, hasSalesFest]
+    [items, user, hasSalesFest],
   );
 
   // Close Sheet on nav change
@@ -274,7 +274,7 @@ export function AppHeader() {
                               className={cn(
                                 "flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors",
                                 pathname === subItem.href &&
-                                "bg-blue-50 font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                  "bg-blue-50 font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
                               )}
                             >
                               <span className="truncate">{subItem.label}</span>
@@ -295,7 +295,7 @@ export function AppHeader() {
                           "flex items-center",
                           pathname === item.href
                             ? "font-medium text-blue-600 dark:text-blue-400"
-                            : "text-gray-700 dark:text-gray-300"
+                            : "text-gray-700 dark:text-gray-300",
                         )}
                       >
                         <item.icon
@@ -303,7 +303,7 @@ export function AppHeader() {
                             "h-4 w-4 mr-1.5",
                             pathname === item.href
                               ? "text-blue-500 dark:text-blue-400"
-                              : "text-gray-500 dark:text-gray-400"
+                              : "text-gray-500 dark:text-gray-400",
                           )}
                         />
                         <span className="text-sm">{item.label}</span>
@@ -372,7 +372,7 @@ export function AppHeader() {
                                     className={cn(
                                       "block px-3 py-2 text-base font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
                                       pathname === subItem.href &&
-                                      "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                        "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
                                     )}
                                   >
                                     {subItem.label}
@@ -388,7 +388,7 @@ export function AppHeader() {
                               "flex items-center px-3 py-2 text-base font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
                               pathname === item.href
                                 ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                                : "text-gray-700 dark:text-gray-300"
+                                : "text-gray-700 dark:text-gray-300",
                             )}
                           >
                             <item.icon className="mr-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
