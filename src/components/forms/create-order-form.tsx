@@ -42,6 +42,10 @@ import {
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { Role, useAuth } from "@/contexts/AuthContext";
+import { GameWinDialog } from "@/components/salesfest/game/game-win-dialog";
+import { shouldShowGamePopup } from "@/lib/game-utils";
+import type { WonGame } from "@/types/game";
+import type { OrderCreateResponse } from "@/types/game";
 import { PhoneInput } from "../ui/phone-input";
 import { parsePhoneNumber } from "react-phone-number-input";
 import type * as RPNInput from "react-phone-number-input";
@@ -150,6 +154,9 @@ export default function CreateOrderForm({
     useState<InsufficientInventoryError | null>(null);
   const [insufficientInventoryDialogOpen, setInsufficientInventoryDialogOpen] =
     useState(false);
+  const [gameWinDialogOpen, setGameWinDialogOpen] = useState(false);
+  const [wonGame, setWonGame] = useState<WonGame | null>(null);
+  const [wonOrderCode, setWonOrderCode] = useState<string | undefined>();
   const { user } = useAuth();
 
   const router = useRouter();
@@ -550,9 +557,22 @@ export default function CreateOrderForm({
         toast.success(
           `Order ${isEditMode ? "updated" : "submitted"} successfully!`,
         );
+
+        const orderData = response.data as OrderCreateResponse;
+        const wonChallenge =
+          !isEditMode &&
+          !!orderData.won_game &&
+          shouldShowGamePopup(user?.role);
+        if (wonChallenge) {
+          setWonGame(orderData.won_game);
+          setWonOrderCode(orderData.order_code);
+          setGameWinDialogOpen(true);
+        }
+
         form.reset();
         await onSuccess?.();
-        if (!disableNavigation) {
+
+        if (!disableNavigation && !wonChallenge) {
           if (user?.role === Role.SalesPerson) {
             router.push("/sales/orders");
           } else {
@@ -1654,6 +1674,25 @@ export default function CreateOrderForm({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <GameWinDialog
+        open={gameWinDialogOpen && shouldShowGamePopup(user?.role)}
+        onOpenChange={(open) => {
+          setGameWinDialogOpen(open);
+          if (!open) {
+            setWonGame(null);
+            setWonOrderCode(undefined);
+            if (!disableNavigation) {
+              if (user?.role === Role.SalesPerson) {
+                router.push("/sales/orders");
+              } else {
+                router.push("/admin/salesList");
+              }
+            }
+          }
+        }}
+        wonGame={wonGame}
+        orderCode={wonOrderCode}
+      />
     </div>
   );
 }

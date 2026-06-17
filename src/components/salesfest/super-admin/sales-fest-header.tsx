@@ -1,5 +1,7 @@
-import { Store, Trophy } from "lucide-react";
+import { Store, Trophy, Gamepad2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface SalesFestHeaderProps {
   franchiseCount: number;
@@ -17,10 +19,18 @@ export function SalesFestHeader({ franchiseCount }: SalesFestHeaderProps) {
           Overall network performance and franchise-wise breakdown
         </p>
       </div>
-      <Badge variant="secondary" className="w-fit text-sm px-3 py-1 shrink-0">
-        <Store className="h-3.5 w-3.5 mr-1.5" />
-        {franchiseCount} franchise{franchiseCount !== 1 ? "s" : ""}
-      </Badge>
+      <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/super-admin/salesfest/game">
+            <Gamepad2 className="h-3.5 w-3.5 mr-1.5" />
+            Game Management
+          </Link>
+        </Button>
+        <Badge variant="secondary" className="w-fit text-sm px-3 py-1">
+          <Store className="h-3.5 w-3.5 mr-1.5" />
+          {franchiseCount} franchise{franchiseCount !== 1 ? "s" : ""}
+        </Badge>
+      </div>
     </div>
   );
 }
