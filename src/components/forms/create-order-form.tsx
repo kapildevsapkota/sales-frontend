@@ -42,6 +42,8 @@ import {
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { Role, useAuth } from "@/contexts/AuthContext";
+import { setPendingWinner, shouldShowGamePopup } from "@/lib/game-utils";
+import type { GameWinner, OrderCreateResponse } from "@/types/game";
 import { PhoneInput } from "../ui/phone-input";
 import { parsePhoneNumber } from "react-phone-number-input";
 import type * as RPNInput from "react-phone-number-input";
@@ -550,14 +552,46 @@ export default function CreateOrderForm({
         toast.success(
           `Order ${isEditMode ? "updated" : "submitted"} successfully!`,
         );
+
+        let pendingWinner: GameWinner | null = null;
+
+        if (!isEditMode && shouldShowGamePopup(user?.role)) {
+          const orderData = response.data as OrderCreateResponse;
+
+          if (orderData.won_game) {
+            pendingWinner = {
+              id: orderData.id,
+              game: 0,
+              game_name: orderData.won_game.game_name,
+              condition: 0,
+              condition_name: orderData.won_game.condition_name,
+              order: orderData.id,
+              order_code: orderData.order_code,
+              customer_name: orderData.full_name,
+              won_at: new Date().toISOString(),
+              notified: false,
+              message: orderData.won_game.message,
+            };
+            setPendingWinner(pendingWinner);
+          }
+        }
+
         form.reset();
         await onSuccess?.();
+
         if (!disableNavigation) {
-          if (user?.role === Role.SalesPerson) {
-            router.push("/sales/orders");
-          } else {
-            router.push("/admin/salesList");
+          const dest =
+            user?.role === Role.SalesPerson
+              ? "/sales/orders"
+              : "/admin/salesList";
+
+          if (pendingWinner) {
+            await new Promise<void>((resolve) => {
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+            });
           }
+
+          router.push(dest);
         }
       } else {
         throw new Error(`Failed to ${isEditMode ? "update" : "submit"} order`);
