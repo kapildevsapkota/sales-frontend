@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -9,23 +10,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Sparkles } from "lucide-react";
-import type { WonGame } from "@/types/game";
+import { PartyPopper, Trophy } from "lucide-react";
+import type { GameWinner } from "@/types/game";
 
-interface GameWinDialogProps {
+interface GameWinnerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  wonGame: WonGame | null;
-  orderCode?: string;
+  winner: GameWinner | null;
 }
 
-export function GameWinDialog({
+export function GameWinnerDialog({
   open,
   onOpenChange,
-  wonGame,
-  orderCode,
-}: GameWinDialogProps) {
-  if (!wonGame) return null;
+  winner,
+}: GameWinnerDialogProps) {
+  if (!winner) return null;
+
+  const wonAt = format(new Date(winner.won_at), "MMM d, yyyy 'at' h:mm a");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,27 +37,39 @@ export function GameWinDialog({
           </div>
           <DialogHeader className="space-y-2 text-center">
             <DialogTitle className="text-2xl font-bold text-white">
-              Congratulations!
+              We have a winner!
             </DialogTitle>
             <DialogDescription className="text-amber-50 text-sm sm:text-base">
-              {orderCode ? `Order ${orderCode} won the challenge` : "Order won the challenge"}
+              {winner.game_name} challenge completed
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="space-y-4 px-6 py-5">
-          <div className="rounded-lg border bg-amber-50/60 p-4 space-y-2">
+          <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-3">
             <div className="flex items-center gap-2 text-amber-800 font-semibold">
-              <Sparkles className="h-4 w-4 shrink-0" />
-              <span>{wonGame.game_name}</span>
+              <PartyPopper className="h-4 w-4 shrink-0" />
+              <span>{winner.customer_name}</span>
             </div>
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">Condition:</span>{" "}
-              {wonGame.condition_name}
-            </p>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {wonGame.message}
-            </p>
+
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground shrink-0">Order</dt>
+                <dd className="font-medium text-gray-900 text-right">
+                  {winner.order_code}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground shrink-0">Challenge</dt>
+                <dd className="font-medium text-gray-900 text-right">
+                  {winner.condition_name}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground shrink-0">Won at</dt>
+                <dd className="text-gray-700 text-right">{wonAt}</dd>
+              </div>
+            </dl>
           </div>
         </div>
 
@@ -65,7 +78,7 @@ export function GameWinDialog({
             onClick={() => onOpenChange(false)}
             className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
           >
-            Awesome!
+            Got it!
           </Button>
         </DialogFooter>
       </DialogContent>
