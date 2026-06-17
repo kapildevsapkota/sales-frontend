@@ -10,7 +10,7 @@ import {
   markWinnerShown,
   shouldShowGamePopup,
   takePendingWinner,
-  WINNER_POLL_INTERVAL_MS,
+  GAME_POLL_INTERVAL_MS,
 } from "@/lib/game-utils";
 import { getGameWinners } from "@/lib/game-api";
 import type { GameWinner } from "@/types/game";
@@ -82,7 +82,7 @@ export function GameWinnerGate() {
   useEffect(() => {
     if (!canShow) return;
 
-    const interval = setInterval(() => void syncWinners(), WINNER_POLL_INTERVAL_MS);
+    const interval = setInterval(() => void syncWinners(), GAME_POLL_INTERVAL_MS);
     const onVisible = () => {
       if (document.visibilityState === "visible") void syncWinners();
     };
