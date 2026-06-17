@@ -22,16 +22,20 @@ export function GameWinnerGate() {
   const [winner, setWinner] = useState<GameWinner | null>(null);
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
+  const canShowRef = useRef(false);
 
   const canShow = !isLoading && shouldShowGamePopup(user?.role);
+  canShowRef.current = canShow;
 
   const presentWinner = useCallback((candidate: GameWinner) => {
-    if (!canShow || openRef.current || hasShownWinner(candidate)) return;
+    if (!canShowRef.current || openRef.current || hasShownWinner(candidate)) {
+      return;
+    }
     markWinnerShown(candidate);
     openRef.current = true;
     setWinner(candidate);
     setOpen(true);
-  }, [canShow]);
+  }, []);
 
   const dismiss = useCallback(() => {
     openRef.current = false;
@@ -39,54 +43,59 @@ export function GameWinnerGate() {
     setWinner(null);
   }, []);
 
-  // Instant trigger when the current user wins (order submit).
-  useEffect(() => {
-    if (!canShow) return;
+  const syncWinners = useCallback(async () => {
+    if (!canShowRef.current || openRef.current) return;
 
+    const pending = takePendingWinner();
+    if (pending) {
+      presentWinner(pending);
+      return;
+    }
+
+    try {
+      const winners = await getGameWinners();
+      if (!canShowRef.current || openRef.current) return;
+      const latest = getLatestUnnotifiedWinner(winners);
+      if (latest) presentWinner(latest);
+    } catch {
+      // No winners endpoint or request failed — stay silent.
+    }
+  }, [presentWinner]);
+
+  // Always listen — event fires synchronously on order submit, before navigation.
+  useEffect(() => {
     function onWinnerEvent(event: Event) {
       presentWinner((event as CustomEvent<GameWinner>).detail);
     }
 
     window.addEventListener(GAME_WINNER_EVENT, onWinnerEvent);
     return () => window.removeEventListener(GAME_WINNER_EVENT, onWinnerEvent);
-  }, [canShow, presentWinner]);
+  }, [presentWinner]);
 
-  // Fallback after navigation / refresh.
+  // Check pending winner + API as soon as auth is ready and on every navigation.
   useEffect(() => {
     if (!canShow) return;
-    const pending = takePendingWinner();
-    if (pending) presentWinner(pending);
-  }, [pathname, canShow, presentWinner]);
-
-  // Notify everyone else when another user wins.
-  useEffect(() => {
-    if (!canShow) return;
-
-    let cancelled = false;
-
-    async function syncWinners() {
-      try {
-        const winners = await getGameWinners();
-        if (cancelled) return;
-        const latest = getLatestUnnotifiedWinner(winners);
-        if (latest) presentWinner(latest);
-      } catch {
-        // No winners endpoint or request failed — stay silent.
-      }
-    }
-
     void syncWinners();
+  }, [canShow, pathname, syncWinners]);
 
-    const interval = setInterval(syncWinners, WINNER_POLL_INTERVAL_MS);
-    const onFocus = () => void syncWinners();
+  // Poll for wins by other users; re-check when tab becomes visible.
+  useEffect(() => {
+    if (!canShow) return;
 
-    window.addEventListener("focus", onFocus);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-      window.removeEventListener("focus", onFocus);
+    const interval = setInterval(() => void syncWinners(), WINNER_POLL_INTERVAL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void syncWinners();
     };
-  }, [canShow, presentWinner]);
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [canShow, syncWinners]);
 
   if (!canShow) return null;
 

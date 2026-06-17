@@ -584,6 +584,13 @@ export default function CreateOrderForm({
             user?.role === Role.SalesPerson
               ? "/sales/orders"
               : "/admin/salesList";
+
+          if (pendingWinner) {
+            await new Promise<void>((resolve) => {
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+            });
+          }
+
           router.push(dest);
         }
       } else {
