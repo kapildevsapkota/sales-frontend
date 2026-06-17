@@ -91,20 +91,7 @@ const superAdminItems: MenuItem[] = [
   {
     label: "Sales Fest",
     icon: Calendar,
-    items: [
-      {
-        label: "Dashboard",
-        href: "/super-admin/salesfest",
-      },
-      {
-        label: "Game Management",
-        href: "/super-admin/salesfest/game",
-      },
-      {
-        label: "Spinner",
-        href: "/super-admin/salesfest/spinner",
-      },
-    ],
+    href: "/super-admin/salesfest",
   },
 ];
 
