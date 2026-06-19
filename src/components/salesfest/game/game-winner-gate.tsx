@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   GAME_WINNER_EVENT,
   getLatestUnnotifiedWinner,
   hasShownWinner,
+  isWinnerForUser,
   markWinnerShown,
-  shouldShowGamePopup,
+  shouldShowWinnerDialog,
   takePendingWinner,
   GAME_POLL_INTERVAL_MS,
 } from "@/lib/game-utils";
@@ -17,34 +17,51 @@ import type { GameWinner } from "@/types/game";
 import { GameWinnerDialog } from "./game-winner-dialog";
 
 export function GameWinnerGate() {
-  const pathname = usePathname();
   const { user, isLoading } = useAuth();
   const [winner, setWinner] = useState<GameWinner | null>(null);
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
   const canShowRef = useRef(false);
+  const userRef = useRef(user);
+  const winnerRef = useRef<GameWinner | null>(null);
 
-  const canShow = !isLoading && shouldShowGamePopup(user?.role);
+  const canShow = !isLoading && shouldShowWinnerDialog(user?.role);
   canShowRef.current = canShow;
+  userRef.current = user;
 
   const presentWinner = useCallback((candidate: GameWinner) => {
-    if (!canShowRef.current || openRef.current || hasShownWinner(candidate)) {
+    const currentUser = userRef.current;
+    if (
+      !canShowRef.current ||
+      !currentUser ||
+      openRef.current ||
+      hasShownWinner(candidate, currentUser.id) ||
+      !isWinnerForUser(candidate, currentUser)
+    ) {
       return;
     }
-    markWinnerShown(candidate);
+
+    markWinnerShown(candidate, currentUser.id);
     openRef.current = true;
+    winnerRef.current = candidate;
     setWinner(candidate);
     setOpen(true);
   }, []);
 
   const dismiss = useCallback(() => {
+    const currentUser = userRef.current;
+    const currentWinner = winnerRef.current;
+    if (currentUser && currentWinner) {
+      markWinnerShown(currentWinner, currentUser.id);
+    }
     openRef.current = false;
+    winnerRef.current = null;
     setOpen(false);
     setWinner(null);
   }, []);
 
   const syncWinners = useCallback(async () => {
-    if (!canShowRef.current || openRef.current) return;
+    if (!canShowRef.current || openRef.current || !userRef.current) return;
 
     const pending = takePendingWinner();
     if (pending) {
@@ -54,15 +71,15 @@ export function GameWinnerGate() {
 
     try {
       const winners = await getGameWinners();
-      if (!canShowRef.current || openRef.current) return;
-      const latest = getLatestUnnotifiedWinner(winners);
+      if (!canShowRef.current || openRef.current || !userRef.current) return;
+      const latest = getLatestUnnotifiedWinner(winners, userRef.current);
       if (latest) presentWinner(latest);
     } catch {
       // No winners endpoint or request failed — stay silent.
     }
   }, [presentWinner]);
 
-  // Always listen — event fires synchronously on order submit, before navigation.
+  // Instant trigger when this salesperson wins on order submit.
   useEffect(() => {
     function onWinnerEvent(event: Event) {
       presentWinner((event as CustomEvent<GameWinner>).detail);
@@ -72,20 +89,12 @@ export function GameWinnerGate() {
     return () => window.removeEventListener(GAME_WINNER_EVENT, onWinnerEvent);
   }, [presentWinner]);
 
-  // Check pending winner + API as soon as auth is ready and on every navigation.
+  // Check once when auth is ready, then poll for new wins only.
   useEffect(() => {
     if (!canShow) return;
     void syncWinners();
-  }, [canShow, pathname, syncWinners]);
 
-  // Poll for wins by other users; re-check when tab becomes visible.
-  useEffect(() => {
-    if (!canShow) return;
-
-    const interval = setInterval(
-      () => void syncWinners(),
-      GAME_POLL_INTERVAL_MS,
-    );
+    const interval = setInterval(() => void syncWinners(), GAME_POLL_INTERVAL_MS);
     const onVisible = () => {
       if (document.visibilityState === "visible") void syncWinners();
     };
@@ -98,7 +107,7 @@ export function GameWinnerGate() {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
     };
-  }, [canShow, syncWinners]);
+  }, [canShow, user?.id, syncWinners]);
 
   if (!canShow) return null;
 

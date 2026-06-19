@@ -71,6 +71,7 @@ export interface GameWinner {
   order: number;
   order_code: string;
   customer_name: string;
+  sales_person?: number;
   franchise_name?: string;
   sales_person_name?: string;
   won_at: string;

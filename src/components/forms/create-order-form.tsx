@@ -42,7 +42,7 @@ import {
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { Role, useAuth } from "@/contexts/AuthContext";
-import { setPendingWinner, shouldShowGamePopup } from "@/lib/game-utils";
+import { setPendingWinner, shouldShowWinnerDialog } from "@/lib/game-utils";
 import type { GameWinner, OrderCreateResponse } from "@/types/game";
 import { PhoneInput } from "../ui/phone-input";
 import { parsePhoneNumber } from "react-phone-number-input";
@@ -555,7 +555,7 @@ export default function CreateOrderForm({
 
         let pendingWinner: GameWinner | null = null;
 
-        if (!isEditMode && shouldShowGamePopup(user?.role)) {
+        if (!isEditMode && shouldShowWinnerDialog(user?.role)) {
           const orderData = response.data as OrderCreateResponse;
 
           if (orderData.won_game) {
@@ -573,6 +573,7 @@ export default function CreateOrderForm({
               order: orderData.id,
               order_code: orderData.order_code,
               customer_name: orderData.full_name,
+              sales_person: user!.id,
               franchise_name: user?.franchise_name,
               sales_person_name: salesPersonName || user?.username,
               won_at: new Date().toISOString(),
