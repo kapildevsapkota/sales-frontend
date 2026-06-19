@@ -1,4 +1,4 @@
-import { format, parseISO } from "date-fns";
+import { format, isBefore, parseISO, startOfDay } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { api } from "@/lib/api";
 import {
@@ -9,6 +9,7 @@ import {
 import {
   Franchise,
   FranchiseSalesEntry,
+  RevenueTrendPoint,
   SalesFilter,
   Salesperson,
 } from "./types";
@@ -89,4 +90,21 @@ export function buildFestTrendParams() {
   params.append("start_date", format(RANKINGS_START_DATE, "yyyy-MM-dd"));
   params.append("end_date", format(new Date(), "yyyy-MM-dd"));
   return params.toString();
+}
+
+export function filterFestTrendPoints(points: RevenueTrendPoint[]) {
+  const festStart = startOfDay(RANKINGS_START_DATE);
+
+  return points
+    .filter((point) => {
+      try {
+        return !isBefore(startOfDay(parseISO(point.period)), festStart);
+      } catch {
+        return false;
+      }
+    })
+    .sort(
+      (a, b) =>
+        parseISO(a.period).getTime() - parseISO(b.period).getTime(),
+    );
 }

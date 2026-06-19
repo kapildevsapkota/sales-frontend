@@ -20,6 +20,7 @@ import { RevenueTrendResponse } from "./types";
 import {
   buildFestTrendParams,
   fetcher,
+  filterFestTrendPoints,
   formatChartDate,
   formatCompactCurrency,
   formatCurrency,
@@ -30,13 +31,13 @@ export function FestSalesTrendChart() {
   const trendParams = buildFestTrendParams();
 
   const { data, isLoading } = useSWR<RevenueTrendResponse>(
-    `/api/sales/revenue-with-cancelled/?${trendParams}`,
+    `/api/sales/revenue/?${trendParams}`,
     fetcher,
     { refreshInterval: REFRESH_INTERVAL },
   );
 
   const chartData = useMemo(() => {
-    const points = data?.data ?? [];
+    const points = filterFestTrendPoints(data?.data ?? []);
     let cumulative = 0;
 
     return points.map((point) => {
