@@ -14,7 +14,9 @@ export const GAME_WINNER_EVENT = "game:winner-pending";
 export const GAME_POLL_INTERVAL_MS = 3_000;
 
 function getWinnerKey(winner: GameWinner): string {
-  return winner.id ? String(winner.id) : `${winner.order_code}-${winner.won_at}`;
+  return winner.id
+    ? String(winner.id)
+    : `${winner.order_code}-${winner.won_at}`;
 }
 
 function readShownWinnerKeys(): Set<string> {

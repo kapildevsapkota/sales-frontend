@@ -58,6 +58,8 @@ export function WinnersTable({ winners, loading }: WinnersTableProps) {
               <TableRow>
                 <TableHead>Order</TableHead>
                 <TableHead>Customer</TableHead>
+                <TableHead>Sales Person</TableHead>
+                <TableHead>Franchise</TableHead>
                 <TableHead>Game</TableHead>
                 <TableHead>Condition</TableHead>
                 <TableHead>Won At</TableHead>
@@ -71,6 +73,8 @@ export function WinnersTable({ winners, loading }: WinnersTableProps) {
                     {winner.order_code}
                   </TableCell>
                   <TableCell>{winner.customer_name}</TableCell>
+                  <TableCell>{winner.sales_person_name || "-"}</TableCell>
+                  <TableCell>{winner.franchise_name || "-"}</TableCell>
                   <TableCell>{winner.game_name}</TableCell>
                   <TableCell className="max-w-[200px] truncate">
                     {winner.condition_name}
@@ -103,6 +107,14 @@ export function WinnersTable({ winners, loading }: WinnersTableProps) {
                   {winner.notified ? "Notified" : "Pending"}
                 </Badge>
               </div>
+              <p className="text-sm">
+                <span className="font-medium">Sales Person:</span>{" "}
+                {winner.sales_person_name || "-"}
+              </p>
+              <p className="text-sm">
+                <span className="font-medium">Franchise:</span>{" "}
+                {winner.franchise_name || "-"}
+              </p>
               <p className="text-sm">
                 <span className="font-medium">Game:</span> {winner.game_name}
               </p>

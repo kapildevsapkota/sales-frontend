@@ -559,6 +559,11 @@ export default function CreateOrderForm({
           const orderData = response.data as OrderCreateResponse;
 
           if (orderData.won_game) {
+            const salesPersonName = [user?.first_name, user?.last_name]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+
             pendingWinner = {
               id: orderData.id,
               game: 0,
@@ -568,6 +573,8 @@ export default function CreateOrderForm({
               order: orderData.id,
               order_code: orderData.order_code,
               customer_name: orderData.full_name,
+              franchise_name: user?.franchise_name,
+              sales_person_name: salesPersonName || user?.username,
               won_at: new Date().toISOString(),
               notified: false,
               message: orderData.won_game.message,
@@ -587,7 +594,9 @@ export default function CreateOrderForm({
 
           if (pendingWinner) {
             await new Promise<void>((resolve) => {
-              requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => resolve()),
+              );
             });
           }
 

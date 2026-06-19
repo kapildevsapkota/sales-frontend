@@ -82,7 +82,10 @@ export function GameWinnerGate() {
   useEffect(() => {
     if (!canShow) return;
 
-    const interval = setInterval(() => void syncWinners(), GAME_POLL_INTERVAL_MS);
+    const interval = setInterval(
+      () => void syncWinners(),
+      GAME_POLL_INTERVAL_MS,
+    );
     const onVisible = () => {
       if (document.visibilityState === "visible") void syncWinners();
     };

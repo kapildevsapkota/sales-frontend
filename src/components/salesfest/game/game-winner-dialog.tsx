@@ -59,6 +59,22 @@ export function GameWinnerDialog({
                   {winner.order_code}
                 </dd>
               </div>
+              {winner.sales_person_name ? (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground shrink-0">Sales Person</dt>
+                  <dd className="font-medium text-gray-900 text-right">
+                    {winner.sales_person_name}
+                  </dd>
+                </div>
+              ) : null}
+              {winner.franchise_name ? (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground shrink-0">Franchise</dt>
+                  <dd className="font-medium text-gray-900 text-right">
+                    {winner.franchise_name}
+                  </dd>
+                </div>
+              ) : null}
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground shrink-0">Challenge</dt>
                 <dd className="font-medium text-gray-900 text-right">
@@ -70,6 +86,12 @@ export function GameWinnerDialog({
                 <dd className="text-gray-700 text-right">{wonAt}</dd>
               </div>
             </dl>
+
+            {winner.message ? (
+              <p className="text-sm text-gray-600 leading-relaxed border-t border-amber-200/80 pt-3">
+                {winner.message}
+              </p>
+            ) : null}
           </div>
         </div>
 
