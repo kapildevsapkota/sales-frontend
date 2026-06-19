@@ -49,7 +49,7 @@ export function GameWinnerDialog({
           <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-3">
             <div className="flex items-center gap-2 text-amber-800 font-semibold">
               <PartyPopper className="h-4 w-4 shrink-0" />
-              <span>{winner.customer_name}</span>
+              <span>{winner.sales_person_name || "Sales Person"}</span>
             </div>
 
             <dl className="space-y-2 text-sm">
@@ -59,14 +59,12 @@ export function GameWinnerDialog({
                   {winner.order_code}
                 </dd>
               </div>
-              {winner.sales_person_name ? (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground shrink-0">Sales Person</dt>
-                  <dd className="font-medium text-gray-900 text-right">
-                    {winner.sales_person_name}
-                  </dd>
-                </div>
-              ) : null}
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground shrink-0">Customer</dt>
+                <dd className="font-medium text-gray-900 text-right">
+                  {winner.customer_name}
+                </dd>
+              </div>
               {winner.franchise_name ? (
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted-foreground shrink-0">Franchise</dt>
