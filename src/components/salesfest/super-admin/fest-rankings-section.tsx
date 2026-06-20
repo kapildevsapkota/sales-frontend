@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { FestSalesTrendChart } from "./fest-sales-trend-chart";
 import { GroupRankingsPanel } from "./group-rankings-panel";
-import { RANKINGS_START_DATE } from "./constants";
+import { RANKINGS_END_DATE, RANKINGS_START_DATE } from "./constants";
 import { FranchiseSalesEntry, RankedSalesperson } from "./types";
 import { isGroupAFranchise } from "./utils";
 
@@ -35,7 +35,7 @@ export function FestRankingsSection({
       })),
     );
 
-  const trackingLabel = `Since ${format(RANKINGS_START_DATE, "MMM d, yyyy")}`;
+  const trackingLabel = `${format(RANKINGS_START_DATE, "MMM d, yyyy")} – ${format(RANKINGS_END_DATE, "MMM d, yyyy")}`;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -49,8 +49,8 @@ export function FestRankingsSection({
                 Fest Rankings Period
               </p>
               <p className="text-xs sm:text-sm text-amber-800/80 mt-1">
-                Sales are counted from June 14, 2026 onward only. Rankings
-                refresh automatically every minute.
+                Sales are counted from June 14 through June 20, 2026 only.
+                Rankings refresh automatically every minute.
               </p>
             </div>
             <Badge

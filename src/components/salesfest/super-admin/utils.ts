@@ -1,9 +1,9 @@
-import { format, isBefore, parseISO, startOfDay } from "date-fns";
-import { DateRange } from "react-day-picker";
+import { format, isAfter, isBefore, parseISO, startOfDay } from "date-fns";
 import { api } from "@/lib/api";
 import {
   GROUP_A_FRANCHISE_MATCHERS,
   HIDDEN_FRANCHISE_NAMES,
+  RANKINGS_END_DATE,
   RANKINGS_START_DATE,
 } from "./constants";
 import {
@@ -58,28 +58,26 @@ export const calcTrend = (current: number, previous: number) => {
   return ((current - previous) / previous) * 100;
 };
 
+function appendFestDateRange(params: URLSearchParams) {
+  params.append("start_date", format(RANKINGS_START_DATE, "yyyy-MM-dd"));
+  params.append("end_date", format(RANKINGS_END_DATE, "yyyy-MM-dd"));
+}
+
 export function buildTopSalesParams(
   filter: SalesFilter,
-  dateRange: DateRange | undefined,
   franchiseId?: string,
 ) {
   const params = new URLSearchParams();
   params.append("filter", filter);
   if (franchiseId) params.append("franchise", franchiseId);
-  if (dateRange?.from) {
-    params.append("start_date", format(dateRange.from, "yyyy-MM-dd"));
-  }
-  if (dateRange?.to && dateRange.to !== dateRange.from) {
-    params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
-  }
+  appendFestDateRange(params);
   return params.toString();
 }
 
 export function buildRankingsParams(franchiseId?: string) {
   const params = new URLSearchParams();
   params.append("filter", "all");
-  params.append("start_date", format(RANKINGS_START_DATE, "yyyy-MM-dd"));
-  params.append("end_date", format(new Date(), "yyyy-MM-dd"));
+  appendFestDateRange(params);
   if (franchiseId) params.append("franchise", franchiseId);
   return params.toString();
 }
@@ -87,18 +85,21 @@ export function buildRankingsParams(franchiseId?: string) {
 export function buildFestTrendParams() {
   const params = new URLSearchParams();
   params.append("filter", "daily");
-  params.append("start_date", format(RANKINGS_START_DATE, "yyyy-MM-dd"));
-  params.append("end_date", format(new Date(), "yyyy-MM-dd"));
+  appendFestDateRange(params);
   return params.toString();
 }
 
 export function filterFestTrendPoints(points: RevenueTrendPoint[]) {
   const festStart = startOfDay(RANKINGS_START_DATE);
+  const festEnd = startOfDay(RANKINGS_END_DATE);
 
   return points
     .filter((point) => {
       try {
-        return !isBefore(startOfDay(parseISO(point.period)), festStart);
+        const pointDate = startOfDay(parseISO(point.period));
+        return (
+          !isBefore(pointDate, festStart) && !isAfter(pointDate, festEnd)
+        );
       } catch {
         return false;
       }

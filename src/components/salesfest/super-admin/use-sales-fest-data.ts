@@ -40,7 +40,7 @@ export function useSalesFestData(
     return raw.filter((f) => !isHiddenFranchise(f.name));
   }, [franchisesData]);
 
-  const overviewFilterKey = buildTopSalesParams(filter, dateRange);
+  const overviewFilterKey = buildTopSalesParams(filter);
   const rankingsFilterKey = buildRankingsParams();
   const franchiseIds = franchises.map((f) => f.id).join(",");
 
@@ -68,7 +68,6 @@ export function useSalesFestData(
           try {
             const params = buildTopSalesParams(
               filter,
-              dateRange,
               franchise.id.toString(),
             );
             const { data } = await api.get<Statistics>(
@@ -98,7 +97,6 @@ export function useSalesFestData(
         franchises.map(async (franchise) => {
           const filterParams = buildTopSalesParams(
             filter,
-            dateRange,
             franchise.id.toString(),
           );
           try {

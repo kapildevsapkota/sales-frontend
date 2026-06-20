@@ -1,4 +1,5 @@
 export const RANKINGS_START_DATE = new Date(2026, 5, 14);
+export const RANKINGS_END_DATE = new Date(2026, 5, 20);
 
 export const GROUP_A_FRANCHISE_MATCHERS = [
   "sankhamul",

@@ -15,7 +15,11 @@ import {
 import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { REFRESH_INTERVAL, RANKINGS_START_DATE } from "./constants";
+import {
+  REFRESH_INTERVAL,
+  RANKINGS_END_DATE,
+  RANKINGS_START_DATE,
+} from "./constants";
 import { RevenueTrendResponse } from "./types";
 import {
   buildFestTrendParams,
@@ -59,7 +63,7 @@ export function FestSalesTrendChart() {
     return { revenue, orders, avgDaily: revenue / days };
   }, [chartData]);
 
-  const periodLabel = `${format(RANKINGS_START_DATE, "MMM d, yyyy")} – ${format(new Date(), "MMM d, yyyy")}`;
+  const periodLabel = `${format(RANKINGS_START_DATE, "MMM d, yyyy")} – ${format(RANKINGS_END_DATE, "MMM d, yyyy")}`;
 
   return (
     <Card className="shadow-sm overflow-hidden">

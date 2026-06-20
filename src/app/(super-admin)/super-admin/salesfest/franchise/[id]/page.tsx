@@ -4,7 +4,7 @@ import Link from "next/link";
 import { use } from "react";
 import { ArrowLeft } from "lucide-react";
 import FranchiseOrdersTable from "@/components/franchiseOrdersTable/franchise-orders-table";
-import { RANKINGS_START_DATE } from "@/components/salesfest/super-admin/constants";
+import { RANKINGS_END_DATE, RANKINGS_START_DATE } from "@/components/salesfest/super-admin/constants";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -33,16 +33,13 @@ export default function FranchiseOrdersPage({
           </h1>
           <p className="text-sm text-muted-foreground">
             Showing today by default · Fest data from{" "}
-            {format(RANKINGS_START_DATE, "MMM d, yyyy")} onward
+            {format(RANKINGS_START_DATE, "MMM d, yyyy")} through{" "}
+            {format(RANKINGS_END_DATE, "MMM d, yyyy")}
           </p>
         </div>
       </div>
 
-      <FranchiseOrdersTable
-        franchiseId={id}
-        festMode
-        minDate={RANKINGS_START_DATE}
-      />
+      <FranchiseOrdersTable franchiseId={id} festMode />
     </div>
   );
 }
