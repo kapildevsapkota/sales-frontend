@@ -68,15 +68,12 @@ function appendOverviewDateRange(
   params: URLSearchParams,
   dateRange: DateRange | undefined,
 ) {
-  if (dateRange?.from) {
-    params.append("start_date", format(dateRange.from, "yyyy-MM-dd"));
-    if (dateRange.to && dateRange.to !== dateRange.from) {
-      params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
-    }
-    return;
-  }
+  if (!dateRange?.from) return;
 
-  params.append("start_date", format(startOfDay(new Date()), "yyyy-MM-dd"));
+  params.append("start_date", format(dateRange.from, "yyyy-MM-dd"));
+  if (dateRange.to && dateRange.to !== dateRange.from) {
+    params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
+  }
 }
 
 export function buildOverviewParams(
