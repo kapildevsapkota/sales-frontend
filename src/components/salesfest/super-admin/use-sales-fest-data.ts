@@ -13,8 +13,8 @@ import {
   ViewTab,
 } from "./types";
 import {
+  buildOverviewParams,
   buildRankingsParams,
-  buildTopSalesParams,
   fetcher,
   getFranchiseSalesAmount,
   isHiddenFranchise,
@@ -40,7 +40,7 @@ export function useSalesFestData(
     return raw.filter((f) => !isHiddenFranchise(f.name));
   }, [franchisesData]);
 
-  const overviewFilterKey = buildTopSalesParams(filter);
+  const overviewFilterKey = buildOverviewParams(filter, dateRange);
   const rankingsFilterKey = buildRankingsParams();
   const franchiseIds = franchises.map((f) => f.id).join(",");
 
@@ -66,8 +66,9 @@ export function useSalesFestData(
       const entries = await Promise.all(
         franchises.map(async (franchise) => {
           try {
-            const params = buildTopSalesParams(
+            const params = buildOverviewParams(
               filter,
+              dateRange,
               franchise.id.toString(),
             );
             const { data } = await api.get<Statistics>(
@@ -95,8 +96,9 @@ export function useSalesFestData(
     async () => {
       const entries = await Promise.all(
         franchises.map(async (franchise) => {
-          const filterParams = buildTopSalesParams(
+          const filterParams = buildOverviewParams(
             filter,
+            dateRange,
             franchise.id.toString(),
           );
           try {

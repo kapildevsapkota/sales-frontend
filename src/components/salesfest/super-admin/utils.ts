@@ -1,4 +1,5 @@
 import { format, isAfter, isBefore, parseISO, startOfDay } from "date-fns";
+import { DateRange } from "react-day-picker";
 import { api } from "@/lib/api";
 import {
   GROUP_A_FRANCHISE_MATCHERS,
@@ -63,14 +64,30 @@ function appendFestDateRange(params: URLSearchParams) {
   params.append("end_date", format(RANKINGS_END_DATE, "yyyy-MM-dd"));
 }
 
-export function buildTopSalesParams(
+function appendOverviewDateRange(
+  params: URLSearchParams,
+  dateRange: DateRange | undefined,
+) {
+  if (dateRange?.from) {
+    params.append("start_date", format(dateRange.from, "yyyy-MM-dd"));
+    if (dateRange.to && dateRange.to !== dateRange.from) {
+      params.append("end_date", format(dateRange.to, "yyyy-MM-dd"));
+    }
+    return;
+  }
+
+  params.append("start_date", format(startOfDay(new Date()), "yyyy-MM-dd"));
+}
+
+export function buildOverviewParams(
   filter: SalesFilter,
+  dateRange: DateRange | undefined,
   franchiseId?: string,
 ) {
   const params = new URLSearchParams();
   params.append("filter", filter);
   if (franchiseId) params.append("franchise", franchiseId);
-  appendFestDateRange(params);
+  appendOverviewDateRange(params, dateRange);
   return params.toString();
 }
 
