@@ -2,8 +2,6 @@ import type { Metadata as NextMetadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import { GamePopupGate } from "@/components/salesfest/game/game-popup-gate";
-import { GameWinnerGate } from "@/components/salesfest/game/game-winner-gate";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -78,8 +76,6 @@ export default function RootLayout({
         <AuthProvider>
           <Toaster position="top-right" richColors />
           {children}
-          <GamePopupGate />
-          <GameWinnerGate />
           <PWAInstallPrompt />
         </AuthProvider>
       </body>

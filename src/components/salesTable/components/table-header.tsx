@@ -410,6 +410,7 @@ export function TableHeader({
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="Processing">Processing</SelectItem>
               <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
+              <SelectItem value="Sent to Daraz">Sent to Daraz</SelectItem>
               <SelectItem value="Indrive">Indrive</SelectItem>
               <SelectItem value="Delivered">Delivered</SelectItem>
               <SelectItem value="Cancelled">Cancelled</SelectItem>
@@ -422,6 +423,7 @@ export function TableHeader({
               <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
               <SelectItem value="Verified">Verified</SelectItem>
               <SelectItem value="Returned By Dash">Returned By Dash</SelectItem>
+              <SelectItem value="Returned By Daraz">Returned By Daraz</SelectItem>
               <SelectItem value="Return Pending">Return Pending</SelectItem>
             </SelectContent>
           </Select>

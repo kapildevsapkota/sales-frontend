@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { AxiosError } from "axios";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, SendIcon } from "lucide-react";
-import type { SaleItem, DashLocation } from "@/types/sale";
+import type { SaleItem, DashLocation, DarazLocation } from "@/types/sale";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,11 @@ export function DashLocationCell({
   fallbackLogistics,
 }: DashLocationCellProps) {
   const [searchQuery, setSearchQuery] = useState(sale.location_name || "");
-  const [locations, setLocations] = useState<DashLocation[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(
+    sale.location_id ?? null
+  );
+  const [dashLocations, setDashLocations] = useState<DashLocation[]>([]);
+  const [darazLocations, setDarazLocations] = useState<DarazLocation[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
@@ -57,9 +61,14 @@ export function DashLocationCell({
     fallbackLogistics,
   ]);
 
-  const logisticsQueryParam = useMemo<"DASH" | "PicknDrop" | undefined>(() => {
+  const logisticsQueryParam = useMemo<
+    "DASH" | "PicknDrop" | "Daraz" | undefined
+  >(() => {
     if (!logisticsSource) return undefined;
     const normalized = logisticsSource.replace(/[^a-zA-Z]/g, "").toLowerCase();
+    if (normalized.includes("daraz")) {
+      return "Daraz";
+    }
     if (normalized.includes("dash")) {
       return "DASH";
     }
@@ -70,34 +79,53 @@ export function DashLocationCell({
   }, [logisticsSource]);
 
   const logisticsLabel =
-    logisticsQueryParam === "PicknDrop" ? "Pick & Drop" : logisticsQueryParam;
+    logisticsQueryParam === "PicknDrop"
+      ? "Pick & Drop"
+      : logisticsQueryParam;
   const isSearchEnabled = Boolean(logisticsQueryParam);
+  const showSendButton = Boolean(logisticsQueryParam);
+  const hasLocationResults =
+    logisticsQueryParam === "Daraz"
+      ? darazLocations.length > 0
+      : dashLocations.length > 0;
 
   useEffect(() => {
     const locationName = sale.location_name || "";
     if (searchQuery !== locationName) {
       setSearchQuery(locationName);
     }
-  }, [sale.location_name]);
+    setSelectedLocationId(sale.location_id ?? null);
+  }, [sale.location_name, sale.location_id]);
 
   const fetchLocations = useCallback(
     async (query: string) => {
       if (!logisticsQueryParam) return;
       if (query.length < 2) {
-        setLocations([]);
+        setDashLocations([]);
+        setDarazLocations([]);
         return;
       }
       setIsLoading(true);
       try {
-        const response = await api.get(
-          `/api/sales/locations?search=${encodeURIComponent(
-            query
-          )}&logistics=${encodeURIComponent(logisticsQueryParam)}`
-        );
-        setLocations(response.data);
+        if (logisticsQueryParam === "Daraz") {
+          const response = await api.get<DarazLocation[]>(
+            `/api/daraz/locations/?search=${encodeURIComponent(query)}`
+          );
+          setDarazLocations(response.data);
+          setDashLocations([]);
+        } else {
+          const response = await api.get<DashLocation[]>(
+            `/api/sales/locations?search=${encodeURIComponent(
+              query
+            )}&logistics=${encodeURIComponent(logisticsQueryParam)}`
+          );
+          setDashLocations(response.data);
+          setDarazLocations([]);
+        }
       } catch (error) {
         console.error("Error fetching locations:", error);
-        setLocations([]);
+        setDashLocations([]);
+        setDarazLocations([]);
       } finally {
         setIsLoading(false);
       }
@@ -107,12 +135,14 @@ export function DashLocationCell({
 
   useEffect(() => {
     if (!isSearchEnabled) {
-      setLocations([]);
+      setDashLocations([]);
+      setDarazLocations([]);
       setIsDropdownOpen(false);
       return;
     }
     if (searchQuery.length < 2) {
-      setLocations([]);
+      setDashLocations([]);
+      setDarazLocations([]);
       return;
     }
 
@@ -120,26 +150,30 @@ export function DashLocationCell({
       if (searchQuery.length >= 2) {
         fetchLocations(searchQuery);
       } else {
-        setLocations([]);
+        setDashLocations([]);
+        setDarazLocations([]);
       }
     }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, fetchLocations, isSearchEnabled]);
 
-  const handleLocationSelect = async (location: DashLocation) => {
+  const handleLocationSelect = async (locationId: number, displayName: string) => {
     setIsUpdatingLocation(true);
     try {
+      const locationPayloadKey =
+        logisticsQueryParam === "Daraz" ? "daraz_location" : "location";
       await api.patch(`/api/sales/orders/${sale.id}/`, {
-        location: location.id,
+        [locationPayloadKey]: locationId,
       });
-      setSearchQuery(location.name);
+      setSearchQuery(displayName);
+      setSelectedLocationId(locationId);
       setIsDropdownOpen(false);
       if (onLocationUpdate) {
-        onLocationUpdate(sale.id, { id: location.id, name: location.name });
+        onLocationUpdate(sale.id, { id: locationId, name: displayName });
       }
       toast.success(
-        `Location for order #${sale.id} updated to ${location.name}.`
+        `Location for order #${sale.id} updated to ${displayName}.`
       );
     } catch (error) {
       console.error("Error updating location:", error);
@@ -149,19 +183,39 @@ export function DashLocationCell({
     }
   };
 
+  const handleDashLocationSelect = (location: DashLocation) => {
+    void handleLocationSelect(location.id, location.name);
+  };
+
+  const handleDarazLocationSelect = (location: DarazLocation) => {
+    const displayName = `${location.area}, ${location.city}`;
+    void handleLocationSelect(location.id, displayName);
+  };
+
   const handleSendOrder = async () => {
     if (!logisticsQueryParam) {
-      toast.error("Select DASH or Pick & Drop logistics before sending.");
+      toast.error("Select logistics before sending.");
       return;
     }
-    const endpoint =
-      logisticsQueryParam === "PicknDrop"
-        ? `/api/send-pickndrop/${sale.id}/`
-        : `/api/dash/send-order/${sale.id}/`;
+
+    if (logisticsQueryParam === "Daraz" && !selectedLocationId) {
+      toast.error("Select a Daraz location before sending.");
+      return;
+    }
 
     setIsSendingOrder(true);
     try {
-      await api.post(endpoint);
+      if (logisticsQueryParam === "Daraz") {
+        await api.post(`/api/daraz/orders/${sale.id}/send/`, {
+          location: selectedLocationId,
+        });
+      } else {
+        const endpoint =
+          logisticsQueryParam === "PicknDrop"
+            ? `/api/send-pickndrop/${sale.id}/`
+            : `/api/dash/send-order/${sale.id}/`;
+        await api.post(endpoint);
+      }
       toast.success(
         `Order #${sale.id} sent to ${logisticsLabel ?? "selected logistics"}.`
       );
@@ -212,7 +266,7 @@ export function DashLocationCell({
           placeholder={
             isSearchEnabled
               ? `Search ${logisticsLabel ?? ""} location...`
-              : "Select DASH/Pick & Drop to enable search"
+              : "Select DASH, Pick & Drop, or Daraz to search"
           }
           className={`pl-10 ${
             !isSearchEnabled ? "cursor-not-allowed opacity-70" : ""
@@ -227,7 +281,7 @@ export function DashLocationCell({
             }
           }}
           onFocus={() => {
-            if (searchQuery.length >= 2 && locations.length > 0) {
+            if (searchQuery.length >= 2 && hasLocationResults) {
               setIsDropdownOpen(true);
             }
           }}
@@ -258,15 +312,40 @@ export function DashLocationCell({
                 </svg>
                 Loading...
               </div>
-            ) : locations.length > 0 ? (
-              locations.map((location) => (
+            ) : logisticsQueryParam === "Daraz" ? (
+              darazLocations.length > 0 ? (
+                darazLocations.map((location) => (
+                  <div
+                    key={location.id}
+                    className={`p-3 cursor-pointer hover:bg-gray-50 border-b ${
+                      isUpdatingLocation
+                        ? "opacity-50 pointer-events-none"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      !isUpdatingLocation && handleDarazLocationSelect(location)
+                    }
+                  >
+                    <div className="font-medium">{location.area}</div>
+                    <div className="text-sm text-gray-500">{location.city}</div>
+                  </div>
+                ))
+              ) : (
+                searchQuery.length >= 2 && (
+                  <div className="p-3 text-sm text-gray-500">
+                    No locations found.
+                  </div>
+                )
+              )
+            ) : dashLocations.length > 0 ? (
+              dashLocations.map((location) => (
                 <div
                   key={location.id}
                   className={`p-3 cursor-pointer hover:bg-gray-50 border-b ${
                     isUpdatingLocation ? "opacity-50 pointer-events-none" : ""
                   }`}
                   onClick={() =>
-                    !isUpdatingLocation && handleLocationSelect(location)
+                    !isUpdatingLocation && handleDashLocationSelect(location)
                   }
                 >
                   <div className="font-medium">{location.name}</div>
@@ -285,39 +364,43 @@ export function DashLocationCell({
           </div>
         )}
       </div>
-      <Button
-        onClick={handleSendOrder}
-        disabled={
-          !sale.location_name ||
-          isSendingOrder ||
-          isUpdatingLocation ||
-          !isSearchEnabled
-        }
-      >
-        {isSendingOrder ? (
-          <svg
-            className="animate-spin h-4 w-4 mr-2 text-white"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-              fill="none"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8z"
-            />
-          </svg>
-        ) : (
-          <SendIcon size={12} />
-        )}
-      </Button>
+      {showSendButton && (
+        <Button
+          onClick={handleSendOrder}
+          disabled={
+            isSendingOrder ||
+            isUpdatingLocation ||
+            !isSearchEnabled ||
+            (logisticsQueryParam === "Daraz"
+              ? !selectedLocationId
+              : !sale.location_name)
+          }
+        >
+          {isSendingOrder ? (
+            <svg
+              className="animate-spin h-4 w-4 mr-2 text-white"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              />
+            </svg>
+          ) : (
+            <SendIcon size={12} />
+          )}
+        </Button>
+      )}
     </div>
   );
 }

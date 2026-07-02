@@ -17,10 +17,18 @@ export interface DashLocation {
   coverage_areas: string[];
 }
 
+export interface DarazLocation {
+  id: number;
+  city: string;
+  area: string;
+  l4_id: string;
+}
+
 export interface SaleItem {
   order_code: string;
   tracking_code: string;
   location_name: string;
+  location_id?: number;
   logistics_name: string;
   logistics: string | null;
   id: number;
