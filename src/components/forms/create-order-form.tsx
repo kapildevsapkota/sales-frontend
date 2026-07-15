@@ -29,6 +29,7 @@ import {
   UploadIcon,
   TrashIcon,
   TruckIcon,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -47,6 +48,7 @@ import type { GameWinner, OrderCreateResponse } from "@/types/game";
 import { PhoneInput } from "../ui/phone-input";
 import { parsePhoneNumber } from "react-phone-number-input";
 import type * as RPNInput from "react-phone-number-input";
+import { compressImage } from "@/utils/image";
 
 interface CreateOrderFormProps {
   products: Product[];
@@ -139,6 +141,7 @@ export default function CreateOrderForm({
     null,
   );
   const [loading, setLoading] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
   const [quantityInputValue, setQuantityInputValue] = useState("");
@@ -358,15 +361,24 @@ export default function CreateOrderForm({
     fetchOrderData();
   }, [isEditMode, orderId, form]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const fileWithPreview = Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      });
-      setUploadedFile(fileWithPreview);
-      setPreviewImage(fileWithPreview.preview);
-      setValue("payment_screenshot", fileWithPreview);
+      try {
+        setIsOptimizing(true);
+        const compressedFile = await compressImage(file, { maxSizeMB: 0.4 });
+        const fileWithPreview = Object.assign(compressedFile, {
+          preview: URL.createObjectURL(compressedFile),
+        });
+        setUploadedFile(fileWithPreview);
+        setPreviewImage(fileWithPreview.preview);
+        setValue("payment_screenshot", fileWithPreview);
+      } catch (error) {
+        console.error("Error compressing image:", error);
+        toast.error("Failed to compress image");
+      } finally {
+        setIsOptimizing(false);
+      }
     }
   };
 
@@ -1344,7 +1356,14 @@ export default function CreateOrderForm({
                             Payment Screenshot
                           </FormLabel>
                           <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 bg-gray-50 px-6 pt-5 pb-6">
-                            {!previewImage ? (
+                            {isOptimizing ? (
+                              <div className="space-y-2 text-center py-4">
+                                <Loader2 className="mx-auto h-10 w-10 animate-spin text-green-600" />
+                                <p className="text-sm font-medium text-gray-600">
+                                  Optimizing image (Max 400KB)...
+                                </p>
+                              </div>
+                            ) : !previewImage ? (
                               <div className="space-y-1 text-center">
                                 <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
                                 <div className="flex text-sm text-gray-600">
@@ -1409,7 +1428,7 @@ export default function CreateOrderForm({
                 <Button
                   type="submit"
                   className="h-[45px] bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3"
-                  disabled={loading}
+                  disabled={loading || isOptimizing}
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">

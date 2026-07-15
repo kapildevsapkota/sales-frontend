@@ -57,6 +57,7 @@
     "@types/canvas-confetti": "^1.9.0",
     "apexcharts": "^4.7.0",
     "axios": "^1.13.2",
+    "browser-image-compression": "^2.0.2",
     "calendar": "link:@/registry/new-york/components/ui/calendar",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
