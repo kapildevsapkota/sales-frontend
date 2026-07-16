@@ -49,6 +49,10 @@ export function UserProfileDropdown({
     router.push("/admin/dash-config");
   };
 
+  const handleYdmConfig = () => {
+    router.push("/admin/ydm-config");
+  };
+
   const handlePicknDropConfig = () => {
     router.push("/admin/pickndrop-config");
   };
@@ -75,7 +79,7 @@ export function UserProfileDropdown({
             size="sm"
             className={cn(
               "flex items-center gap-2 h-8 px-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800",
-              className
+              className,
             )}
           >
             <Avatar className="h-6 w-6">
@@ -109,6 +113,10 @@ export function UserProfileDropdown({
             <Settings className="mr-2 h-4 w-4" />
             <span>Change Password</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleYdmConfig}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>YDM Config</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleDashConfig}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Dash Config</span>
@@ -135,7 +143,7 @@ export function UserProfileDropdown({
         <button
           className={cn(
             "flex items-center gap-3 h-10 px-3 rounded-md ",
-            className
+            className,
           )}
         >
           <Avatar className="h-8 w-8">
@@ -182,6 +190,10 @@ export function UserProfileDropdown({
           <span className="cursor-pointer">Change Password</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleYdmConfig}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>YDM Config</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleDashConfig}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Dash Config</span>
