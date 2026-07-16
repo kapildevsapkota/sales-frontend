@@ -366,7 +366,12 @@ export default function CreateOrderForm({
     if (file) {
       try {
         setIsOptimizing(true);
-        const compressedFile = await compressImage(file, { maxSizeMB: 0.4 });
+        const compressedBlob = await compressImage(file, { maxSizeMB: 0.4 });
+        // Convert Blob back to a proper File so z.instanceof(File) validation passes
+        const compressedFile = new File([compressedBlob], file.name, {
+          type: compressedBlob.type || file.type,
+          lastModified: Date.now(),
+        });
         const fileWithPreview = Object.assign(compressedFile, {
           preview: URL.createObjectURL(compressedFile),
         });
