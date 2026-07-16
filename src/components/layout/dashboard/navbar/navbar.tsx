@@ -165,7 +165,7 @@ export function AppHeader() {
       {
         label: "YDM",
         icon: Home,
-        href: "/admin/ydm",
+        href: "/admin/ydm/dashboard",
       },
       // {
       //   label: "Sales Fest",
