@@ -48,7 +48,10 @@ export interface VendorCompleteStat {
     total_delivery_charge: TotalStats;
     total_cancellation_charge: TotalStats;
     total_pending_cod: TotalStats;
-    last_cod_payment: string | null;
+    last_cod_payment: {
+      amount: number;
+      date: string;
+    };
   };
   todays_statistics: {
     todays_orders: number;

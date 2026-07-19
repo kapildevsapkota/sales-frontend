@@ -1,7 +1,9 @@
-import { VendorCompleteStat } from "@/src/services/vendors";
+import { VendorCompleteStat } from "./vendors";
 
 export function MainStatsCard({ data }: { data?: VendorCompleteStat }) {
   const formatAmount = (amt: number) => amt.toLocaleString("en-IN");
+
+  const lastPayment = data?.overall_statistics.last_cod_payment;
 
   const rows = [
     {
@@ -44,7 +46,16 @@ export function MainStatsCard({ data }: { data?: VendorCompleteStat }) {
         <div className="flex justify-between items-center py-2.5 last:pb-0">
           <span className="text-sm text-gray-500">Last COD payment</span>
           <span className="text-sm font-medium text-gray-700">
-            {data?.overall_statistics.last_cod_payment ?? "—"}
+            {lastPayment ? (
+              <div className="flex flex-col items-end">
+                <span>Rs. {formatAmount(lastPayment.amount)}</span>
+                <span className="text-xs text-gray-500">
+                  {new Date(lastPayment.date).toLocaleDateString("en-IN")}
+                </span>
+              </div>
+            ) : (
+              "—"
+            )}
           </span>
         </div>
       </div>
