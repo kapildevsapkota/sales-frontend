@@ -8,44 +8,7 @@ import type {
   VendorDailyDeliveredStat,
   VendorCompleteStat,
 } from "./vendors";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-const BASE_URL = "https://lane-equally-noticed-impose.trycloudflare.com";
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("accessToken");
-}
-
-/** Fetches the YDM API key from the config endpoint using the stored auth token. */
-async function getYdmApiKey(): Promise<string> {
-  const token = getToken();
-  const res = await fetch(`${API_URL}/api/ydm-logistics/`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch YDM config: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const record = Array.isArray(data) ? data[0] : data;
-  if (!record?.api_key) {
-    throw new Error("YDM API key not configured");
-  }
-  return record.api_key as string;
-}
-
-function buildHeaders(apiKey: string): Record<string, string> {
-  return {
-    "Content-Type": "application/json",
-    "X-API-KEY": apiKey,
-  };
-}
+import { BASE_URL, getYdmApiKey, buildHeaders } from "../config";
 
 export async function fetchVendorDashboardStats(): Promise<VendorDashboardStats> {
   const apiKey = await getYdmApiKey();
