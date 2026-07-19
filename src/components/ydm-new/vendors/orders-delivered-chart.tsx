@@ -9,11 +9,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import type { TooltipContentProps } from "recharts";
-import type {
-  NameType,
-  ValueType,
-} from "recharts/types/component/DefaultTooltipContent";
 
 const COLOR = "#82ca9d";
 
@@ -28,10 +23,12 @@ const formatChartDate = (dateStr: string) => {
   }
 };
 
-interface CustomTooltipProps extends Pick<
-  TooltipContentProps<ValueType, NameType>,
-  "active" | "payload" | "label"
-> {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value?: number | string;
+  }>;
+  label?: string | number;
   color: string;
   valueLabel: string;
 }
@@ -58,7 +55,7 @@ function CustomTooltip({
         />
 
         <span className="text-sm font-semibold text-gray-900">
-          {valueLabel}: {payload[0]?.value}
+          {valueLabel}: {payload[0]?.value ?? 0}
         </span>
       </div>
     </div>
@@ -114,9 +111,11 @@ export function OrdersDeliveredChart({ data }: OrdersDeliveredChartProps) {
                 stroke: "#d1d5db",
                 strokeDasharray: "4 4",
               }}
-              content={(props) => (
+              content={(props: any) => (
                 <CustomTooltip
-                  {...props}
+                  active={props.active}
+                  payload={props.payload}
+                  label={props.label}
                   color={COLOR}
                   valueLabel="Delivered"
                 />

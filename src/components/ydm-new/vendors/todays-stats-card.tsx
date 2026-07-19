@@ -1,4 +1,4 @@
-import { VendorCompleteStat } from "@/src/services/vendors";
+import { VendorCompleteStat } from "./vendors";
 
 export function TodaysStatsCard({ data }: { data?: VendorCompleteStat }) {
   const rows = [

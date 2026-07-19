@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
-interface InvoiceData {
+export interface InvoiceData {
   invoiceCode: string;
   totalAmount: string;
   paidAmount: string;

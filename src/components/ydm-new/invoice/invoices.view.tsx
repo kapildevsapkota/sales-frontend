@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useRouter } from "next/navigation";
 import { getInvoiceById, type Invoice } from "./invoices";
-import { downloadInvoicePDF, generateInvoicePDF } from "./utils/pdf-generator";
+import { downloadInvoicePDF, generateInvoicePDF, type InvoiceData } from "./utils/pdf-generator";
 
 // ---------- Helpers ----------
 
@@ -287,17 +287,14 @@ export function InvoicesView({
         details.username
       : "Vendor Name";
 
-    const pdfInvoiceData = {
+    const pdfInvoiceData: InvoiceData = {
       invoiceCode: row.invoice_code || "",
       totalAmount: row.total_amount || "0.00",
       paidAmount: row.paid_amount || "0.00",
       dueAmount: row.due_amount || "0.00",
-      paymentType: (row.payment_type || "Cash") as Parameters<
-        typeof generateInvoicePDF
-      >[1],
-      status: ((row.status as string) === "Cancelled"
-        ? "Pending"
-        : row.status) as Parameters<typeof generateInvoicePDF>[2],
+      paymentType: row.payment_type || "Cash",
+      status:
+        (row.status as string) === "Cancelled" ? "Pending" : row.status,
       franchise: vendorName,
       createdBy: "",
       signedBy: "",
@@ -335,7 +332,9 @@ export function InvoicesView({
         signatureUrl,
       );
 
-      const blob = new Blob([pdfBytes as ArrayBuffer], {
+      const ab = new ArrayBuffer(pdfBytes.byteLength);
+      new Uint8Array(ab).set(pdfBytes);
+      const blob = new Blob([ab], {
         type: "application/pdf",
       });
 
