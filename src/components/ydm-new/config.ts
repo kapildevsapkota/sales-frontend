@@ -4,7 +4,7 @@ export const API_URL =
 
 /** YDM logistics external API (authenticated via X-API-KEY). */
 export const BASE_URL =
-  "https://lane-equally-noticed-impose.trycloudflare.com";
+  "https://organizing-weblogs-tree-posing.trycloudflare.com";
 
 // ---------- Auth helpers ----------
 
@@ -40,4 +40,30 @@ export function buildHeaders(apiKey: string): Record<string, string> {
     "Content-Type": "application/json",
     "X-API-KEY": apiKey,
   };
+}
+
+export async function downloadFile(
+  endpoint: string,
+  filename: string,
+): Promise<void> {
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, { headers });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw errorData;
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

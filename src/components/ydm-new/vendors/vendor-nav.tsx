@@ -16,7 +16,11 @@ const BASE = "/admin/ydm/dashboard";
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: BASE },
   { icon: Package, label: "Orders", href: `${BASE}/orders/my-orders` },
-  { icon: RotateCcw, label: "Return Pending", href: `${BASE}/return-pending` },
+  {
+    icon: RotateCcw,
+    label: "Return Pending",
+    href: `${BASE}/orders/return-pending`,
+  },
   { icon: Receipt, label: "Invoice", href: `${BASE}/invoice` },
   { icon: FileBarChart, label: "Statement", href: `${BASE}/statement` },
 ];
