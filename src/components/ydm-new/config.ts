@@ -4,7 +4,7 @@ export const API_URL =
 
 /** YDM logistics external API (authenticated via X-API-KEY). */
 export const BASE_URL =
-  "https://organizing-weblogs-tree-posing.trycloudflare.com";
+  "https://mentor-run-controlled-rarely.trycloudflare.com";
 
 // ---------- Auth helpers ----------
 

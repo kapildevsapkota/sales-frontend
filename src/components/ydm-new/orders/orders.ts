@@ -167,3 +167,47 @@ export async function updateOrderDetails(
   if (!res.ok) throw new Error(`Failed to update order ${tracking_number}: ${res.status}`);
   return res.json() as Promise<Order>;
 }
+
+export interface CreateOrderPayload {
+  recipient_name: string;
+  recipient_phone: string;
+  recipient_email?: string;
+  recipient_address: string;
+  recipient_city: string;
+  recipient_district: string;
+  cod_amount: string;
+  payment_type: string;
+  product: string;
+  remarks?: string;
+}
+
+export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
+  const apiKey = await getYdmApiKey();
+  const res = await fetch(`${BASE_URL}/api/orders/`, {
+    method: "POST",
+    headers: buildHeaders(apiKey),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`Failed to create order: ${res.status}`);
+  return res.json() as Promise<Order>;
+}
+
+export async function uploadExcel(file: File): Promise<void> {
+  const apiKey = await getYdmApiKey();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${BASE_URL}/api/orders/upload-excel/`, {
+    method: "POST",
+    headers: { "X-API-KEY": apiKey },
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw err;
+  }
+}
+
+export async function downloadExcelSample(): Promise<void> {
+  return downloadFile("/api/orders/sample-excel/", "sample-orders.xlsx");
+}

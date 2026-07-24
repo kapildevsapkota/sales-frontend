@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Receipt,
   FileBarChart,
+  Coins,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -21,8 +22,9 @@ const navItems = [
     label: "Return Pending",
     href: `${BASE}/orders/return-pending`,
   },
-  { icon: Receipt, label: "Invoice", href: `${BASE}/invoice` },
+  // { icon: Receipt, label: "Invoice", href: `${BASE}/invoice` },
   { icon: FileBarChart, label: "Statement", href: `${BASE}/statement` },
+  { icon: Coins, label: "Payments", href: `${BASE}/payments` },
 ];
 
 export function VendorNav() {

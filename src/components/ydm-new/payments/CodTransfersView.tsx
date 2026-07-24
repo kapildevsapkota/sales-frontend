@@ -1,0 +1,533 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  useVendorCodPayments,
+  useDeleteCodTransfer,
+  useUpdateCodTransfer,
+} from "./payments.queries";
+import { type CodPayment, getCodPaymentDetail } from "./payments";
+import { type ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner";
+import { DataTable } from "@/components/ui/data-table";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  HelpCircle,
+  Download,
+  CalendarIcon,
+  Plus,
+  Eye,
+  Trash2,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import { format } from "date-fns";
+import { type DateRange } from "react-day-picker";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+function formatCurrency(value: number | string | undefined | null) {
+  const num = Number(value ?? 0);
+  return `Rs. ${num.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function buildColumns(
+  onPaymentClick: (id: number) => void,
+  onDownloadClick: (id: number, paymentNumber: string) => void,
+  onDeleteClick: (id: number) => void,
+  onStatusChange: (id: number, status: string) => void,
+): ColumnDef<CodPayment>[] {
+  return [
+    {
+      id: "sn",
+      header: "S.N.",
+      cell: ({ row }) => (
+        <span className="text-gray-600 font-medium text-center block">
+          {row.index + 1}
+        </span>
+      ),
+      size: 50,
+    },
+    {
+      accessorKey: "payment_number",
+      header: "Payment Number",
+      cell: ({ row }) => {
+        const payment = row.original;
+        return (
+          <div
+            onClick={() => onPaymentClick(payment.id)}
+            className="font-semibold text-[#2e4a62] hover:underline cursor-pointer"
+          >
+            {payment.payment_number || "N/A"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "transfer_date",
+      header: "Transfer Date",
+      cell: ({ getValue }) => (
+        <div className="text-gray-600">{formatDate(getValue() as string)}</div>
+      ),
+    },
+    {
+      accessorKey: "order_count",
+      header: "Order Count",
+      cell: ({ getValue }) => (
+        <div className="text-gray-700 font-medium text-center">
+          {(getValue() as number) ?? 0}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "delivery_amount",
+      header: "Delivery Amount",
+      cell: ({ getValue }) => (
+        <div className="text-gray-600 font-medium">
+          {formatCurrency(getValue() as string)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ getValue }) => (
+        <div className="text-[#2e4a62] font-semibold">
+          {formatCurrency(getValue() as string)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: () => <div className="text-center">Status</div>,
+      cell: ({ row, getValue }) => {
+        const payment = row.original;
+        const status = (getValue() as string) || "Pending";
+        const isPaid =
+          status.toLowerCase() === "paid" ||
+          status.toLowerCase() === "completed";
+
+        return (
+          <div
+            className="flex justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Select
+              value={isPaid ? "Paid" : "Pending"}
+              onValueChange={(val) => onStatusChange(payment.id, val || "")}
+            >
+              <SelectTrigger className="w-[110px] h-7 text-xs border-gray-200">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Paid">Paid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-center">Actions</div>,
+      cell: ({ row }) => {
+        const payment = row.original;
+        return (
+          <div className="flex items-center justify-center gap-1.5">
+            <button
+              onClick={() => onPaymentClick(payment.id)}
+              title="View Details"
+              className="p-1.5 text-gray-600 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() =>
+                onDownloadClick(payment.id, payment.payment_number)
+              }
+              title="Download CSV"
+              className="p-1.5 text-gray-600 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  title="Delete Transfer"
+                  className="p-1.5 text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    the COD Transfer {payment.payment_number}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDeleteClick(payment.id)}
+                    className={cn(buttonVariants({ variant: "destructive" }))}
+                  >
+                    Yes, Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        );
+      },
+    },
+  ];
+}
+
+export function CodTransfersView() {
+  const router = useRouter();
+
+  // Filter inputs (reactive)
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+  // Automatically derived applied filters for transfers list
+  const appliedFilters = {
+    status: statusFilter === "all" ? undefined : statusFilter,
+    start_date: dateRange?.from
+      ? format(dateRange.from, "yyyy-MM-dd")
+      : undefined,
+    end_date: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined,
+  };
+
+  const { data, isLoading, isFetching } = useVendorCodPayments(appliedFilters);
+
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+
+  const deleteMutation = useDeleteCodTransfer();
+  const updateMutation = useUpdateCodTransfer();
+
+  const handlePaymentClick = (paymentId: number) => {
+    router.push(`/admin/ydm/dashboard/payments/${paymentId}`);
+  };
+
+  const handleDeleteClick = (paymentId: number) => {
+    deleteMutation.mutate(paymentId);
+  };
+
+  const handleStatusChange = (paymentId: number, status: string) => {
+    updateMutation.mutate({ paymentId, status });
+  };
+
+  const handleDownloadCSV = async (
+    paymentId: number,
+    paymentNumber: string,
+  ) => {
+    try {
+      setDownloadingId(paymentId);
+      const detail = await getCodPaymentDetail(paymentId);
+      const orders = detail.orders_detail ?? [];
+      if (!orders.length) {
+        toast.error("No orders in this payment");
+        return;
+      }
+
+      const headers = [
+        "Tracking Number",
+        "Sender Name",
+        "Sender Phone",
+        "Recipient Name",
+        "Recipient Phone",
+        "Recipient Address",
+        "Recipient City",
+        "Recipient District",
+        "COD Amount",
+        "Delivery Charge",
+        "Net Amount",
+        "Payment Type",
+        "Status",
+      ];
+
+      const rows = orders.map((order) => {
+        const statusLower = order.status?.toLowerCase() || "";
+        const isCancelledStatus =
+          statusLower === "cancelled" ||
+          statusLower === "returning_to_vendor" ||
+          statusLower === "returned_to_vendor";
+        const charge = isCancelledStatus
+          ? (order.ydm_cancelled_charge ?? "0.00")
+          : (order.ydm_delivery_charge ?? order.delivery_charge ?? "0.00");
+
+        return [
+          `"${order.tracking_number}"`,
+          `"${(order.sender_name || "").replace(/"/g, '""')}"`,
+          `"${order.sender_phone || ""}"`,
+          `"${(order.recipient_name || "").replace(/"/g, '""')}"`,
+          `"${order.recipient_phone || ""}"`,
+          `"${(order.recipient_address || "").replace(/"/g, '""')}"`,
+          `"${order.recipient_city || ""}"`,
+          `"${order.recipient_district || ""}"`,
+          Number(order.cod_amount || 0).toFixed(2),
+          Number(charge || 0).toFixed(2),
+          Number(order.net_amount || 0).toFixed(2),
+          `"${order.payment_type || ""}"`,
+          `"${order.status || ""}"`,
+        ].join(",");
+      });
+
+      const csvContent = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `orders_report_${paymentNumber}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("CSV downloaded successfully");
+    } catch (err: any) {
+      toast.error(
+        "Failed to download CSV: " + (err.message || "Unknown error"),
+      );
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const columns = buildColumns(
+    handlePaymentClick,
+    handleDownloadCSV,
+    handleDeleteClick,
+    handleStatusChange,
+  );
+  const codPayments = data?.results ?? [];
+
+  const handleClearFilter = () => {
+    setStatusFilter("all");
+    setDateRange(undefined);
+  };
+
+  // Client-side CSV export
+  const handleExportCSV = () => {
+    if (!codPayments.length) return;
+
+    // Create CSV header
+    const headers = [
+      "S.N.",
+      "Payment Number",
+      "Transfer Date",
+      "Order Count",
+      "Delivery Amount",
+      "Amount",
+      "Status",
+    ];
+
+    // Map rows
+    const rows = codPayments.map((payment, idx) => {
+      const paymentNum = payment.payment_number || "N/A";
+      const transferDate = formatDate(payment.transfer_date);
+      const orderCount = payment.order_count ?? 0;
+      const deliveryAmount = Number(payment.delivery_amount || 0).toFixed(2);
+      const amount = Number(payment.amount || 0).toFixed(2);
+      const status = payment.status || "Pending";
+
+      return [
+        idx + 1,
+        `"${paymentNum}"`,
+        `"${transferDate}"`,
+        orderCount,
+        deliveryAmount,
+        amount,
+        `"${status}"`,
+      ].join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `cod_transfers_vendor_export.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="flex flex-col gap-6 bg-white p-6 md:p-8 rounded-sm border border-gray-200">
+      {/* Card Title & Info Button */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold text-[#2e4a62] uppercase">
+            COD Transfers
+          </h3>
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs max-w-xs">
+                  View and track bank/cash transfers for Cash on Delivery
+                  balances.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        {/* Filter controls row */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Payment Status Buttons */}
+          <div className="flex items-center gap-0.5 rounded-md p-0.5 bg-gray-50 h-8">
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`px-3 py-1 text-xs font-semibold rounded-xs transition-colors duration-150 ${
+                statusFilter === "all"
+                  ? "bg-[#2e4a62] text-white shadow-xs"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/50"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setStatusFilter("Pending")}
+              className={`px-3 py-1 text-xs font-semibold rounded-xs transition-colors duration-150 ${
+                statusFilter === "Pending"
+                  ? "bg-[#2e4a62] text-white shadow-xs"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/50"
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setStatusFilter("Paid")}
+              className={`px-3 py-1 text-xs font-semibold rounded-xs transition-colors duration-150 ${
+                statusFilter === "Paid"
+                  ? "bg-[#2e4a62] text-white shadow-xs"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/50"
+              }`}
+            >
+              Paid
+            </button>
+          </div>
+
+          {/* Date Range Picker */}
+          <div className="w-[240px]">
+            <Popover>
+              <PopoverTrigger
+                id="date-picker-range-cod"
+                className={cn(
+                  buttonVariants({
+                    variant: "outline",
+                    className:
+                      "justify-start px-2.5 font-normal h-8 w-full rounded-xs text-xs text-gray-500 transition-colors bg-white hover:bg-white hover:text-gray-500",
+                  }),
+                  dateRange?.from ? "border-orange-400" : "border-gray-200",
+                )}
+              >
+                <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "LLL dd, y")} –{" "}
+                      {format(dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Select Date Range</span>
+                )}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Clear button if filters applied */}
+          {(statusFilter !== "all" || dateRange?.from || dateRange?.to) && (
+            <button
+              onClick={handleClearFilter}
+              disabled={isFetching}
+              className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+            >
+              Clear
+            </button>
+          )}
+
+          <Button
+            onClick={handleExportCSV}
+            disabled={!codPayments.length}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs border-gray-200 text-gray-700 hover:bg-gray-50 gap-1.5 rounded-full px-4"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
+          </Button>
+        </div>
+      </div>
+
+      {/* DataTable */}
+      <DataTable
+        data={codPayments}
+        columns={columns}
+        isLoading={isLoading}
+        emptyMessage="No COD transfers available."
+      />
+    </div>
+  );
+}
