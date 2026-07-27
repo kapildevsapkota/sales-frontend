@@ -463,11 +463,51 @@ export default function SalesTable({
         })
         .catch((err) => {
           console.log(err);
-          showError("Failed to update logistics");
+          let rawData = err?.response?.data;
+          if (Array.isArray(rawData)) {
+            rawData = rawData[0];
+          }
+          let errorMessage =
+            typeof rawData === "string"
+              ? rawData
+              : rawData?.detail ||
+                rawData?.message ||
+                rawData?.error ||
+                err?.message ||
+                "Failed to update logistics";
+
+          if (typeof errorMessage === "string") {
+            const detailMatch = errorMessage.match(/['"]detail['"]\s*:\s*['"]([^'"]+)['"]/);
+            if (detailMatch && detailMatch[1]) {
+              errorMessage = detailMatch[1];
+            }
+          }
+
+          showError(errorMessage);
         });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating logistics:", error);
-      showError("Failed to update logistics");
+      let rawData = error?.response?.data;
+      if (Array.isArray(rawData)) {
+        rawData = rawData[0];
+      }
+      let errorMessage =
+        typeof rawData === "string"
+          ? rawData
+          : rawData?.detail ||
+            rawData?.message ||
+            rawData?.error ||
+            error?.message ||
+            "Failed to update logistics";
+
+      if (typeof errorMessage === "string") {
+        const detailMatch = errorMessage.match(/['"]detail['"]\s*:\s*['"]([^'"]+)['"]/);
+        if (detailMatch && detailMatch[1]) {
+          errorMessage = detailMatch[1];
+        }
+      }
+
+      showError(errorMessage);
     }
   };
 

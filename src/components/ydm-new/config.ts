@@ -3,8 +3,7 @@ export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 /** YDM logistics external API (authenticated via X-API-KEY). */
-export const BASE_URL =
-  "https://mentor-run-controlled-rarely.trycloudflare.com";
+export const BASE_URL = "https://prrm9gqnroqvcq0aiojslzj9.nepdora.com";
 
 // ---------- Auth helpers ----------
 
