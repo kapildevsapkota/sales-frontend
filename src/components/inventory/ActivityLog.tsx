@@ -385,19 +385,30 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
                     </span>
                     <span className="text-gray-600">
                       {log.action === "add" ? (
-                        <> added {log.new_quantity} units</>
+                        <> added {log.new_quantity}</>
                       ) : log.action === "update" ? (
                         <>
                           {" "}
-                          changed from {log.old_quantity} to {log.new_quantity}{" "}
-                          units
+                          changed from {log.old_quantity} to {log.new_quantity}
                         </>
                       ) : log.action === "deleted" || log.action === "delete" ? (
-                        <> removed {log.old_quantity} units</>
+                        <> removed {log.old_quantity}</>
                       ) : log.action === "order_created" ? (
-                        <> created order with {log.new_quantity} units</>
+                        <>
+                          {log.old_quantity !== undefined && log.new_quantity !== undefined ? (
+                            <> (changed from {log.old_quantity} to {log.new_quantity})</>
+                          ) : (
+                            <> ({log.new_quantity})</>
+                          )}
+                        </>
                       ) : log.action === "order_cancelled" ? (
-                        <> cancelled order ({log.new_quantity || log.old_quantity} units)</>
+                        <>
+                          {log.old_quantity !== undefined && log.new_quantity !== undefined ? (
+                            <> (changed from {log.old_quantity} to {log.new_quantity})</>
+                          ) : (
+                            <> ({log.new_quantity || log.old_quantity})</>
+                          )}
+                        </>
                       ) : (
                         <> performed activity</>
                       )}
