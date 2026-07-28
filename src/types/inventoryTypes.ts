@@ -5,7 +5,7 @@ export interface InventoryLog {
   product_name: string;
   old_quantity: number;
   new_quantity: number;
-  action: 'add' | 'update' | 'delete';
+  action: 'add' | 'update' | 'delete' | 'deleted' | 'order_created' | 'order_cancelled';
   user_name: string;
   organization: string;
   changed_at: string;

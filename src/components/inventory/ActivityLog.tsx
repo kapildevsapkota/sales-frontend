@@ -17,6 +17,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
   const [nextPage, setNextPage] = useState<string | null>(null);
   const [previousPage, setPreviousPage] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedAction, setSelectedAction] = useState<string>("");
   const [dateInventory, setDateInventory] = useState<
     {
       inventory_id: number;
@@ -43,12 +44,15 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
         }
       }
 
-      // Add date filter to URL if selected
-      let apiUrl = url;
-      if (selectedDate) {
-        const separator = url.includes("?") ? "&" : "?";
-        apiUrl = `${url}${separator}changed_at=${selectedDate}`;
+      // Add date and action filters to URL if selected
+      const urlObj = new URL(url);
+      if (selectedDate && !urlObj.searchParams.has("changed_at")) {
+        urlObj.searchParams.set("changed_at", selectedDate);
       }
+      if (selectedAction && !urlObj.searchParams.has("action")) {
+        urlObj.searchParams.set("action", selectedAction);
+      }
+      const apiUrl = urlObj.toString();
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -77,6 +81,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
     }
   };
 
+  // Fetch data when open state or filters change
   useEffect(() => {
     if (isOpen) {
       fetchActivityLogs(
@@ -84,17 +89,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  // Fetch data when date filter changes
-  useEffect(() => {
-    if (isOpen) {
-      fetchActivityLogs(
-        "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [isOpen, selectedDate, selectedAction]);
 
   // Fetch inventory-by-date snapshot when a date is selected
   useEffect(() => {
@@ -170,9 +165,27 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
       case "update":
         return "text-blue-600";
       case "delete":
+      case "deleted":
         return "text-red-600";
+      case "order_created":
+        return "text-indigo-600";
+      case "order_cancelled":
+        return "text-amber-600";
       default:
         return "text-gray-600";
+    }
+  };
+
+  const formatActionLabel = (action: string): string => {
+    switch (action) {
+      case "order_created":
+        return "Order Created";
+      case "order_cancelled":
+        return "Order Cancelled";
+      case "deleted":
+        return "Deleted";
+      default:
+        return action;
     }
   };
 
@@ -213,32 +226,57 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
           </button>
         </div>
 
-        {/* Date Filter */}
-        <div className="mb-4">
-          <label
-            htmlFor="dateFilter"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Filter by Date
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              id="dateFilter"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              onClick={() => {
-                setSelectedDate("");
-                setDateInventory([]);
-                setDateInventoryError(null);
-              }}
-              className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
+        {/* Filters */}
+        <div className="space-y-4 mb-4">
+          <div>
+            <label
+              htmlFor="dateFilter"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Clear
-            </button>
+              Filter by Date
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                id="dateFilter"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                onClick={() => {
+                  setSelectedDate("");
+                  setSelectedAction("");
+                  setDateInventory([]);
+                  setDateInventoryError(null);
+                }}
+                className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="actionFilter"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Filter by Action
+            </label>
+            <select
+              id="actionFilter"
+              value={selectedAction}
+              onChange={(e) => setSelectedAction(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="">All Actions</option>
+              <option value="add">Add</option>
+              <option value="update">Update</option>
+              <option value="deleted">Deleted</option>
+              <option value="order_created">Order Created</option>
+              <option value="order_cancelled">Order Cancelled</option>
+            </select>
           </div>
         </div>
 
@@ -339,11 +377,11 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
                   <div className="mt-1">
                     <span
                       className={cn(
-                        "font-medium capitalize",
+                        "font-medium",
                         getActionColor(log.action)
                       )}
                     >
-                      {log.action}
+                      {formatActionLabel(log.action)}
                     </span>
                     <span className="text-gray-600">
                       {log.action === "add" ? (
@@ -354,8 +392,14 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
                           changed from {log.old_quantity} to {log.new_quantity}{" "}
                           units
                         </>
-                      ) : (
+                      ) : log.action === "deleted" || log.action === "delete" ? (
                         <> removed {log.old_quantity} units</>
+                      ) : log.action === "order_created" ? (
+                        <> created order with {log.new_quantity} units</>
+                      ) : log.action === "order_cancelled" ? (
+                        <> cancelled order ({log.new_quantity || log.old_quantity} units)</>
+                      ) : (
+                        <> performed activity</>
                       )}
                     </span>
                   </div>
