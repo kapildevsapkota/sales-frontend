@@ -393,7 +393,7 @@ export function TableHeader({
               <SelectValue placeholder="Payment" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Payments</SelectItem>
               <SelectItem value="Cash on Delivery">Cash</SelectItem>
               <SelectItem value="Prepaid">Prepaid</SelectItem>
               <SelectItem value="Office Visit">Office</SelectItem>
@@ -406,7 +406,7 @@ export function TableHeader({
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="Processing">Processing</SelectItem>
               <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
@@ -434,7 +434,7 @@ export function TableHeader({
               <SelectValue placeholder="Delivery" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Delivery</SelectItem>
               <SelectItem value="Inside valley">Inside</SelectItem>
               <SelectItem value="Outside valley">Outside</SelectItem>
             </SelectContent>
@@ -446,7 +446,7 @@ export function TableHeader({
               <SelectValue placeholder="Salesperson" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Salespersons</SelectItem>
               {salespersons.map((person) => (
                 <SelectItem key={person.id} value={person.id.toString()}>
                   {`${person.first_name} ${person.last_name}`}
@@ -462,7 +462,7 @@ export function TableHeader({
                 <SelectValue placeholder="Logistics" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">All Logistics</SelectItem>
                 <SelectItem value="YDM">YDM</SelectItem>
                 <SelectItem value="DASH">DASH</SelectItem>
                 <SelectItem value="NCM">NCM</SelectItem>

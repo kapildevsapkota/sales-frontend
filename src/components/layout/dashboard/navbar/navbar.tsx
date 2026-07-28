@@ -398,25 +398,21 @@ export function AppHeader() {
                       </React.Fragment>
                     ))}
                   </nav>
-                  <div className="mt-auto border-t px-6 py-4 space-y-2">
-                    <Link href="/change-password">
-                      <Button
-                        variant="ghost"
-                        className="flex w-full items-center gap-2 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                      >
-                        <Key className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                        Change Password
-                      </Button>
-                    </Link>
-
-                    <Button
-                      onClick={handleLogout}
-                      variant="ghost"
-                      className="flex w-full items-center gap-2 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                    >
-                      <LogOut className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                      Logout
-                    </Button>
+                  <div className="mt-auto border-t px-6 py-4 bg-gray-50">
+                    <div className="mb-3 text-center">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {user?.first_name && user?.last_name
+                          ? `${user.first_name} ${user.last_name}`
+                          : user?.username || user?.email}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {user?.role}
+                      </p>
+                    </div>
+                    <UserProfileDropdown
+                      variant="compact"
+                      className="w-full justify-center"
+                    />
                   </div>
                 </div>
               </SheetContent>

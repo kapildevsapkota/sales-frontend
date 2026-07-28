@@ -121,6 +121,10 @@ export function UserProfileDropdown({
             <Settings className="mr-2 h-4 w-4" />
             <span>Dash Config</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={handlePicknDropConfig}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>PicknDrop Config</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleFestConfig}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Fest Settings</span>
