@@ -72,7 +72,7 @@ export function SuperAdminSalesFestView() {
         onValueChange={(v) => setActiveTab(v as ViewTab)}
         className="space-y-4 sm:space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-2 h-auto sm:h-11 gap-1 p-1">
+        <TabsList className="grid w-full grid-cols-3 h-auto sm:h-11 gap-1 p-1">
           <TabsTrigger
             value="overview"
             className="gap-1.5 sm:gap-2 text-xs sm:text-sm py-2 sm:py-0"
@@ -86,6 +86,13 @@ export function SuperAdminSalesFestView() {
           >
             <Store className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Franchise
+          </TabsTrigger>
+          <TabsTrigger
+            value="rankings"
+            className="gap-1.5 sm:gap-2 text-xs sm:text-sm py-2 sm:py-0"
+          >
+            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Rankings
           </TabsTrigger>
         </TabsList>
 
@@ -134,12 +141,12 @@ export function SuperAdminSalesFestView() {
           />
         </TabsContent>
 
-        {/* <TabsContent value="rankings" className="space-y-4 sm:space-y-6 mt-0">
+        <TabsContent value="rankings" className="space-y-4 sm:space-y-6 mt-0">
           <FestRankingsSection
             entries={rankingsData ?? []}
             loading={rankingsLoading || franchisesLoading}
           />
-        </TabsContent> */}
+        </TabsContent>
       </Tabs>
     </div>
   );

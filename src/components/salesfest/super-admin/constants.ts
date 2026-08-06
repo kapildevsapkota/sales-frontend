@@ -1,12 +1,21 @@
-export const RANKINGS_START_DATE = new Date(2026, 5, 14);
-export const RANKINGS_END_DATE = new Date(2026, 5, 20);
+export const RANKINGS_START_DATE = new Date(2026, 7, 6);
+export const RANKINGS_END_DATE = new Date(2026, 7, 11);
 
 export const GROUP_A_FRANCHISE_MATCHERS = [
-  "sankhamul",
-  "swayambhu",
   "swyambhu",
+  "swayambhu",
   "swyamhu",
-  "main page",
+  "gairidhara",
+  "gairidhdra",
+  "jorpati",
+  "sitapaila",
+  "kritipur",
+  "sambridhi cosmetic",
+  "sambridhi cosmetics",
+  "soltimode",
+  "soalteemode",
+  "baneshwor",
+  "baneshor",
 ];
 
 export const HIDDEN_FRANCHISE_NAMES = new Set([

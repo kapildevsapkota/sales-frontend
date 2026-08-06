@@ -66,7 +66,7 @@ export function FestRankingsSection({
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         <GroupRankingsPanel
           title="Group A"
-          description="Sankhamul, Swyambhu, and Main Page"
+          description="Swyambhu, Gairidhara, Jorpati, Sitapaila, Kritipur, Soltimode, and Baneshwor"
           group="A"
           franchiseEntries={groupAEntries}
           salespersons={toRankedSalespersons(groupAEntries, "A")}
@@ -74,7 +74,7 @@ export function FestRankingsSection({
         />
         <GroupRankingsPanel
           title="Group B"
-          description="All other franchises"
+          description="Sankhamul, Main Page, Lagankhel, Bhaktapur, and Jhamsikhel"
           group="B"
           franchiseEntries={groupBEntries}
           salespersons={toRankedSalespersons(groupBEntries, "B")}
