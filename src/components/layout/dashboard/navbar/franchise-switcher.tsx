@@ -50,6 +50,15 @@ export function FranchiseSwitcher({ className }: FranchiseSwitcherProps) {
 
   const currentFranchiseId = Number(user.franchise_id);
 
+  // Check if current user's franchise is part of the allowed hardcoded franchises for switching
+  const isAllowedFranchise = HARDCODED_FRANCHISES.some(
+    (f) => Number(f.id) === currentFranchiseId
+  );
+
+  if (!isAllowedFranchise) {
+    return null;
+  }
+
   // Find the currently active franchise
   const activeFranchise = HARDCODED_FRANCHISES.find(
     (f) => Number(f.id) === currentFranchiseId
