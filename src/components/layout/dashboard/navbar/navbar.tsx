@@ -37,6 +37,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserProfileDropdown } from "@/components/ui/user-profile-dropdown";
+import { FranchiseSwitcher } from "./franchise-switcher";
 
 interface MenuItem {
   label: string;
@@ -221,6 +222,15 @@ export function AppHeader() {
     [items, user, hasSalesFest],
   );
 
+  const mobileSwitcherAnchor = React.useMemo(() => {
+    return (
+      visibleItems.find((i) => i.label === "Sales Groups") ||
+      visibleItems.find((i) => i.label === "Fest Groups") ||
+      visibleItems.find((i) => i.label === "YDM") ||
+      visibleItems[visibleItems.length - 1]
+    );
+  }, [visibleItems]);
+
   // Close Sheet on nav change
   React.useEffect(() => {
     setOpen(false);
@@ -316,7 +326,8 @@ export function AppHeader() {
           </div>
 
           {/* Desktop User Profile Dropdown */}
-          <div className="hidden md:flex">
+          <div className="hidden md:flex items-center gap-3">
+            <FranchiseSwitcher />
             <UserProfileDropdown />
           </div>
 
@@ -395,6 +406,13 @@ export function AppHeader() {
                             {item.label}
                           </Link>
                         )}
+
+                        {/* Render FranchiseSwitcher after anchor item (Sales Groups / Fest Groups / YDM) */}
+                        {item.label === mobileSwitcherAnchor?.label && user?.role === Role.Franchise && (
+                          <div className="px-3 py-2 my-2 border-t border-b border-gray-100 dark:border-gray-800">
+                            <FranchiseSwitcher className="w-full" />
+                          </div>
+                        )}
                       </React.Fragment>
                     ))}
                   </nav>
@@ -409,10 +427,12 @@ export function AppHeader() {
                         {user?.role}
                       </p>
                     </div>
-                    <UserProfileDropdown
-                      variant="compact"
-                      className="w-full justify-center"
-                    />
+                    <div className="flex flex-col gap-2">
+                      <UserProfileDropdown
+                        variant="compact"
+                        className="w-full justify-center"
+                      />
+                    </div>
                   </div>
                 </div>
               </SheetContent>

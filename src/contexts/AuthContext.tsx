@@ -62,6 +62,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: (returnTo?: string) => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  switchFranchise: (franchiseId: number) => Promise<void>;
   isLoading: boolean;
   requireAuth: (returnTo: string) => void;
 }
@@ -137,6 +138,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const switchFranchise = async (franchiseId: number) => {
+    try {
+      const response = await api.post<{ access?: string; refresh?: string; token?: string }>(
+        "/api/account/franchise-token/",
+        { franchise_id: franchiseId }
+      );
+      
+      const { access, refresh, token } = response.data;
+      
+      // Store whichever tokens the backend provides
+      const newAccess = access || token;
+      if (newAccess) {
+        localStorage.setItem("accessToken", newAccess);
+      }
+      if (refresh) {
+        localStorage.setItem("refreshToken", refresh);
+      }
+      
+      // Fetch updated user profile
+      const profileResponse = await api.get<User>("/api/account/profile/");
+      setUser(profileResponse.data);
+    } catch (error) {
+      console.error("Failed to switch franchise:", error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -144,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         updateProfile,
+        switchFranchise,
         isLoading,
         requireAuth,
       }}
