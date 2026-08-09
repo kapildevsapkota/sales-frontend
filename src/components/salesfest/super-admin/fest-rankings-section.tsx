@@ -48,10 +48,6 @@ export function FestRankingsSection({
               <p className="font-semibold text-amber-900 text-sm sm:text-base">
                 Fest Rankings Period
               </p>
-              <p className="text-xs sm:text-sm text-amber-800/80 mt-1">
-                Sales are counted from June 14 through June 20, 2026 only.
-                Rankings refresh automatically every minute.
-              </p>
             </div>
             <Badge
               variant="outline"
