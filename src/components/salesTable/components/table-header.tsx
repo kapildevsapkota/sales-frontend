@@ -86,6 +86,7 @@ interface TableHeaderProps {
   salesperson: string;
   setSalesperson: (value: string) => void;
   currentPage: number;
+  salespersons: SalesPerson[];
 }
 
 export function TableHeader({
@@ -116,8 +117,8 @@ export function TableHeader({
   salesperson,
   setSalesperson,
   currentPage,
+  salespersons,
 }: TableHeaderProps) {
-  const [salespersons, setSalespersons] = useState<SalesPerson[]>([]);
   const { user } = useAuth();
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [summaryDate, setSummaryDate] = useState<Date | undefined>(undefined);
@@ -130,28 +131,6 @@ export function TableHeader({
     await fetchSales(currentPage);
     setShowCreateOrderModal(false);
   };
-
-  // Fetch salespersons data on component mount
-  useEffect(() => {
-    const fetchSalespersons = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        const response = await axios.get<SalesPerson[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/salespersons/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setSalespersons(response.data);
-      } catch (error) {
-        console.error("Error fetching salespersons:", error);
-      }
-    };
-
-    fetchSalespersons();
-  }, []);
 
   // Removed automatic refetching here to avoid duplicate API calls.
   // Parent component observes these states and triggers fetch accordingly.

@@ -94,6 +94,55 @@ export default function SalesTable({
     undefined
   );
 
+  // Export filters (table-related)
+  const [exportSearchInput, setExportSearchInput] = useState("");
+  const [exportPaymentMethod, setExportPaymentMethod] = useState("all");
+  const [exportOrderStatus, setExportOrderStatus] = useState("all");
+  const [exportDeliveryType, setExportDeliveryType] = useState("all");
+  const [exportSalesperson, setExportSalesperson] = useState("all");
+  const [exportLogistic, setExportLogistic] = useState("all");
+
+  const [salespersons, setSalespersons] = useState<{ id: number; first_name: string; last_name: string; }[]>([]);
+
+  // Fetch salespersons data on component mount
+  useEffect(() => {
+    const fetchSalespersons = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await axios.get<any[]>(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/account/salespersons/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setSalespersons(response.data);
+      } catch (error) {
+        console.error("Error fetching salespersons:", error);
+      }
+    };
+
+    fetchSalespersons();
+  }, []);
+
+  const handleOpenExportModal = useCallback((open: boolean) => {
+    if (open) {
+      setExportSearchInput(searchInput);
+      setExportPaymentMethod(paymentMethod);
+      setExportOrderStatus(orderStatus);
+      setExportDeliveryType(deliveryType);
+      setExportSalesperson(salesperson);
+      setExportLogistic(logistic);
+      if (dateRange?.from || dateRange?.to) {
+        setFranchiseExportDateRange([dateRange.from, dateRange.to]);
+      } else {
+        setFranchiseExportDateRange([undefined, undefined]);
+      }
+    }
+    setShowExportModal(open);
+  }, [searchInput, paymentMethod, orderStatus, deliveryType, salesperson, logistic, dateRange]);
+
   // Function to show error messages
   const showError = useCallback((message: string) => {
     console.log("showError called with:", message);
@@ -582,11 +631,34 @@ export default function SalesTable({
           params.push(`multiple_orders_customer=${multipleOrdersCustomer}`);
         if (typeof oilBottleTotalMin === "number")
           params.push(`oil_bottle_total_min=${oilBottleTotalMin}`);
+        if (typeof oilBottleOnly === "boolean")
+          params.push(`oil_bottle_only=${oilBottleOnly}`);
 
         // Append franchise id if available
         if (user?.franchise_id) {
           params.push(`franchise=${user.franchise_id}`);
         }
+
+        // Append prefilled/modified table filters
+        if (exportSearchInput) {
+          params.push(`search=${encodeURIComponent(exportSearchInput)}`);
+        }
+        if (exportPaymentMethod && exportPaymentMethod !== "all") {
+          params.push(`payment_method=${encodeURIComponent(exportPaymentMethod)}`);
+        }
+        if (exportOrderStatus && exportOrderStatus !== "all") {
+          params.push(`order_status=${encodeURIComponent(exportOrderStatus)}`);
+        }
+        if (exportDeliveryType && exportDeliveryType !== "all") {
+          params.push(`delivery_type=${encodeURIComponent(exportDeliveryType)}`);
+        }
+        if (exportSalesperson && exportSalesperson !== "all") {
+          params.push(`sales_person=${encodeURIComponent(exportSalesperson)}`);
+        }
+        if (exportLogistic && exportLogistic !== "all") {
+          params.push(`logistics=${encodeURIComponent(exportLogistic)}`);
+        }
+
         if (params.length > 0) {
           url += `?${params.join("&")}`;
         }
@@ -609,8 +681,8 @@ export default function SalesTable({
       // Default: Packaging and others
       let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-csv/`;
       const params: string[] = [];
-      if (user?.role === "Packaging" && logistic && logistic !== "all") {
-        params.push(`logistics=${encodeURIComponent(logistic)}`);
+      if (exportLogistic && exportLogistic !== "all") {
+        params.push(`logistics=${encodeURIComponent(exportLogistic)}`);
       }
       // Append franchise id if available/requested
       if (user?.franchise_id) {
@@ -634,6 +706,37 @@ export default function SalesTable({
       if (typeof oilBottleOnly === "boolean")
         params.push(`oil_bottle_only=${oilBottleOnly}`);
 
+      // Append prefilled/modified table filters
+      if (exportSearchInput) {
+        params.push(`search=${encodeURIComponent(exportSearchInput)}`);
+      }
+      if (exportPaymentMethod && exportPaymentMethod !== "all") {
+        params.push(`payment_method=${encodeURIComponent(exportPaymentMethod)}`);
+      }
+      if (exportOrderStatus && exportOrderStatus !== "all") {
+        params.push(`order_status=${encodeURIComponent(exportOrderStatus)}`);
+      }
+      if (exportDeliveryType && exportDeliveryType !== "all") {
+        params.push(`delivery_type=${encodeURIComponent(exportDeliveryType)}`);
+      }
+      if (exportSalesperson && exportSalesperson !== "all") {
+        params.push(`sales_person=${encodeURIComponent(exportSalesperson)}`);
+      }
+
+      const [from, to] = franchiseExportDateRange;
+      if (from) {
+        const year = from.getFullYear();
+        const month = String(from.getMonth() + 1).padStart(2, "0");
+        const day = String(from.getDate()).padStart(2, "0");
+        params.push(`start_date=${year}-${month}-${day}`);
+      }
+      if (to) {
+        const year = to.getFullYear();
+        const month = String(to.getMonth() + 1).padStart(2, "0");
+        const day = String(to.getDate()).padStart(2, "0");
+        params.push(`end_date=${year}-${month}-${day}`);
+      }
+
       if (params.length > 0) {
         url += `?${params.join("&")}`;
       }
@@ -647,8 +750,8 @@ export default function SalesTable({
       const link = document.createElement("a");
       link.href = urlObject;
       let filename = "sales_export.csv";
-      if (user?.role === "Packaging" && logistic && logistic !== "all") {
-        filename = `sales_export_logistic_${logistic}.csv`;
+      if (user?.role === "Packaging" && exportLogistic && exportLogistic !== "all") {
+        filename = `sales_export_logistic_${exportLogistic}.csv`;
       }
       link.setAttribute("download", filename);
       document.body.appendChild(link);
@@ -679,7 +782,7 @@ export default function SalesTable({
         fetchSales={fetchSales}
         showFilterForm={showFilterForm}
         setShowFilterForm={setShowFilterForm}
-        setShowExportModal={setShowExportModal}
+        setShowExportModal={handleOpenExportModal}
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}
         orderStatus={orderStatus}
@@ -694,6 +797,7 @@ export default function SalesTable({
         salesperson={salesperson}
         setSalesperson={setSalesperson}
         currentPage={currentPage}
+        salespersons={salespersons}
       />
 
       {showExportModal && (
@@ -720,6 +824,19 @@ export default function SalesTable({
           setOilBottleTotalMin={setOilBottleTotalMin}
           oilBottleOnly={oilBottleOnly}
           setOilBottleOnly={setOilBottleOnly}
+          exportSearchInput={exportSearchInput}
+          setExportSearchInput={setExportSearchInput}
+          exportPaymentMethod={exportPaymentMethod}
+          setExportPaymentMethod={setExportPaymentMethod}
+          exportOrderStatus={exportOrderStatus}
+          setExportOrderStatus={setExportOrderStatus}
+          exportDeliveryType={exportDeliveryType}
+          setExportDeliveryType={setExportDeliveryType}
+          exportSalesperson={exportSalesperson}
+          setExportSalesperson={setExportSalesperson}
+          exportLogistic={exportLogistic}
+          setExportLogistic={setExportLogistic}
+          salespersons={salespersons}
         />
       )}
 
