@@ -125,7 +125,6 @@ export function ExportModal({
     !!multipleOrdersCustomer ||
     typeof oilBottleTotalMin === "number" ||
     !!oilBottleOnly ||
-    !!exportSearchInput ||
     (exportPaymentMethod && exportPaymentMethod !== "all") ||
     (exportOrderStatus && exportOrderStatus !== "all") ||
     (exportDeliveryType && exportDeliveryType !== "all") ||
@@ -150,7 +149,6 @@ export function ExportModal({
     setOilBottleOnly?.(undefined);
 
     // Clear table filters
-    setExportSearchInput?.("");
     setExportPaymentMethod?.("all");
     setExportOrderStatus?.("all");
     setExportDeliveryType?.("all");
@@ -327,10 +325,10 @@ export function ExportModal({
                 <Input
                   id="exportSearchInput"
                   type="text"
-                  placeholder="Search sales..."
-                  className="h-8 text-xs"
+                  placeholder="No active search"
+                  className="h-8 text-xs bg-gray-50 cursor-not-allowed"
                   value={exportSearchInput || ""}
-                  onChange={(e) => setExportSearchInput?.(e.target.value)}
+                  disabled
                 />
               </div>
               <div>
