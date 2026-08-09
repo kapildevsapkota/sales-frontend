@@ -15,7 +15,7 @@ import { useTableData } from "./hooks/use-table-data";
 import { useTableFilters } from "./hooks/use-table-filters";
 import { DateRange } from "react-day-picker";
 import { api } from "@/lib/api";
-import { ErrorDialog } from "@/components/ErrorDialog";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function SalesTable({
@@ -39,8 +39,6 @@ export default function SalesTable({
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState<string>("");
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [errorDialogMessage, setErrorDialogMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const tableRef = useRef<HTMLTableElement>(null);
@@ -143,11 +141,10 @@ export default function SalesTable({
     setShowExportModal(open);
   }, [searchInput, paymentMethod, orderStatus, deliveryType, salesperson, logistic, dateRange]);
 
-  // Function to show error messages
+  // Function to show error messages using toast
   const showError = useCallback((message: string) => {
     console.log("showError called with:", message);
-    setErrorDialogMessage(message);
-    setErrorDialogOpen(true);
+    toast.error(message);
   }, []);
 
   const fetchSales = useCallback(
@@ -758,8 +755,34 @@ export default function SalesTable({
       link.click();
       document.body.removeChild(link);
       setShowExportModal(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error exporting CSV:", error);
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const json = JSON.parse(text);
+          if (json.error) {
+            showError(json.error);
+            return;
+          }
+          if (json.detail) {
+            showError(json.detail);
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing blob error JSON:", e);
+        }
+      } else if (error.response?.data) {
+        const data = error.response.data;
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+        if (data.detail) {
+          showError(data.detail);
+          return;
+        }
+      }
       showError("Failed to export CSV. Please try again.");
     }
   };
@@ -881,12 +904,7 @@ export default function SalesTable({
         </div>
       )}
 
-      {/* Error Dialog */}
-      <ErrorDialog
-        open={errorDialogOpen}
-        message={errorDialogMessage}
-        onClose={() => setErrorDialogOpen(false)}
-      />
+
     </div>
   );
 }

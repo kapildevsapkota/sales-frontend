@@ -13,7 +13,7 @@ export const ErrorDialog: React.FC<ErrorDialogProps> = ({
 }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-30">
       <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
         <h2 className="text-lg font-bold mb-2">Error</h2>
         <p className="mb-4">{message}</p>
