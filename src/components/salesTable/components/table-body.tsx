@@ -72,7 +72,7 @@ const normalizeLogisticsForSelect = (logistics?: string | null): string => {
       return "NCM";
     case "pickndrop":
       return "PicknDrop";
-    case "DA":
+    case "daraz":
       return "Daraz";
     case "none":
       return "none";
