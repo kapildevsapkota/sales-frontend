@@ -4,6 +4,7 @@ import {
   getOrdersByVendor,
   getOrderDetailsByVendor,
   updateOrderDetails,
+  deleteOrder,
   type UpdateOrderPayload,
 } from "./orders";
 
@@ -103,6 +104,21 @@ export function useUpdateOrderDetails() {
     },
     onError: (error: unknown) => {
       toast.error(getErrorMessage(error, "Failed to update order"));
+    },
+  });
+}
+
+export function useDeleteOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (trackingNumber: string) => deleteOrder(trackingNumber),
+    onSuccess: () => {
+      toast.success("Order deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEYS.all });
+    },
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Failed to delete order"));
     },
   });
 }

@@ -168,6 +168,17 @@ export async function updateOrderDetails(
   return res.json() as Promise<Order>;
 }
 
+export async function deleteOrder(
+  tracking_number: string,
+): Promise<void> {
+  const apiKey = await getYdmApiKey();
+  const res = await fetch(`${BASE_URL}/api/orders/${tracking_number}/`, {
+    method: "DELETE",
+    headers: buildHeaders(apiKey),
+  });
+  if (!res.ok) throw new Error(`Failed to delete order ${tracking_number}: ${res.status}`);
+}
+
 export interface CreateOrderPayload {
   recipient_name: string;
   recipient_phone: string;

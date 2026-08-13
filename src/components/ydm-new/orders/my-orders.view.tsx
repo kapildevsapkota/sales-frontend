@@ -12,6 +12,7 @@ import {
   X,
   Copy,
   Check,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ import {
   useVendorOrders,
   useOrderDetails,
   useUpdateOrderDetails,
+  useDeleteOrder,
 } from "./orders.queries";
 
 import { type ColumnDef } from "@tanstack/react-table";
@@ -45,6 +47,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/ui/data-table";
 import { usePostComment } from "./order-details/order-details.queries";
@@ -745,6 +758,11 @@ export function MyOrdersView({
   const [viewTrackingNumber, setViewTrackingNumber] = useState<string | null>(
     null,
   );
+  const [deletingTrackingNumber, setDeletingTrackingNumber] = useState<
+    string | null
+  >(null);
+
+  const { mutate: deleteOrderMutate } = useDeleteOrder();
 
   // ── Applied filter state (committed on "Filter" click) ──────────────────────
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -1032,68 +1050,137 @@ export function MyOrdersView({
       {
         id: "action",
         header: () => <div className="text-center min-w-[80px]">Action</div>,
-        cell: ({ row }) => (
-          <TooltipProvider delayDuration={100}>
-            <div className="flex gap-0.5 items-center justify-center">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingTrackingNumber(row.original.tracking_number);
-                    }}
-                    variant="default"
-                    size="icon-xs"
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    size="icon-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setViewTrackingNumber(row.original.tracking_number);
-                    }}
-                  >
-                    <Eye className="w-3 h-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>View Details</TooltipContent>
-              </Tooltip>
-
-              <Popover>
+        cell: ({ row }) => {
+          const isOrderPlaced = row.original.status === "ORDER_PLACED";
+          return (
+            <TooltipProvider delayDuration={100}>
+              <div className="flex gap-0.5 items-center justify-center">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon-xs"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MessageSquare className="w-3 h-3" />
-                      </Button>
-                    </PopoverTrigger>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTrackingNumber(row.original.tracking_number);
+                      }}
+                      variant="default"
+                      size="icon-xs"
+                    >
+                      <Edit className="w-3 h-3" />
+                    </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Comment</TooltipContent>
+                  <TooltipContent>Edit</TooltipContent>
                 </Tooltip>
-                <PopoverContent
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-80"
-                >
-                  <CommentPopover
-                    trackingNumber={row.original.tracking_number}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </TooltipProvider>
-        ),
+
+                {isOrderPlaced && (
+                  <AlertDialog>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              onClick={(e) => e.stopPropagation()}
+                              variant="destructive"
+                              size="icon-xs"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete</TooltipContent>
+                    </Tooltip>
+                    <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete order{" "}
+                          <span className="font-medium text-gray-700">
+                            {row.original.tracking_number}
+                          </span>. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel
+                          disabled={
+                            deletingTrackingNumber ===
+                            row.original.tracking_number
+                          }
+                        >
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={
+                            deletingTrackingNumber ===
+                            row.original.tracking_number
+                          }
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDeletingTrackingNumber(
+                              row.original.tracking_number,
+                            );
+                            deleteOrderMutate(row.original.tracking_number, {
+                              onSuccess: () =>
+                                setDeletingTrackingNumber(null),
+                              onError: () =>
+                                setDeletingTrackingNumber(null),
+                            });
+                          }}
+                        >
+                          {deletingTrackingNumber ===
+                            row.original.tracking_number && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="icon-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewTrackingNumber(row.original.tracking_number);
+                      }}
+                    >
+                      <Eye className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>View Details</TooltipContent>
+                </Tooltip>
+
+                <Popover>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon-xs"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                        </Button>
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Comment</TooltipContent>
+                  </Tooltip>
+                  <PopoverContent
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-80"
+                  >
+                    <CommentPopover
+                      trackingNumber={row.original.tracking_number}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </TooltipProvider>
+          );
+        },
       },
     ],
     [],
