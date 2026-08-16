@@ -18,6 +18,9 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Custom start date variable (can be updated or removed later)
+const CUSTOM_START_DATE = "2026-04-14";
+
 export default function SalesTable({
   endpoint = "/api/sales/orders/",
 }: {
@@ -199,6 +202,8 @@ export default function SalesTable({
 
         if (dateRange?.from) {
           url += `&start_date=${formatDate(dateRange.from)}`;
+        } else if (CUSTOM_START_DATE) {
+          url += `&start_date=${CUSTOM_START_DATE}`;
         }
 
         if (dateRange?.to) {
@@ -606,6 +611,8 @@ export default function SalesTable({
           const month = String(from.getMonth() + 1).padStart(2, "0");
           const day = String(from.getDate()).padStart(2, "0");
           params.push(`date_from=${year}-${month}-${day}`);
+        } else if (CUSTOM_START_DATE) {
+          params.push(`date_from=${CUSTOM_START_DATE}`);
         }
         if (to) {
           const year = to.getFullYear();
@@ -726,6 +733,8 @@ export default function SalesTable({
         const month = String(from.getMonth() + 1).padStart(2, "0");
         const day = String(from.getDate()).padStart(2, "0");
         params.push(`start_date=${year}-${month}-${day}`);
+      } else if (CUSTOM_START_DATE) {
+        params.push(`start_date=${CUSTOM_START_DATE}`);
       }
       if (to) {
         const year = to.getFullYear();
