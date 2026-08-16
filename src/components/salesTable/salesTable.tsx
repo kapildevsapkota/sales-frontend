@@ -18,9 +18,6 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Custom start date variable (can be updated or removed later)
-const CUSTOM_START_DATE = "2026-04-14";
-
 export default function SalesTable({
   endpoint = "/api/sales/orders/",
 }: {
@@ -64,23 +61,23 @@ export default function SalesTable({
   // Persisted bulk order filter via query params
   const [isBulkOrderOnly, setIsBulkOrderOnly] = useState<boolean>(false);
   const [rawIsBulkOrderQuery, setRawIsBulkOrderQuery] = useState<string | null>(
-    null
+    null,
   );
   const [initializedFromQuery, setInitializedFromQuery] =
     useState<boolean>(false);
 
   // Export filters (advanced) state
   const [totalAmountMin, setTotalAmountMin] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [totalAmountMax, setTotalAmountMax] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [productsCountMin, setProductsCountMin] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [productsCountMax, setProductsCountMax] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [moreThan3Products, setMoreThan3Products] = useState<
     boolean | undefined
@@ -92,7 +89,7 @@ export default function SalesTable({
     number | undefined
   >(undefined);
   const [oilBottleOnly, setOilBottleOnly] = useState<boolean | undefined>(
-    undefined
+    undefined,
   );
 
   // Export filters (table-related)
@@ -103,7 +100,9 @@ export default function SalesTable({
   const [exportSalesperson, setExportSalesperson] = useState("all");
   const [exportLogistic, setExportLogistic] = useState("all");
 
-  const [salespersons, setSalespersons] = useState<{ id: number; first_name: string; last_name: string; }[]>([]);
+  const [salespersons, setSalespersons] = useState<
+    { id: number; first_name: string; last_name: string }[]
+  >([]);
 
   // Fetch salespersons data on component mount
   useEffect(() => {
@@ -116,7 +115,7 @@ export default function SalesTable({
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         setSalespersons(response.data);
       } catch (error) {
@@ -127,22 +126,33 @@ export default function SalesTable({
     fetchSalespersons();
   }, []);
 
-  const handleOpenExportModal = useCallback((open: boolean) => {
-    if (open) {
-      setExportSearchInput(searchInput);
-      setExportPaymentMethod(paymentMethod);
-      setExportOrderStatus(orderStatus);
-      setExportDeliveryType(deliveryType);
-      setExportSalesperson(salesperson);
-      setExportLogistic(logistic);
-      if (dateRange?.from || dateRange?.to) {
-        setFranchiseExportDateRange([dateRange.from, dateRange.to]);
-      } else {
-        setFranchiseExportDateRange([undefined, undefined]);
+  const handleOpenExportModal = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setExportSearchInput(searchInput);
+        setExportPaymentMethod(paymentMethod);
+        setExportOrderStatus(orderStatus);
+        setExportDeliveryType(deliveryType);
+        setExportSalesperson(salesperson);
+        setExportLogistic(logistic);
+        if (dateRange?.from || dateRange?.to) {
+          setFranchiseExportDateRange([dateRange.from, dateRange.to]);
+        } else {
+          setFranchiseExportDateRange([undefined, undefined]);
+        }
       }
-    }
-    setShowExportModal(open);
-  }, [searchInput, paymentMethod, orderStatus, deliveryType, salesperson, logistic, dateRange]);
+      setShowExportModal(open);
+    },
+    [
+      searchInput,
+      paymentMethod,
+      orderStatus,
+      deliveryType,
+      salesperson,
+      logistic,
+      dateRange,
+    ],
+  );
 
   // Function to show error messages using toast
   const showError = useCallback((message: string) => {
@@ -202,8 +212,6 @@ export default function SalesTable({
 
         if (dateRange?.from) {
           url += `&start_date=${formatDate(dateRange.from)}`;
-        } else if (CUSTOM_START_DATE) {
-          url += `&start_date=${CUSTOM_START_DATE}`;
         }
 
         if (dateRange?.to) {
@@ -248,7 +256,7 @@ export default function SalesTable({
       rawIsBulkOrderQuery,
       user,
       salesperson,
-    ]
+    ],
   );
 
   // Initialize from URL query parameters (bulk orders + date)
@@ -304,13 +312,13 @@ export default function SalesTable({
         ];
 
         return searchableFields.some((field) =>
-          field?.toLowerCase().includes(searchTerm.toLowerCase())
+          field?.toLowerCase().includes(searchTerm.toLowerCase()),
         );
       });
 
       setDisplayData(filtered);
     },
-    [sales]
+    [sales],
   );
 
   const handleSearchInputChange = useCallback(
@@ -333,7 +341,7 @@ export default function SalesTable({
         }
       }, 300);
     },
-    [fetchSales, handleGlobalSearch]
+    [fetchSales, handleGlobalSearch],
   );
 
   // Update the sorting effect
@@ -357,7 +365,7 @@ export default function SalesTable({
           ];
 
           return searchableFields.some((field) =>
-            field?.toLowerCase().includes(searchInput.toLowerCase())
+            field?.toLowerCase().includes(searchInput.toLowerCase()),
           );
         });
       }
@@ -370,7 +378,7 @@ export default function SalesTable({
         searchInput.length < 3
       ) {
         dataToSort = dataToSort.filter(
-          (sale) => sale.payment_method === paymentMethod
+          (sale) => sale.payment_method === paymentMethod,
         );
       }
 
@@ -381,7 +389,7 @@ export default function SalesTable({
         searchInput.length < 3
       ) {
         dataToSort = dataToSort.filter(
-          (sale) => sale.order_status === orderStatus
+          (sale) => sale.order_status === orderStatus,
         );
       }
 
@@ -392,7 +400,7 @@ export default function SalesTable({
         searchInput.length < 3
       ) {
         dataToSort = dataToSort.filter(
-          (sale) => sale.delivery_type === deliveryType
+          (sale) => sale.delivery_type === deliveryType,
         );
       }
 
@@ -403,7 +411,7 @@ export default function SalesTable({
         searchInput.length < 3
       ) {
         dataToSort = dataToSort.filter(
-          (sale) => sale.sales_person.id.toString() === salesperson
+          (sale) => sale.sales_person.id.toString() === salesperson,
         );
       }
 
@@ -444,8 +452,8 @@ export default function SalesTable({
             prevData.map((sale) =>
               sale.id.toString() === saleId
                 ? { ...sale, order_status: newStatus }
-                : sale
-            )
+                : sale,
+            ),
           );
           setSales((prevSales) => {
             if (!prevSales) return prevSales;
@@ -454,7 +462,7 @@ export default function SalesTable({
               results: prevSales.results.map((sale) =>
                 sale.id.toString() === saleId
                   ? { ...sale, order_status: newStatus }
-                  : sale
+                  : sale,
               ),
             };
           });
@@ -485,14 +493,14 @@ export default function SalesTable({
             prevData.map((sale) =>
               sale.id.toString() === saleId
                 ? {
-                  ...sale,
-                  logistics: updatedLogistics,
-                  ...(updatedOrderStatus && {
-                    order_status: updatedOrderStatus,
-                  }),
-                }
-                : sale
-            )
+                    ...sale,
+                    logistics: updatedLogistics,
+                    ...(updatedOrderStatus && {
+                      order_status: updatedOrderStatus,
+                    }),
+                  }
+                : sale,
+            ),
           );
           setSales((prevSales) => {
             if (!prevSales) return prevSales;
@@ -501,13 +509,13 @@ export default function SalesTable({
               results: prevSales.results.map((sale) =>
                 sale.id.toString() === saleId
                   ? {
-                    ...sale,
-                    logistics: updatedLogistics,
-                    ...(updatedOrderStatus && {
-                      order_status: updatedOrderStatus,
-                    }),
-                  }
-                  : sale
+                      ...sale,
+                      logistics: updatedLogistics,
+                      ...(updatedOrderStatus && {
+                        order_status: updatedOrderStatus,
+                      }),
+                    }
+                  : sale,
               ),
             };
           });
@@ -528,7 +536,9 @@ export default function SalesTable({
                 "Failed to update logistics";
 
           if (typeof errorMessage === "string") {
-            const detailMatch = errorMessage.match(/['"]detail['"]\s*:\s*['"]([^'"]+)['"]/);
+            const detailMatch = errorMessage.match(
+              /['"]detail['"]\s*:\s*['"]([^'"]+)['"]/,
+            );
             if (detailMatch && detailMatch[1]) {
               errorMessage = detailMatch[1];
             }
@@ -552,7 +562,9 @@ export default function SalesTable({
             "Failed to update logistics";
 
       if (typeof errorMessage === "string") {
-        const detailMatch = errorMessage.match(/['"]detail['"]\s*:\s*['"]([^'"]+)['"]/);
+        const detailMatch = errorMessage.match(
+          /['"]detail['"]\s*:\s*['"]([^'"]+)['"]/,
+        );
         if (detailMatch && detailMatch[1]) {
           errorMessage = detailMatch[1];
         }
@@ -565,18 +577,18 @@ export default function SalesTable({
   // Handle location update for a sale
   const handleLocationUpdate = (
     saleId: number,
-    location: { id: number; name: string }
+    location: { id: number; name: string },
   ) => {
     setDisplayData((prevData) =>
       prevData.map((sale) =>
         sale.id === saleId
           ? {
-            ...sale,
-            location_id: location.id,
-            location_name: location.name,
-          }
-          : sale
-      )
+              ...sale,
+              location_id: location.id,
+              location_name: location.name,
+            }
+          : sale,
+      ),
     );
     setSales((prevSales) => {
       if (!prevSales) return prevSales;
@@ -585,11 +597,11 @@ export default function SalesTable({
         results: prevSales.results.map((sale) =>
           sale.id === saleId
             ? {
-              ...sale,
-              location_id: location.id,
-              location_name: location.name,
-            }
-            : sale
+                ...sale,
+                location_id: location.id,
+                location_name: location.name,
+              }
+            : sale,
         ),
       };
     });
@@ -611,8 +623,6 @@ export default function SalesTable({
           const month = String(from.getMonth() + 1).padStart(2, "0");
           const day = String(from.getDate()).padStart(2, "0");
           params.push(`date_from=${year}-${month}-${day}`);
-        } else if (CUSTOM_START_DATE) {
-          params.push(`date_from=${CUSTOM_START_DATE}`);
         }
         if (to) {
           const year = to.getFullYear();
@@ -648,13 +658,17 @@ export default function SalesTable({
           params.push(`search=${encodeURIComponent(exportSearchInput)}`);
         }
         if (exportPaymentMethod && exportPaymentMethod !== "all") {
-          params.push(`payment_method=${encodeURIComponent(exportPaymentMethod)}`);
+          params.push(
+            `payment_method=${encodeURIComponent(exportPaymentMethod)}`,
+          );
         }
         if (exportOrderStatus && exportOrderStatus !== "all") {
           params.push(`order_status=${encodeURIComponent(exportOrderStatus)}`);
         }
         if (exportDeliveryType && exportDeliveryType !== "all") {
-          params.push(`delivery_type=${encodeURIComponent(exportDeliveryType)}`);
+          params.push(
+            `delivery_type=${encodeURIComponent(exportDeliveryType)}`,
+          );
         }
         if (exportSalesperson && exportSalesperson !== "all") {
           params.push(`sales_person=${encodeURIComponent(exportSalesperson)}`);
@@ -715,7 +729,9 @@ export default function SalesTable({
         params.push(`search=${encodeURIComponent(exportSearchInput)}`);
       }
       if (exportPaymentMethod && exportPaymentMethod !== "all") {
-        params.push(`payment_method=${encodeURIComponent(exportPaymentMethod)}`);
+        params.push(
+          `payment_method=${encodeURIComponent(exportPaymentMethod)}`,
+        );
       }
       if (exportOrderStatus && exportOrderStatus !== "all") {
         params.push(`order_status=${encodeURIComponent(exportOrderStatus)}`);
@@ -733,8 +749,6 @@ export default function SalesTable({
         const month = String(from.getMonth() + 1).padStart(2, "0");
         const day = String(from.getDate()).padStart(2, "0");
         params.push(`start_date=${year}-${month}-${day}`);
-      } else if (CUSTOM_START_DATE) {
-        params.push(`start_date=${CUSTOM_START_DATE}`);
       }
       if (to) {
         const year = to.getFullYear();
@@ -756,7 +770,11 @@ export default function SalesTable({
       const link = document.createElement("a");
       link.href = urlObject;
       let filename = "sales_export.csv";
-      if (user?.role === "Packaging" && exportLogistic && exportLogistic !== "all") {
+      if (
+        user?.role === "Packaging" &&
+        exportLogistic &&
+        exportLogistic !== "all"
+      ) {
         filename = `sales_export_logistic_${exportLogistic}.csv`;
       }
       link.setAttribute("download", filename);
@@ -912,8 +930,6 @@ export default function SalesTable({
           />
         </div>
       )}
-
-
     </div>
   );
 }
