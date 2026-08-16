@@ -495,21 +495,23 @@ export function TableHeader({
           <button
             type="button"
             onClick={() => setBsPickerOpen((o) => !o)}
-            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs cursor-pointer transition-colors whitespace-nowrap border-gray-300 bg-white text-gray-600 hover:bg-gray-50 `}
+            className="flex items-center gap-2 h-8 px-3 rounded-md border border-gray-300 bg-white text-xs cursor-pointer hover:bg-gray-50 transition-colors whitespace-nowrap text-gray-700 font-normal min-w-[140px] justify-between"
           >
-            <Calendar className="h-3.5 w-3.5 shrink-0" />
-            <span>
-              {startDateBs && endDateBs
-                ? `${startDateBs} → ${endDateBs}`
-                : startDateBs
-                  ? `${startDateBs} →`
-                  : endDateBs
-                    ? `→ ${endDateBs}`
-                    : "BS Date Range"}
-            </span>
-            {(startDateBs || endDateBs) && (
+            <div className="flex items-center gap-1.5 overflow-hidden">
+              <Calendar className="h-3.5 w-3.5 shrink-0 text-gray-500" />
+              <span className="truncate">
+                {startDateBs && endDateBs
+                  ? `${startDateBs} - ${endDateBs}`
+                  : startDateBs
+                    ? `${startDateBs} - ...`
+                    : endDateBs
+                      ? `... - ${endDateBs}`
+                      : "Select BS range"}
+              </span>
+            </div>
+            {startDateBs || endDateBs ? (
               <X
-                className="h-3 w-3 shrink-0 ml-0.5 opacity-70 hover:opacity-100 text-blue-700"
+                className="h-3.5 w-3.5 shrink-0 text-gray-400 hover:text-gray-600"
                 onClick={(e) => {
                   e.stopPropagation();
                   setStartDateBs("");
@@ -519,39 +521,43 @@ export function TableHeader({
                   setDateRange(undefined);
                 }}
               />
-            )}
-            {!(startDateBs || endDateBs) && (
+            ) : (
               <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
             )}
           </button>
 
           {bsPickerOpen && (
-            <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-[520px] p-4">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-semibold text-gray-800">
-                    BS Date Range
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setBsPickerOpen(false)}
-                  className="h-6 w-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+            <div className="absolute right-0 sm:left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-md shadow-md w-full max-w-[320px] sm:w-[320px] p-2.5">
+              <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-gray-100">
+                <span className="text-[11px] font-medium text-gray-600">
+                  BS Date Range
+                </span>
+                {(startDateBs || endDateBs) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStartDateBs("");
+                      setStartDateAd("");
+                      setEndDateBs("");
+                      setEndDateAd("");
+                      setDateRange(undefined);
+                    }}
+                    className="text-[11px] text-red-500 hover:text-red-700 font-medium cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <div>
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
+                  <p className="text-[11px] font-medium text-gray-500 mb-1">
                     Start Date (BS)
                   </p>
                   <NepaliCalendar
                     language="ne"
                     dateFormat="YYYY-MM-DD"
-                    className="w-full px-3 h-9 rounded-lg border border-gray-300 bg-white text-xs outline-none cursor-pointer text-gray-800 focus:border-blue-500"
+                    className="w-full px-2.5 h-8 rounded border border-gray-300 bg-white text-xs outline-none cursor-pointer text-gray-800 focus:border-gray-900"
                     placeholder="YYYY-MM-DD"
                     value={startDateBs}
                     onChange={({ bsDate, adDate }) => {
@@ -572,13 +578,13 @@ export function TableHeader({
                   />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
+                  <p className="text-[11px] font-medium text-gray-500 mb-1">
                     End Date (BS)
                   </p>
                   <NepaliCalendar
                     language="ne"
                     dateFormat="YYYY-MM-DD"
-                    className="w-full px-3 h-9 rounded-lg border border-gray-300 bg-white text-xs outline-none cursor-pointer text-gray-800 focus:border-blue-500"
+                    className="w-full px-2.5 h-8 rounded border border-gray-300 bg-white text-xs outline-none cursor-pointer text-gray-800 focus:border-gray-900"
                     placeholder="YYYY-MM-DD"
                     value={endDateBs}
                     onChange={({ bsDate, adDate }) => {
@@ -597,29 +603,6 @@ export function TableHeader({
                   />
                 </div>
               </div>
-
-              {(startDateBs || endDateBs) && (
-                <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
-                  <span className="text-xs text-gray-600 font-medium">
-                    {startDateBs && endDateBs
-                      ? `${startDateBs} → ${endDateBs}`
-                      : startDateBs || endDateBs}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStartDateBs("");
-                      setStartDateAd("");
-                      setEndDateBs("");
-                      setEndDateAd("");
-                      setDateRange(undefined);
-                    }}
-                    className="text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>
