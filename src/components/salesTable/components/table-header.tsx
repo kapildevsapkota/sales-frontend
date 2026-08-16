@@ -1,7 +1,16 @@
 "use client";
-import { Search, ChevronDown, Eye, EyeOff, PlusIcon, Database } from "lucide-react";
+import {
+  Search,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  PlusIcon,
+  Database,
+  Calendar,
+  X,
+} from "lucide-react";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { SaleItem } from "@/types/sale";
 
 import { Button } from "@/components/ui/button";
@@ -40,6 +49,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+
+import NepaliCalendar from "@sbmdkl/nepali-datepicker-reactjs";
+import "@sbmdkl/nepali-datepicker-reactjs/dist/index.css";
+import { adToBs } from "@sbmdkl/nepali-date-converter";
 
 interface SalesPerson {
   id: number;
@@ -127,13 +140,32 @@ export function TableHeader({
   const router = useRouter();
   const pathname = usePathname();
 
+  // Nepali BS Date Range picker state
+  const [startDateBs, setStartDateBs] = useState("");
+  const [startDateAd, setStartDateAd] = useState("");
+  const [endDateBs, setEndDateBs] = useState("");
+  const [endDateAd, setEndDateAd] = useState("");
+  const [bsPickerOpen, setBsPickerOpen] = useState(false);
+  const bsPickerRef = useRef<HTMLDivElement>(null);
+
+  // Close BS picker on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        bsPickerRef.current &&
+        !bsPickerRef.current.contains(e.target as Node)
+      ) {
+        setBsPickerOpen(false);
+      }
+    };
+    if (bsPickerOpen) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [bsPickerOpen]);
+
   const handleOrderCreated = async () => {
     await fetchSales(currentPage);
     setShowCreateOrderModal(false);
   };
-
-  // Removed automatic refetching here to avoid duplicate API calls.
-  // Parent component observes these states and triggers fetch accordingly.
 
   const handleDeliveryTypeChange = (value: string) => {
     setDeliveryType(value);
@@ -153,6 +185,10 @@ export function TableHeader({
     if (user?.role === "Packaging") {
       setLogistic("all");
     }
+    setStartDateBs("");
+    setStartDateAd("");
+    setEndDateBs("");
+    setEndDateAd("");
     setDateRange(undefined);
   };
 
@@ -194,7 +230,7 @@ export function TableHeader({
       link.href = urlObject;
       link.setAttribute(
         "download",
-        `packaging_summary_${year}-${month}-${day}.csv`
+        `packaging_summary_${year}-${month}-${day}.csv`,
       );
       document.body.appendChild(link);
       link.click();
@@ -402,7 +438,9 @@ export function TableHeader({
               <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
               <SelectItem value="Verified">Verified</SelectItem>
               <SelectItem value="Returned By Dash">Returned By Dash</SelectItem>
-              <SelectItem value="Returned By Daraz">Returned By Daraz</SelectItem>
+              <SelectItem value="Returned By Daraz">
+                Returned By Daraz
+              </SelectItem>
               <SelectItem value="Return Pending">Return Pending</SelectItem>
             </SelectContent>
           </Select>
@@ -452,6 +490,186 @@ export function TableHeader({
             </Select>
           </div>
         )}
+        {/* BS Date Range picker — before the AD date picker */}
+        <div className="relative min-w-0" ref={bsPickerRef}>
+          <button
+            type="button"
+            onClick={() => setBsPickerOpen((o) => !o)}
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs cursor-pointer transition-colors whitespace-nowrap ${
+              startDateBs || endDateBs
+                ? "border-gray-900 bg-gray-900 text-white"
+                : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {startDateBs && endDateBs
+                ? `${startDateBs} → ${endDateBs}`
+                : startDateBs
+                  ? `${startDateBs} →`
+                  : endDateBs
+                    ? `→ ${endDateBs}`
+                    : "BS Date Range"}
+            </span>
+            {(startDateBs || endDateBs) && (
+              <X
+                className="h-3 w-3 shrink-0 ml-0.5 opacity-70 hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setStartDateBs("");
+                  setStartDateAd("");
+                  setEndDateBs("");
+                  setEndDateAd("");
+                  setDateRange(undefined);
+                }}
+              />
+            )}
+            {!(startDateBs || endDateBs) && (
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+            )}
+          </button>
+
+          {bsPickerOpen && (
+            <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-[580px]">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-semibold text-gray-800">
+                    BS Date Range
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBsPickerOpen(false)}
+                  className="h-6 w-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Date pickers side by side */}
+              <div className="grid grid-cols-2 divide-x divide-gray-100">
+                <div className="p-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                    Start Date (BS)
+                  </p>
+                  <NepaliCalendar
+                    language="ne"
+                    dateFormat="YYYY-MM-DD"
+                    className="w-full px-3 h-9 rounded-lg border border-gray-200 bg-white text-sm outline-none cursor-pointer text-gray-800"
+                    placeholder="YYYY-MM-DD"
+                    value={startDateBs}
+                    onChange={({ bsDate, adDate }) => {
+                      setStartDateBs(bsDate);
+                      setStartDateAd(adDate);
+                      if (adDate) {
+                        const from = new Date(adDate);
+                        const to = endDateAd ? new Date(endDateAd) : from;
+                        setDateRange({ from, to });
+                      }
+                    }}
+                    defaultDate={
+                      startDateBs && startDateAd
+                        ? adToBs(startDateAd)
+                        : undefined
+                    }
+                    hideDefaultValue={!startDateBs}
+                  />
+                  {startDateBs && (
+                    <p className="mt-2 text-xs text-gray-400 font-mono">
+                      {startDateBs}
+                    </p>
+                  )}
+                </div>
+                <div className="p-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                    End Date (BS)
+                  </p>
+                  <NepaliCalendar
+                    language="ne"
+                    dateFormat="YYYY-MM-DD"
+                    className="w-full px-3 h-9 rounded-lg border border-gray-200 bg-white text-sm outline-none cursor-pointer text-gray-800"
+                    placeholder="YYYY-MM-DD"
+                    value={endDateBs}
+                    onChange={({ bsDate, adDate }) => {
+                      setEndDateBs(bsDate);
+                      setEndDateAd(adDate);
+                      if (adDate) {
+                        const to = new Date(adDate);
+                        const from = startDateAd ? new Date(startDateAd) : to;
+                        setDateRange({ from, to });
+                      }
+                    }}
+                    defaultDate={
+                      endDateBs && endDateAd ? adToBs(endDateAd) : undefined
+                    }
+                    hideDefaultValue={!endDateBs}
+                  />
+                  {endDateBs && (
+                    <p className="mt-2 text-xs text-gray-400 font-mono">
+                      {endDateBs}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/60 rounded-b-xl flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                  {startDateBs && endDateBs ? (
+                    <>
+                      <span className="font-medium text-gray-700">
+                        {startDateBs}
+                      </span>{" "}
+                      <span className="mx-1 text-gray-400">→</span>{" "}
+                      <span className="font-medium text-gray-700">
+                        {endDateBs}
+                      </span>
+                    </>
+                  ) : startDateBs ? (
+                    <>
+                      <span className="font-medium text-gray-700">
+                        {startDateBs}
+                      </span>{" "}
+                      <span className="mx-1 text-gray-400">
+                        → pick end date
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-gray-400">
+                      Select start and end date above
+                    </span>
+                  )}
+                </span>
+                <div className="flex items-center gap-2">
+                  {(startDateBs || endDateBs) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStartDateBs("");
+                        setStartDateAd("");
+                        setEndDateBs("");
+                        setEndDateAd("");
+                        setDateRange(undefined);
+                      }}
+                      className="text-xs text-red-500 hover:text-red-700 cursor-pointer font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setBsPickerOpen(false)}
+                    className="text-xs bg-gray-900 text-white px-3 py-1 rounded-lg hover:bg-gray-700 cursor-pointer font-medium transition-colors"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="min-w-0">
           <DateRangePicker
             className="w-full h-8 text-xs"
@@ -464,16 +682,18 @@ export function TableHeader({
           orderStatus !== "all" ||
           deliveryType !== "all" ||
           (user?.role === "Packaging" && logistic !== "all") ||
-          dateRange !== undefined) && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1 whitespace-nowrap bg-red-400 hover:bg-red-500 px-2 h-8 min-w-0"
-              onClick={handleClearFilters}
-            >
-              Clear Filters
-            </Button>
-          )}
+          dateRange !== undefined ||
+          startDateBs ||
+          endDateBs) && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 whitespace-nowrap bg-red-400 hover:bg-red-500 px-2 h-8 min-w-0"
+            onClick={handleClearFilters}
+          >
+            Clear Filters
+          </Button>
+        )}
       </div>
       {/* Export Summary Modal */}
       <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>
@@ -491,7 +711,7 @@ export function TableHeader({
               value={summaryDate ? summaryDate.toISOString().slice(0, 10) : ""}
               onChange={(e) =>
                 setSummaryDate(
-                  e.target.value ? new Date(e.target.value) : undefined
+                  e.target.value ? new Date(e.target.value) : undefined,
                 )
               }
             />

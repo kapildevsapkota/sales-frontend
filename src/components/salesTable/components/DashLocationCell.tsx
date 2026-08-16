@@ -13,7 +13,7 @@ interface DashLocationCellProps {
   sale: SaleItem;
   onLocationUpdate?: (
     saleId: number,
-    location: { id: number; name: string }
+    location: { id: number; name: string },
   ) => void;
   fallbackLogistics?: string;
 }
@@ -25,7 +25,7 @@ export function DashLocationCell({
 }: DashLocationCellProps) {
   const [searchQuery, setSearchQuery] = useState(sale.location_name || "");
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(
-    sale.location_id ?? null
+    sale.location_id ?? null,
   );
   const [dashLocations, setDashLocations] = useState<DashLocation[]>([]);
   const [darazLocations, setDarazLocations] = useState<DarazLocation[]>([]);
@@ -79,9 +79,7 @@ export function DashLocationCell({
   }, [logisticsSource]);
 
   const logisticsLabel =
-    logisticsQueryParam === "PicknDrop"
-      ? "Pick & Drop"
-      : logisticsQueryParam;
+    logisticsQueryParam === "PicknDrop" ? "Pick & Drop" : logisticsQueryParam;
   const isSearchEnabled = Boolean(logisticsQueryParam);
   const showSendButton = Boolean(logisticsQueryParam);
   const hasLocationResults =
@@ -109,15 +107,15 @@ export function DashLocationCell({
       try {
         if (logisticsQueryParam === "Daraz") {
           const response = await api.get<DarazLocation[]>(
-            `/api/daraz/locations/?search=${encodeURIComponent(query)}`
+            `/api/daraz/locations/?search=${encodeURIComponent(query)}`,
           );
           setDarazLocations(response.data);
           setDashLocations([]);
         } else {
           const response = await api.get<DashLocation[]>(
             `/api/sales/locations?search=${encodeURIComponent(
-              query
-            )}&logistics=${encodeURIComponent(logisticsQueryParam)}`
+              query,
+            )}&logistics=${encodeURIComponent(logisticsQueryParam)}`,
           );
           setDashLocations(response.data);
           setDarazLocations([]);
@@ -130,7 +128,7 @@ export function DashLocationCell({
         setIsLoading(false);
       }
     },
-    [logisticsQueryParam]
+    [logisticsQueryParam],
   );
 
   useEffect(() => {
@@ -158,7 +156,10 @@ export function DashLocationCell({
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, fetchLocations, isSearchEnabled]);
 
-  const handleLocationSelect = async (locationId: number, displayName: string) => {
+  const handleLocationSelect = async (
+    locationId: number,
+    displayName: string,
+  ) => {
     setIsUpdatingLocation(true);
     try {
       const locationPayloadKey =
@@ -173,7 +174,7 @@ export function DashLocationCell({
         onLocationUpdate(sale.id, { id: locationId, name: displayName });
       }
       toast.success(
-        `Location for order #${sale.id} updated to ${displayName}.`
+        `Location for order #${sale.id} updated to ${displayName}.`,
       );
     } catch (error) {
       console.error("Error updating location:", error);
@@ -217,7 +218,7 @@ export function DashLocationCell({
         await api.post(endpoint);
       }
       toast.success(
-        `Order #${sale.id} sent to ${logisticsLabel ?? "selected logistics"}.`
+        `Order #${sale.id} sent to ${logisticsLabel ?? "selected logistics"}.`,
       );
     } catch (error) {
       console.error("Error sending order to logistics:", error);
@@ -259,7 +260,7 @@ export function DashLocationCell({
     <div className="flex items-center gap-2">
       <div className="relative flex-grow" ref={containerRef}>
         <SearchIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           size={16}
         />
         <Input
@@ -318,9 +319,7 @@ export function DashLocationCell({
                   <div
                     key={location.id}
                     className={`p-3 cursor-pointer hover:bg-gray-50 border-b ${
-                      isUpdatingLocation
-                        ? "opacity-50 pointer-events-none"
-                        : ""
+                      isUpdatingLocation ? "opacity-50 pointer-events-none" : ""
                     }`}
                     onClick={() =>
                       !isUpdatingLocation && handleDarazLocationSelect(location)
