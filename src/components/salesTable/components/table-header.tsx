@@ -495,11 +495,7 @@ export function TableHeader({
           <button
             type="button"
             onClick={() => setBsPickerOpen((o) => !o)}
-            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs cursor-pointer transition-colors whitespace-nowrap ${
-              startDateBs || endDateBs
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
-            }`}
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs cursor-pointer transition-colors whitespace-nowrap border-gray-300 bg-white text-gray-600 hover:bg-gray-50 `}
           >
             <Calendar className="h-3.5 w-3.5 shrink-0" />
             <span>
@@ -513,7 +509,7 @@ export function TableHeader({
             </span>
             {(startDateBs || endDateBs) && (
               <X
-                className="h-3 w-3 shrink-0 ml-0.5 opacity-70 hover:opacity-100"
+                className="h-3 w-3 shrink-0 ml-0.5 opacity-70 hover:opacity-100 text-blue-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   setStartDateBs("");
@@ -530,9 +526,8 @@ export function TableHeader({
           </button>
 
           {bsPickerOpen && (
-            <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-[580px]">
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-[520px] p-4">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
                   <span className="text-sm font-semibold text-gray-800">
@@ -548,16 +543,15 @@ export function TableHeader({
                 </button>
               </div>
 
-              {/* Date pickers side by side */}
-              <div className="grid grid-cols-2 divide-x divide-gray-100">
-                <div className="p-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
                     Start Date (BS)
                   </p>
                   <NepaliCalendar
                     language="ne"
                     dateFormat="YYYY-MM-DD"
-                    className="w-full px-3 h-9 rounded-lg border border-gray-200 bg-white text-sm outline-none cursor-pointer text-gray-800"
+                    className="w-full px-3 h-9 rounded-lg border border-gray-300 bg-white text-xs outline-none cursor-pointer text-gray-800 focus:border-blue-500"
                     placeholder="YYYY-MM-DD"
                     value={startDateBs}
                     onChange={({ bsDate, adDate }) => {
@@ -576,20 +570,15 @@ export function TableHeader({
                     }
                     hideDefaultValue={!startDateBs}
                   />
-                  {startDateBs && (
-                    <p className="mt-2 text-xs text-gray-400 font-mono">
-                      {startDateBs}
-                    </p>
-                  )}
                 </div>
-                <div className="p-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
                     End Date (BS)
                   </p>
                   <NepaliCalendar
                     language="ne"
                     dateFormat="YYYY-MM-DD"
-                    className="w-full px-3 h-9 rounded-lg border border-gray-200 bg-white text-sm outline-none cursor-pointer text-gray-800"
+                    className="w-full px-3 h-9 rounded-lg border border-gray-300 bg-white text-xs outline-none cursor-pointer text-gray-800 focus:border-blue-500"
                     placeholder="YYYY-MM-DD"
                     value={endDateBs}
                     onChange={({ bsDate, adDate }) => {
@@ -606,67 +595,31 @@ export function TableHeader({
                     }
                     hideDefaultValue={!endDateBs}
                   />
-                  {endDateBs && (
-                    <p className="mt-2 text-xs text-gray-400 font-mono">
-                      {endDateBs}
-                    </p>
-                  )}
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/60 rounded-b-xl flex items-center justify-between">
-                <span className="text-xs text-gray-500">
-                  {startDateBs && endDateBs ? (
-                    <>
-                      <span className="font-medium text-gray-700">
-                        {startDateBs}
-                      </span>{" "}
-                      <span className="mx-1 text-gray-400">→</span>{" "}
-                      <span className="font-medium text-gray-700">
-                        {endDateBs}
-                      </span>
-                    </>
-                  ) : startDateBs ? (
-                    <>
-                      <span className="font-medium text-gray-700">
-                        {startDateBs}
-                      </span>{" "}
-                      <span className="mx-1 text-gray-400">
-                        → pick end date
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-gray-400">
-                      Select start and end date above
-                    </span>
-                  )}
-                </span>
-                <div className="flex items-center gap-2">
-                  {(startDateBs || endDateBs) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStartDateBs("");
-                        setStartDateAd("");
-                        setEndDateBs("");
-                        setEndDateAd("");
-                        setDateRange(undefined);
-                      }}
-                      className="text-xs text-red-500 hover:text-red-700 cursor-pointer font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                    >
-                      Clear
-                    </button>
-                  )}
+              {(startDateBs || endDateBs) && (
+                <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-xs text-gray-600 font-medium">
+                    {startDateBs && endDateBs
+                      ? `${startDateBs} → ${endDateBs}`
+                      : startDateBs || endDateBs}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setBsPickerOpen(false)}
-                    className="text-xs bg-gray-900 text-white px-3 py-1 rounded-lg hover:bg-gray-700 cursor-pointer font-medium transition-colors"
+                    onClick={() => {
+                      setStartDateBs("");
+                      setStartDateAd("");
+                      setEndDateBs("");
+                      setEndDateAd("");
+                      setDateRange(undefined);
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer px-2 py-1 rounded hover:bg-red-50 transition-colors"
                   >
-                    Done
+                    Clear
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>
