@@ -24,7 +24,7 @@ export const DashboardContent: React.FC<{ id?: string }> = ({ id }) => {
       </div>
 
       <div className="flex flex-col gap-4">
-        <DashboardBarchart id={id} />
+        {/* <DashboardBarchart id={id} /> */}
         <BulkOrders />
       </div>
 
