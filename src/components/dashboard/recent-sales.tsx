@@ -28,15 +28,13 @@ interface Salesperson {
 
 // Define the type for the API response
 interface SalesResponse {
-  filter_type: "all" | "daily" | "weekly" | "monthly";
+  filter_type: "daily" | "weekly";
   results: Salesperson[];
 }
 
 export function RecentSales({ id }: { id?: string }) {
   const [salespersons, setSalespersons] = useState<Salesperson[]>([]);
-  const [filter, setFilter] = useState<"all" | "daily" | "weekly" | "monthly">(
-    "daily"
-  );
+  const [filter, setFilter] = useState<"daily" | "weekly">("daily");
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
@@ -105,14 +103,15 @@ export function RecentSales({ id }: { id?: string }) {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row gap-2 mb-4 w-full">
         <div>
-          {(["all", "daily", "weekly", "monthly"] as const).map((f) => (
+          {(["daily", "weekly"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${filter === f
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted hover:bg-muted/80"
-                }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
+                filter === f
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted hover:bg-muted/80"
+              }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>

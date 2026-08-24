@@ -4,7 +4,7 @@ import { Timeframe } from "@/components/dashboard/types";
 import { useState } from "react";
 
 export function DashboardSalesOverview({ id }: { id?: string }) {
-  const [timeframe, setTimeframe] = useState<Timeframe>("daily");
+  const [timeframe, setTimeframe] = useState<Timeframe>("weekly");
 
   return (
     <div className="col-span-full lg:col-span-4 rounded-2xl p-5 bg-white shadow-sm flex flex-col min-w-0 overflow-x-auto">
@@ -13,9 +13,9 @@ export function DashboardSalesOverview({ id }: { id?: string }) {
           <div className="text-lg font-semibold text-gray-900">
             Sales Overview
           </div>
-          <div className="text-sm text-gray-500">Monthly sales performance</div>
+          <div className="text-sm text-gray-500">Weekly sales performance</div>
         </div>
-        <Tabs
+        {/* <Tabs
           defaultValue={timeframe}
           onValueChange={(value) => setTimeframe(value as Timeframe)}
           className="w-full sm:w-auto mt-4 sm:mt-0"
@@ -26,7 +26,7 @@ export function DashboardSalesOverview({ id }: { id?: string }) {
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
             <TabsTrigger value="yearly">Yearly</TabsTrigger>
           </TabsList>
-        </Tabs>
+        </Tabs> */}
       </div>
       <div className="overflow-x-auto w-full min-w-[320px]">
         <SalesChart timeframe={timeframe} id={id} />

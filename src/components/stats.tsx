@@ -29,7 +29,7 @@ export function Stats() {
             headers: {
               Authorization: `Bearer ${authToken}`,
             },
-          }
+          },
         );
         const data = await response.json();
         setStatsData(data);
@@ -90,20 +90,20 @@ export function Stats() {
       })}`,
       icon: <DollarSign className="h-5 w-5 text-emerald-500" />,
     },
-    {
-      label: "Lifetime Orders",
-      sublabel: "All time",
-      value: statsData.all_time_orders.toLocaleString("en-IN"),
-      icon: <CreditCard className="h-5 w-5 text-indigo-500" />,
-    },
-    {
-      label: "Lifetime Revenue",
-      sublabel: "All time",
-      value: `Rs. ${statsData.all_time_sales.toLocaleString("en-IN", {
-        maximumFractionDigits: 2,
-      })}`,
-      icon: <TrendingUp className="h-5 w-5 text-amber-500" />,
-    },
+    // {
+    //   label: "Lifetime Orders",
+    //   sublabel: "All time",
+    //   value: statsData.all_time_orders.toLocaleString("en-IN"),
+    //   icon: <CreditCard className="h-5 w-5 text-indigo-500" />,
+    // },
+    // {
+    //   label: "Lifetime Revenue",
+    //   sublabel: "All time",
+    //   value: `Rs. ${statsData.all_time_sales.toLocaleString("en-IN", {
+    //     maximumFractionDigits: 2,
+    //   })}`,
+    //   icon: <TrendingUp className="h-5 w-5 text-amber-500" />,
+    // },
   ];
 
   return (
@@ -117,7 +117,7 @@ export function Stats() {
             Last updated: {new Date().toLocaleTimeString()}
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2">
           {stats.map((stat) => (
             <Card
               key={stat.label}

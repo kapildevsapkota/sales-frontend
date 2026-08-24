@@ -29,10 +29,10 @@ export const DashboardContent: React.FC<{ id?: string }> = ({ id }) => {
       </div>
 
       {/* Top Products and Revenue by Category */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
+      {/* <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
         <DashboardTopProducts id={id} />
         <DashboardRevenueByCategory id={id} />
-      </div>
+      </div> */}
     </div>
   );
 };

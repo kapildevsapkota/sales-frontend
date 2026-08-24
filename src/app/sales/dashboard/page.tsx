@@ -76,12 +76,12 @@ export default function SalesDashboard() {
       </div>
       <div className="mt-10">
         <Stats />
-        <div className="mt-8">
+        {/* <div className="mt-8">
           <DashboardBarchart />
         </div>
         <div className="mt-8">
           <SalesProductTable />
-        </div>
+        </div> */}
       </div>
     </div>
   );
