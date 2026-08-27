@@ -28,7 +28,7 @@ export function DashboardBarchart({ id }: { id?: string }) {
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="weekly">Weekly</TabsTrigger>
               <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="yearly">Yearly</TabsTrigger>
+              {/* <TabsTrigger value="yearly">Yearly</TabsTrigger> */}
             </TabsList>
           </Tabs>
           {/* <DateRangePicker value={dateRange} onChange={handleDateRangeChange} /> */}
