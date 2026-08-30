@@ -26,6 +26,7 @@ export function DashboardBarchart({ id }: { id?: string }) {
             className="w-full sm:w-auto mt-4 sm:mt-0"
           >
             <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="daily">Daily</TabsTrigger>
               <TabsTrigger value="weekly">Weekly</TabsTrigger>
               <TabsTrigger value="monthly">Monthly</TabsTrigger>
               {/* <TabsTrigger value="yearly">Yearly</TabsTrigger> */}
