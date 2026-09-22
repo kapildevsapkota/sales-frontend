@@ -52,7 +52,22 @@ export const CustomerTreatmentForm: React.FC<Props> = ({ initialData, onSuccess,
   });
 
   const treatmentType = watch("treatment_type");
+  const selectedPackage = watch("package");
   const paymentMethod = watch("payment_method") || "cash";
+
+  const packagePrices: Record<PackageChoice, string> = {
+    one_month: "5000",
+    two_month: "8000",
+    three_month: "12000",
+  };
+
+  React.useEffect(() => {
+    if (!initialData && treatmentType === "package_member" && selectedPackage) {
+      if (packagePrices[selectedPackage]) {
+        setValue("total_amount", packagePrices[selectedPackage]);
+      }
+    }
+  }, [selectedPackage, treatmentType, initialData, setValue]);
 
   const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -173,7 +188,12 @@ export const CustomerTreatmentForm: React.FC<Props> = ({ initialData, onSuccess,
           </Label>
           <Select
             value={watch("package") || "one_month"}
-            onValueChange={(val: PackageChoice) => setValue("package", val)}
+            onValueChange={(val: PackageChoice) => {
+              setValue("package", val);
+              if (packagePrices[val]) {
+                setValue("total_amount", packagePrices[val]);
+              }
+            }}
           >
             <SelectTrigger className="w-full bg-white">
               <SelectValue placeholder="Select Package Duration" />
