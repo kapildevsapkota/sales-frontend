@@ -7,6 +7,13 @@ import {
   RecordPaymentPayload,
 } from "@/types/treatment";
 
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 export interface TreatmentFilterParams {
   search?: string;
   treatment_type?: string;
@@ -16,12 +23,14 @@ export interface TreatmentFilterParams {
   service_by?: string | number;
   start_date?: string;
   end_date?: string;
+  page?: number;
+  page_size?: number;
 }
 
 // Fetch customer treatment list with filters
 export const getCustomerTreatments = async (
   filters?: TreatmentFilterParams,
-): Promise<CustomerTreatment[]> => {
+): Promise<PaginatedResponse<CustomerTreatment>> => {
   const params: Record<string, any> = {};
   if (filters?.search) params.search = filters.search;
   if (filters?.treatment_type) params.treatment_type = filters.treatment_type;
@@ -31,11 +40,24 @@ export const getCustomerTreatments = async (
   if (filters?.service_by) params.service_by = filters.service_by;
   if (filters?.start_date) params.start_date = filters.start_date;
   if (filters?.end_date) params.end_date = filters.end_date;
+  if (filters?.page) params.page = filters.page;
+  if (filters?.page_size) params.page_size = filters.page_size;
 
-  const response = await api.get<CustomerTreatment[]>(
+  const response = await api.get<PaginatedResponse<CustomerTreatment> | CustomerTreatment[]>(
     "/api/treatment/customers/",
     { params },
   );
+
+  // Safely handle both paginated response object and unpaginated array
+  if (Array.isArray(response.data)) {
+    return {
+      count: response.data.length,
+      next: null,
+      previous: null,
+      results: response.data,
+    };
+  }
+
   return response.data;
 };
 

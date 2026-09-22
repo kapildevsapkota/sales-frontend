@@ -149,6 +149,11 @@ export function AppHeader() {
         href: "/admin/salesList",
       },
       {
+        label: "Treatments",
+        icon: NotepadText,
+        href: "/admin/treatments",
+      },
+      {
         label: "Inventory",
         icon: Home,
         href: "/admin/inventory",
@@ -168,18 +173,6 @@ export function AppHeader() {
         icon: Home,
         href: "/admin/ydm/dashboard",
       },
-      // {
-      //   label: "Sales Fest",
-      //   icon: Calendar,
-      //   href: "/admin/salesfest",
-      //   visible: (u) =>
-      //     !!u &&
-      //     (u.role === Role.SuperAdmin ||
-      //       u.role === Role.Distributor ||
-      //       u.role === Role.Franchise) &&
-      //     typeof u.phone_number === "string" &&
-      //     u.phone_number.replace(/\D/g, "") === "9841751148",
-      // },
       {
         label: "Fest Groups",
         icon: Users,
@@ -203,13 +196,6 @@ export function AppHeader() {
         icon: NotepadText,
         href: "/admin/reports",
       },
-      // {
-      //   label: "Lucky Draw",
-      //   icon: Calendar,
-      //   href: "/admin/lucky-draw",
-      //   // Use hasLuckyDraw from closure instead of the 2nd arg
-      //   visible: () => hasLuckyDraw === true,
-      // },
     ],
     [hasSalesFest, hasLuckyDraw],
   );
@@ -258,21 +244,21 @@ export function AppHeader() {
               />
             </div>
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex md:space-x-2 ml-6">
+            <nav className="hidden lg:flex lg:space-x-1 ml-4">
               {visibleItems.map((item) => (
-                <div key={item.label} className="relative px-1">
+                <div key={item.label} className="relative px-0.5">
                   {item.items ? (
                     <Collapsible className="group/collapsible">
                       <CollapsibleTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="flex h-10 items-center gap-1.5 rounded-md px-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          className="flex h-9 items-center gap-1 rounded-md px-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
-                          <item.icon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <item.icon className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                             {item.label}
                           </span>
-                          <ChevronDown className="ml-0.5 h-4 w-4 text-gray-500 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180 dark:text-gray-400" />
+                          <ChevronDown className="ml-0.5 h-3.5 w-3.5 text-gray-500 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180 dark:text-gray-400" />
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="absolute left-0 top-full z-10 mt-1 min-w-[180px] overflow-hidden rounded-md border bg-white shadow-lg dark:bg-gray-900 dark:border-gray-700">
@@ -282,7 +268,7 @@ export function AppHeader() {
                               key={subItem.href}
                               href={subItem.href}
                               className={cn(
-                                "flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors",
+                                "flex w-full items-center rounded-md px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors",
                                 pathname === subItem.href &&
                                   "bg-blue-50 font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
                               )}
@@ -296,7 +282,7 @@ export function AppHeader() {
                   ) : (
                     <Button
                       variant="ghost"
-                      className="flex h-10 items-center gap-1.5 rounded-md px-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="flex h-9 items-center gap-1 rounded-md px-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       asChild
                     >
                       <Link
@@ -304,19 +290,19 @@ export function AppHeader() {
                         className={cn(
                           "flex items-center",
                           pathname === item.href
-                            ? "font-medium text-blue-600 dark:text-blue-400"
+                            ? "font-semibold text-blue-600 dark:text-blue-400"
                             : "text-gray-700 dark:text-gray-300",
                         )}
                       >
                         <item.icon
                           className={cn(
-                            "h-4 w-4 mr-1.5",
+                            "h-3.5 w-3.5 mr-1",
                             pathname === item.href
                               ? "text-blue-500 dark:text-blue-400"
                               : "text-gray-500 dark:text-gray-400",
                           )}
                         />
-                        <span className="text-sm">{item.label}</span>
+                        <span className="text-xs tracking-tight">{item.label}</span>
                       </Link>
                     </Button>
                   )}

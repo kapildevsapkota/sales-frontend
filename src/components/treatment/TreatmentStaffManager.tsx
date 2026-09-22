@@ -46,7 +46,11 @@ import {
   AlertCircle,
   Filter,
   RotateCcw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import DateRangePicker from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -54,11 +58,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 interface Props {
   treatmentType?: string;
   title?: string;
+  readOnly?: boolean;
 }
 
 export default function TreatmentStaffManager({
   treatmentType,
   title = "Customer Treatments",
+  readOnly = false,
 }: Props) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -70,14 +76,14 @@ export default function TreatmentStaffManager({
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Filters state based on django CustomerTreatmentFilter
+  const [page, setPage] = useState<number>(1);
   const [selectedTreatmentType, setSelectedTreatmentType] = useState<string>(
     treatmentType || "all",
   );
   const [selectedPackage, setSelectedPackage] = useState<string>("all");
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("all");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const activeType =
     treatmentType ||
@@ -88,18 +94,24 @@ export default function TreatmentStaffManager({
     package: selectedPackage !== "all" ? selectedPackage : undefined,
     payment_method:
       selectedPaymentMethod !== "all" ? selectedPaymentMethod : undefined,
-    start_date: startDate ? new Date(startDate).toISOString() : undefined,
-    end_date: endDate ? new Date(endDate).toISOString() : undefined,
+    start_date: dateRange?.from ? dateRange.from.toISOString() : undefined,
+    end_date: dateRange?.to ? dateRange.to.toISOString() : undefined,
+    page: page,
   };
 
   const {
-    data: customers = [],
+    data: treatmentData,
     isLoading: loading,
     refetch,
   } = useQuery({
     queryKey: ["customer_treatments", filterParams],
     queryFn: () => getCustomerTreatments(filterParams),
   });
+
+  const customers = treatmentData?.results || [];
+  const totalCount = treatmentData?.count || 0;
+  const hasNext = Boolean(treatmentData?.next);
+  const hasPrevious = Boolean(treatmentData?.previous);
 
   const fetchCustomers = () => {
     refetch();
@@ -110,8 +122,8 @@ export default function TreatmentStaffManager({
     setSelectedTreatmentType(treatmentType || "all");
     setSelectedPackage("all");
     setSelectedPaymentMethod("all");
-    setStartDate("");
-    setEndDate("");
+    setDateRange(undefined);
+    setPage(1);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -180,114 +192,122 @@ export default function TreatmentStaffManager({
             billing.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingCustomer(null);
-            setIsFormOpen(true);
-          }}
-          className="bg-teal-600 hover:bg-teal-700 text-white gap-2 shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> New Customer Treatment
-        </Button>
+        {!readOnly && (
+          <Button
+            onClick={() => {
+              setEditingCustomer(null);
+              setIsFormOpen(true);
+            }}
+            className="bg-teal-600 hover:bg-teal-700 text-white gap-2 shadow-sm"
+          >
+            <Plus className="w-4 h-4" /> New Customer Treatment
+          </Button>
+        )}
       </div>
 
       {/* Filter and Search Controls */}
       <Card className="shadow-sm border-gray-200">
-        <CardContent className="p-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            {/* Search Input */}
-            <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by name or phone..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 bg-white"
-              />
-            </div>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3">
+            {/* Top row: Search, Treatment Type, Package */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name or phone..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  className="pl-9 bg-white"
+                />
+              </div>
 
-            {/* Treatment Type Filter (Hidden if page forces specific treatmentType) */}
-            {!treatmentType && (
+              {/* Treatment Type Filter (Hidden if page forces specific treatmentType) */}
+              {!treatmentType && (
+                <Select
+                  value={selectedTreatmentType}
+                  onValueChange={(val) => {
+                    setSelectedTreatmentType(val);
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="All Treatment Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Treatment Types</SelectItem>
+                    <SelectItem value="package_member">Package Member</SelectItem>
+                    <SelectItem value="bottle_member">Bottle Member</SelectItem>
+                    <SelectItem value="home_oil">Home Oil</SelectItem>
+                    <SelectItem value="one_time_service">
+                      One Time Service
+                    </SelectItem>
+                    <SelectItem value="free_service">Free Service</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Package Filter */}
               <Select
-                value={selectedTreatmentType}
-                onValueChange={(val) => setSelectedTreatmentType(val)}
+                value={selectedPackage}
+                onValueChange={(val) => {
+                  setSelectedPackage(val);
+                  setPage(1);
+                }}
               >
                 <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="All Treatment Types" />
+                  <SelectValue placeholder="All Packages" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Treatment Types</SelectItem>
-                  <SelectItem value="package_member">Package Member</SelectItem>
-                  <SelectItem value="bottle_member">Bottle Member</SelectItem>
-                  <SelectItem value="home_oil">Home Oil</SelectItem>
-                  <SelectItem value="one_time_service">
-                    One Time Service
-                  </SelectItem>
-                  <SelectItem value="free_service">Free Service</SelectItem>
+                  <SelectItem value="all">All Packages</SelectItem>
+                  <SelectItem value="one_month">1 Month</SelectItem>
+                  <SelectItem value="two_month">2 Month</SelectItem>
+                  <SelectItem value="three_month">3 Month</SelectItem>
                 </SelectContent>
               </Select>
-            )}
-
-            {/* Package Filter */}
-            <Select
-              value={selectedPackage}
-              onValueChange={(val) => setSelectedPackage(val)}
-            >
-              <SelectTrigger className="bg-white">
-                <SelectValue placeholder="All Packages" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Packages</SelectItem>
-                <SelectItem value="one_month">1 Month</SelectItem>
-                <SelectItem value="two_month">2 Month</SelectItem>
-                <SelectItem value="three_month">3 Month</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Payment Method Filter */}
-            <Select
-              value={selectedPaymentMethod}
-              onValueChange={(val) => setSelectedPaymentMethod(val)}
-            >
-              <SelectTrigger className="bg-white">
-                <SelectValue placeholder="All Payment Methods" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Payment Methods</SelectItem>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="online">Online</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Start Date */}
-            <div>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-white text-xs"
-                placeholder="Start Date"
-              />
             </div>
 
-            {/* End Date */}
-            <div>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-white text-xs"
-                placeholder="End Date"
-              />
-            </div>
+            {/* Bottom row: Payment Method, Date Range, Reset Button */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Payment Method Filter */}
+              <Select
+                value={selectedPaymentMethod}
+                onValueChange={(val) => {
+                  setSelectedPaymentMethod(val);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="All Payment Methods" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Payment Methods</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                </SelectContent>
+              </Select>
 
-            {/* Reset Button */}
-            <div className="flex items-center">
+              {/* Date Range Picker */}
+              <DateRangePicker
+                value={dateRange}
+                onChange={(range) => {
+                  setDateRange(range);
+                  setPage(1);
+                }}
+                clearable
+                emptyLabel="Filter by date range"
+                className="w-full"
+              />
+
+              {/* Reset Button */}
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleResetFilters}
-                className="w-full gap-1.5 text-xs text-gray-600"
+                className="w-full gap-1.5 text-xs text-gray-600 h-10"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
               </Button>
@@ -321,7 +341,6 @@ export default function TreatmentStaffManager({
                   <tr>
                     <th className="px-6 py-3.5">Customer</th>
                     <th className="px-6 py-3.5">Treatment Type</th>
-                    <th className="px-6 py-3.5">Progress Photos</th>
                     <th className="px-6 py-3.5">Total / Paid</th>
                     <th className="px-6 py-3.5">Status</th>
                     <th className="px-6 py-3.5 text-right">Actions</th>
@@ -357,12 +376,6 @@ export default function TreatmentStaffManager({
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-slate-100 font-medium text-slate-700 border">
-                          <Calendar className="w-3.5 h-3.5 text-teal-600" />
-                          {c.images ? c.images.length : 0} Photos
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
                         <div className="flex flex-col">
                           {c.treatment_type === "package_member" ? (
                             <>
@@ -394,27 +407,61 @@ export default function TreatmentStaffManager({
                             onClick={() => setSelectedCustomer(c)}
                             className="h-8 gap-1.5 text-xs text-teal-700 hover:text-teal-800 border-teal-200 bg-teal-50/50 hover:bg-teal-100"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View & Upload
+                            <Eye className="w-3.5 h-3.5" /> View{" "}
+                            {readOnly ? "Details" : "& Upload"}
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={deletingId === c.id}
-                            onClick={() => handleDelete(c.id, c.name)}
-                            className="h-8 w-8 text-rose-500 hover:text-rose-700 hover:bg-rose-50"
-                          >
-                            {deletingId === c.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-3.5 h-3.5" />
-                            )}
-                          </Button>
+                          {!readOnly && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={deletingId === c.id}
+                              onClick={() => handleDelete(c.id, c.name)}
+                              className="h-8 w-8 text-rose-500 hover:text-rose-700 hover:bg-rose-50"
+                            >
+                              {deletingId === c.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalCount > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t text-sm text-gray-600">
+              <div>
+                Showing <span className="font-semibold text-gray-900">{customers.length}</span> of{" "}
+                <span className="font-semibold text-gray-900">{totalCount}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!hasPrevious || page <= 1 || loading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="h-8 gap-1 text-xs"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Previous
+                </Button>
+                <span className="px-2 text-xs font-medium">Page {page}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!hasNext || loading}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="h-8 gap-1 text-xs"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
