@@ -7,14 +7,30 @@ import {
   RecordPaymentPayload,
 } from "@/types/treatment";
 
-// Fetch customer treatment list
+export interface TreatmentFilterParams {
+  search?: string;
+  treatment_type?: string;
+  package?: string;
+  payment_method?: string;
+  franchise?: string | number;
+  service_by?: string | number;
+  start_date?: string;
+  end_date?: string;
+}
+
+// Fetch customer treatment list with filters
 export const getCustomerTreatments = async (
-  search?: string,
-  treatmentType?: string,
+  filters?: TreatmentFilterParams,
 ): Promise<CustomerTreatment[]> => {
-  const params: Record<string, string> = {};
-  if (search) params.search = search;
-  if (treatmentType) params.treatment_type = treatmentType;
+  const params: Record<string, any> = {};
+  if (filters?.search) params.search = filters.search;
+  if (filters?.treatment_type) params.treatment_type = filters.treatment_type;
+  if (filters?.package) params.package = filters.package;
+  if (filters?.payment_method) params.payment_method = filters.payment_method;
+  if (filters?.franchise) params.franchise = filters.franchise;
+  if (filters?.service_by) params.service_by = filters.service_by;
+  if (filters?.start_date) params.start_date = filters.start_date;
+  if (filters?.end_date) params.end_date = filters.end_date;
 
   const response = await api.get<CustomerTreatment[]>(
     "/api/treatment/customers/",

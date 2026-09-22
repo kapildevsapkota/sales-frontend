@@ -11,6 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Search,
   Plus,
   Loader2,
@@ -23,6 +30,8 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  Filter,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,12 +49,27 @@ export default function TreatmentStaffManager({ treatmentType, title = "Customer
   const [editingCustomer, setEditingCustomer] = useState<CustomerTreatment | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  // Filters state based on django CustomerTreatmentFilter
+  const [selectedTreatmentType, setSelectedTreatmentType] = useState<string>(treatmentType || "all");
+  const [selectedPackage, setSelectedPackage] = useState<string>("all");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("all");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
   const fetchCustomers = async (searchQuery?: string) => {
     setLoading(true);
     try {
-      const data = await getCustomerTreatments(searchQuery, treatmentType);
+      const filterParams = {
+        search: searchQuery || undefined,
+        treatment_type: (selectedTreatmentType !== "all" ? selectedTreatmentType : treatmentType) || undefined,
+        package: selectedPackage !== "all" ? selectedPackage : undefined,
+        payment_method: selectedPaymentMethod !== "all" ? selectedPaymentMethod : undefined,
+        start_date: startDate ? new Date(startDate).toISOString() : undefined,
+        end_date: endDate ? new Date(endDate).toISOString() : undefined,
+      };
+
+      const data = await getCustomerTreatments(filterParams);
       setCustomers(data);
-      // If a customer detail view is active, update selectedCustomer state as well
       setSelectedCustomer((prev) => {
         if (!prev) return null;
         return data.find((c) => c.id === prev.id) || prev;
@@ -60,7 +84,16 @@ export default function TreatmentStaffManager({ treatmentType, title = "Customer
 
   useEffect(() => {
     fetchCustomers(search);
-  }, [treatmentType]);
+  }, [treatmentType, selectedTreatmentType, selectedPackage, selectedPaymentMethod, startDate, endDate]);
+
+  const handleResetFilters = () => {
+    setSearch("");
+    setSelectedTreatmentType(treatmentType || "all");
+    setSelectedPackage("all");
+    setSelectedPaymentMethod("all");
+    setStartDate("");
+    setEndDate("");
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,23 +166,106 @@ export default function TreatmentStaffManager({ treatmentType, title = "Customer
         </Button>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Filter and Search Controls */}
       <Card className="shadow-sm border-gray-200">
-        <CardContent className="p-4">
-          <form onSubmit={handleSearchSubmit} className="flex gap-2">
-            <div className="relative flex-1">
+        <CardContent className="p-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {/* Search Input */}
+            <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by customer name or phone number..."
+                placeholder="Search by name or phone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9 bg-white"
               />
             </div>
-            <Button type="submit" variant="secondary" className="gap-1">
-              Search
-            </Button>
-          </form>
+
+            {/* Treatment Type Filter (Hidden if page forces specific treatmentType) */}
+            {!treatmentType && (
+              <Select
+                value={selectedTreatmentType}
+                onValueChange={(val) => setSelectedTreatmentType(val)}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="All Treatment Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Treatment Types</SelectItem>
+                  <SelectItem value="package_member">Package Member</SelectItem>
+                  <SelectItem value="bottle_member">Bottle Member</SelectItem>
+                  <SelectItem value="home_oil">Home Oil</SelectItem>
+                  <SelectItem value="one_time_service">One Time Service</SelectItem>
+                  <SelectItem value="free_service">Free Service</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Package Filter */}
+            <Select
+              value={selectedPackage}
+              onValueChange={(val) => setSelectedPackage(val)}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="All Packages" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Packages</SelectItem>
+                <SelectItem value="one_month">1 Month</SelectItem>
+                <SelectItem value="two_month">2 Month</SelectItem>
+                <SelectItem value="three_month">3 Month</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Payment Method Filter */}
+            <Select
+              value={selectedPaymentMethod}
+              onValueChange={(val) => setSelectedPaymentMethod(val)}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="All Payment Methods" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Payment Methods</SelectItem>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="online">Online</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Start Date */}
+            <div>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-white text-xs"
+                placeholder="Start Date"
+              />
+            </div>
+
+            {/* End Date */}
+            <div>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-white text-xs"
+                placeholder="End Date"
+              />
+            </div>
+
+            {/* Reset Button */}
+            <div className="flex items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResetFilters}
+                className="w-full gap-1.5 text-xs text-gray-600"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
