@@ -26,7 +26,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function TreatmentStaffManager() {
+interface Props {
+  treatmentType?: string;
+  title?: string;
+}
+
+export default function TreatmentStaffManager({ treatmentType, title = "Customer Treatments" }: Props) {
   const [customers, setCustomers] = useState<CustomerTreatment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -38,7 +43,7 @@ export default function TreatmentStaffManager() {
   const fetchCustomers = async (searchQuery?: string) => {
     setLoading(true);
     try {
-      const data = await getCustomerTreatments(searchQuery);
+      const data = await getCustomerTreatments(searchQuery, treatmentType);
       setCustomers(data);
       // If a customer detail view is active, update selectedCustomer state as well
       setSelectedCustomer((prev) => {
@@ -55,7 +60,7 @@ export default function TreatmentStaffManager() {
 
   useEffect(() => {
     fetchCustomers(search);
-  }, []);
+  }, [treatmentType]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +116,7 @@ export default function TreatmentStaffManager() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Customer Treatments
+            {title}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500">
             Register patients, track periodic 4-day progress photos, and manage billing.

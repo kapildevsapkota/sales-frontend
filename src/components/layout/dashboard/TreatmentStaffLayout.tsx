@@ -1,7 +1,7 @@
 "use client";
 
 import { Role, useAuth } from "@/contexts/AuthContext";
-import { Activity, LogOut, Menu } from "lucide-react";
+import { Activity, Users, Package, Wine, LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -71,10 +71,22 @@ export default function TreatmentStaffLayout({
 
   const menuItems = [
     {
-      label: "Dashboard",
-      icon: Activity,
+      label: "Customer",
+      icon: Users,
       href: "/treatment-staff/dashboard",
-      active: pathname.startsWith("/treatment-staff/dashboard"),
+      active: pathname === "/treatment-staff/dashboard",
+    },
+    {
+      label: "Package Member",
+      icon: Package,
+      href: "/treatment-staff/package-member",
+      active: pathname.startsWith("/treatment-staff/package-member"),
+    },
+    {
+      label: "Bottle Member",
+      icon: Wine,
+      href: "/treatment-staff/bottle-member",
+      active: pathname.startsWith("/treatment-staff/bottle-member"),
     },
   ];
 
@@ -110,12 +122,6 @@ export default function TreatmentStaffLayout({
                     asChild
                   >
                     <Link href={item.href} className="flex items-center">
-                      <item.icon
-                        className={cn(
-                          "h-4 w-4 mr-1.5",
-                          item.active ? "text-teal-600" : "text-gray-500"
-                        )}
-                      />
                       <span className="text-sm">{item.label}</span>
                     </Link>
                   </Button>
@@ -177,7 +183,6 @@ export default function TreatmentStaffLayout({
                               : "text-gray-700"
                           )}
                         >
-                          <item.icon className="mr-3 h-5 w-5 text-gray-500" />
                           {item.label}
                         </Link>
                       ))}

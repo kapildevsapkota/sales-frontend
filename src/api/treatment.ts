@@ -10,12 +10,15 @@ import {
 // Fetch customer treatment list
 export const getCustomerTreatments = async (
   search?: string,
+  treatmentType?: string,
 ): Promise<CustomerTreatment[]> => {
+  const params: Record<string, string> = {};
+  if (search) params.search = search;
+  if (treatmentType) params.treatment_type = treatmentType;
+
   const response = await api.get<CustomerTreatment[]>(
     "/api/treatment/customers/",
-    {
-      params: search ? { search } : {},
-    },
+    { params },
   );
   return response.data;
 };
