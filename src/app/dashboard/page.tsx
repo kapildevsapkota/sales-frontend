@@ -23,6 +23,8 @@ export default function DashboardPage() {
           router.push("/admin");
         } else if (user.role === Role.Packaging) {
           router.push("/packaging/dashboard");
+        } else if (user.role === Role.TreatmentStaff) {
+          router.push("/treatment-staff/dashboard");
         }
       }, 3000);
 
