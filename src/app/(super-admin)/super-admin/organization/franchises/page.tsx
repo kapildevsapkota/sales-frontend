@@ -86,8 +86,9 @@ export default function FranchisesPage() {
     }
   };
 
-  const handleFranchiseClick = (franchiseId: number) => {
-    router.push(`/super-admin/organization/franchises/${franchiseId}`);
+  const handleFranchiseClick = (franchiseId: number, franchiseName?: string) => {
+    const query = franchiseName ? `?name=${encodeURIComponent(franchiseName)}` : "";
+    router.push(`/super-admin/organization/franchises/${franchiseId}${query}`);
   };
 
   const handleAddFranchise = async (e: React.FormEvent) => {
@@ -266,7 +267,7 @@ export default function FranchisesPage() {
             <Card
               key={franchise.id}
               className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500 hover:border-l-blue-600"
-              onClick={() => handleFranchiseClick(franchise.id)}
+              onClick={() => handleFranchiseClick(franchise.id, franchise.name)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -288,7 +289,7 @@ export default function FranchisesPage() {
                   className="w-full mt-4"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleFranchiseClick(franchise.id);
+                    handleFranchiseClick(franchise.id, franchise.name);
                   }}
                 >
                   View Dashboard

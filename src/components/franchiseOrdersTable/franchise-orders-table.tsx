@@ -269,11 +269,11 @@ export default function FranchiseOrdersTable({
         onClearFilters={handleClearFilters}
         minDate={festMode ? startOfDay(RANKINGS_START_DATE) : undefined}
         maxDate={festMode ? festMaxDate : undefined}
-        dateClearable={festMode}
+        dateClearable={true}
         dateEmptyLabel={
           festMode
             ? `All fest dates (${formatApiDate(RANKINGS_START_DATE)} – ${formatApiDate(RANKINGS_END_DATE)})`
-            : undefined
+            : "Filter by date"
         }
       />
 
