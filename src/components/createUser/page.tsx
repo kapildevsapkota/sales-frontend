@@ -62,6 +62,7 @@ const formSchema = z.object({
       "Franchise",
       "SalesPerson",
       "Packaging",
+      "Treatment Staff",
     ],
     {
       required_error: "Role is required",
@@ -115,7 +116,7 @@ function cleanFormData(values: z.infer<typeof formSchema>) {
     cleaned.factory = null;
   } else {
     cleaned.distributor = null;
-    // Keep franchise for SalesPerson, Franchise, Packaging
+    // Keep franchise for SalesPerson, Franchise, Packaging, Treatment Staff
     // factory is not used anymore based on latest reqs
     cleaned.factory = null;
   }
@@ -324,10 +325,11 @@ export default function CreateAccountForm({
           Role.Franchise,
           Role.SalesPerson,
           Role.Packaging,
+          Role.TreatmentStaff,
         ];
         break;
       case Role.Franchise:
-        options = [Role.SalesPerson, Role.Packaging];
+        options = [Role.SalesPerson, Role.Packaging, Role.TreatmentStaff];
         break;
       default:
         options = [];
@@ -361,6 +363,7 @@ export default function CreateAccountForm({
       case Role.Franchise:
       case Role.SalesPerson:
       case Role.Packaging:
+      case Role.TreatmentStaff:
         // Only show franchise selection if the creator is NOT a Franchise user
         return {
           showFactory: false,
