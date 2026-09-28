@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TablePaginationProps {
   currentPage: number;
@@ -27,7 +28,9 @@ export function TablePagination({
           size="sm"
           onClick={() => currentPage > 1 && fetchSales(currentPage - 1)}
           disabled={currentPage === 1}
+          className="gap-1"
         >
+          <ChevronLeft className="h-4 w-4" />
           Previous
         </Button>
         <Button
@@ -35,8 +38,10 @@ export function TablePagination({
           size="sm"
           onClick={() => hasNext && fetchSales(currentPage + 1)}
           disabled={!hasNext}
+          className="gap-1"
         >
           Next
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>

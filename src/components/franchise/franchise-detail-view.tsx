@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, LayoutDashboard, Package, Store } from "lucide-react";
+import { ChevronLeft, LayoutDashboard, Package, Store } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { DashboardContent } from "@/components/dashboard/dashboard-content";
 import FranchiseOrdersTable from "@/components/franchiseOrdersTable/franchise-orders-table";
 import { api } from "@/lib/api";
@@ -98,10 +97,10 @@ export default function FranchiseDetailView({
               variant="outline"
               size="sm"
               asChild
-              className="gap-2 h-9 rounded-lg shrink-0 border-slate-200 dark:border-neutral-700 hover:bg-slate-100 dark:hover:bg-neutral-800"
+              className="gap-1.5 h-9 rounded-lg shrink-0 border-slate-200 dark:border-neutral-700 hover:bg-slate-100 dark:hover:bg-neutral-800"
             >
               <Link href="/super-admin/organization/franchises">
-                <ArrowLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back to Franchises</span>
                 <span className="sm:hidden">Back</span>
               </Link>
@@ -114,11 +113,8 @@ export default function FranchiseDetailView({
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white truncate">
-                    {franchiseName || `Franchise #${id}`}
+                    {franchiseName || "Franchise"}
                   </h1>
-                  <Badge variant="secondary" className="text-xs font-mono">
-                    #{id}
-                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
                   Overview analytics and order management
