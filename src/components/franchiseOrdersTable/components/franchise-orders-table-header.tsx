@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { ChevronDown, Eye, EyeOff, Search } from "lucide-react";
+import { ChevronDown, Download, Eye, EyeOff, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,6 +44,10 @@ interface FranchiseOrdersTableHeaderProps {
   maxDate?: Date;
   dateClearable?: boolean;
   dateEmptyLabel?: string;
+  showExportPickAndDrop?: boolean;
+  selectedCount?: number;
+  onExportSelected?: () => void;
+  isExporting?: boolean;
 }
 
 export function FranchiseOrdersTableHeader({
@@ -67,6 +71,10 @@ export function FranchiseOrdersTableHeader({
   maxDate,
   dateClearable,
   dateEmptyLabel,
+  showExportPickAndDrop = false,
+  selectedCount = 0,
+  onExportSelected,
+  isExporting = false,
 }: FranchiseOrdersTableHeaderProps) {
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -119,6 +127,21 @@ export function FranchiseOrdersTableHeader({
             {salesCount.toLocaleString()} orders
           </span>
         </div>
+
+        {showExportPickAndDrop && (
+          <Button
+            variant="default"
+            size="sm"
+            className="h-8 gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+            onClick={onExportSelected}
+            disabled={isExporting || selectedCount === 0}
+          >
+            <Download className="h-4 w-4" />
+            {isExporting
+              ? "Exporting..."
+              : `Export Pick & Drop (${selectedCount})`}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">

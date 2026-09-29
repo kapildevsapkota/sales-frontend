@@ -21,6 +21,8 @@ import { ErrorDialog } from "@/components/ErrorDialog";
 interface FranchiseOrdersTableProps {
   franchiseId: string;
   festMode?: boolean;
+  selectableRows?: boolean;
+  showExportPickAndDrop?: boolean;
 }
 
 const formatApiDate = (date: Date) => {
@@ -59,6 +61,8 @@ const clampFestDateRange = (range: DateRange): DateRange => {
 export default function FranchiseOrdersTable({
   franchiseId,
   festMode = false,
+  selectableRows = false,
+  showExportPickAndDrop = false,
 }: FranchiseOrdersTableProps) {
   const [sales, setSales] = useState<SalesResponse | null>(null);
   const [displayData, setDisplayData] = useState<SaleItem[]>([]);
@@ -78,6 +82,9 @@ export default function FranchiseOrdersTable({
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialogMessage, setErrorDialogMessage] = useState("");
 
+  const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
+
   const tableRef = useRef<HTMLTableElement>(null);
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -89,6 +96,67 @@ export default function FranchiseOrdersTable({
     setErrorDialogMessage(message);
     setErrorDialogOpen(true);
   }, []);
+
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        const allIds = displayData.map((item) => item.id);
+        setSelectedOrderIds(allIds);
+      } else {
+        setSelectedOrderIds([]);
+      }
+    },
+    [displayData],
+  );
+
+  const handleSelectRow = useCallback((id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedOrderIds((prev) => [...prev, id]);
+    } else {
+      setSelectedOrderIds((prev) => prev.filter((item) => item !== id));
+    }
+  }, []);
+
+  const handleExportSelectedOrders = useCallback(
+    async (format: string = "xlsx") => {
+      if (selectedOrderIds.length === 0) {
+        showError("Please select at least one order to export.");
+        return;
+      }
+      try {
+        setIsExporting(true);
+        const token = localStorage.getItem("accessToken");
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-selected-orders/`,
+          {
+            order_ids: selectedOrderIds,
+            export_format: format,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            responseType: "blob",
+          },
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `selected_orders.${format}`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Error exporting selected orders:", error);
+        showError("Failed to export selected orders. Please try again.");
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [selectedOrderIds, showError],
+  );
 
   const effectiveDateRange = useMemo(() => {
     if (!festMode) return dateRange;
@@ -275,6 +343,10 @@ export default function FranchiseOrdersTable({
             ? `All fest dates (${formatApiDate(RANKINGS_START_DATE)} – ${formatApiDate(RANKINGS_END_DATE)})`
             : "Filter by date"
         }
+        showExportPickAndDrop={showExportPickAndDrop}
+        selectedCount={selectedOrderIds.length}
+        onExportSelected={() => handleExportSelectedOrders("xlsx")}
+        isExporting={isExporting}
       />
 
       {showPaymentImageModal && (
@@ -297,6 +369,10 @@ export default function FranchiseOrdersTable({
             setSelectedPaymentImage(url);
             setShowPaymentImageModal(true);
           }}
+          selectableRows={selectableRows}
+          selectedOrderIds={selectedOrderIds}
+          onSelectAll={handleSelectAll}
+          onSelectRow={handleSelectRow}
         />
       </div>
 

@@ -151,7 +151,11 @@ export default function FranchiseDetailView({
       <TabsContent value="orders" className="mt-0 focus-visible:outline-none">
         <div className="container mx-auto px-3 sm:px-4 md:px-6">
           <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200/80 dark:border-neutral-800 shadow-xs p-4 sm:p-6">
-            <FranchiseOrdersTable franchiseId={id} />
+            <FranchiseOrdersTable
+              franchiseId={id}
+              selectableRows={true}
+              showExportPickAndDrop={true}
+            />
           </div>
         </div>
       </TabsContent>
