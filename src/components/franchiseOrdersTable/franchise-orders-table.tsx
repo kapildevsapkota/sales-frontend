@@ -74,6 +74,7 @@ export default function FranchiseOrdersTable({
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [orderStatus, setOrderStatus] = useState("all");
   const [deliveryType, setDeliveryType] = useState("all");
+  const [logistic, setLogistic] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(
     festMode ? getTodayRange() : undefined,
   );
@@ -96,6 +97,45 @@ export default function FranchiseOrdersTable({
     setErrorDialogMessage(message);
     setErrorDialogOpen(true);
   }, []);
+
+  const handleLogisticsChange = useCallback(
+    async (saleId: string, logisticsValue: string) => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/logistics/`,
+          { logistics: logisticsValue === "none" ? null : logisticsValue },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setDisplayData((prev) =>
+          prev.map((item) =>
+            String(item.id) === String(saleId)
+              ? { ...item, logistics: logisticsValue === "none" ? null : logisticsValue }
+              : item
+          )
+        );
+      } catch (error) {
+        console.error("Error updating logistics:", error);
+        showError("Failed to update logistics");
+      }
+    },
+    [showError]
+  );
+
+  const handleLocationUpdate = useCallback(
+    (saleId: number, location: { id: number; name: string }) => {
+      setDisplayData((prev) =>
+        prev.map((item) =>
+          item.id === saleId
+            ? { ...item, location_id: location.id, location_name: location.name }
+            : item
+        )
+      );
+    },
+    []
+  );
 
   const handleSelectAll = useCallback(
     (checked: boolean) => {
@@ -198,6 +238,9 @@ export default function FranchiseOrdersTable({
         if (deliveryType !== "all") {
           url += `&delivery_type=${encodeURIComponent(deliveryType)}`;
         }
+        if (logistic !== "all") {
+          url += `&logistics=${encodeURIComponent(logistic)}`;
+        }
 
         if (effectiveDateRange?.from) {
           url += `&start_date=${formatApiDate(effectiveDateRange.from)}`;
@@ -232,6 +275,7 @@ export default function FranchiseOrdersTable({
       paymentMethod,
       orderStatus,
       deliveryType,
+      logistic,
       effectiveDateRange,
       festMode,
       showError,
@@ -292,6 +336,7 @@ export default function FranchiseOrdersTable({
     setPaymentMethod("all");
     setOrderStatus("all");
     setDeliveryType("all");
+    setLogistic("all");
     setDateRange(undefined);
     fetchOrders(1);
   }, [fetchOrders]);
@@ -312,7 +357,7 @@ export default function FranchiseOrdersTable({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [paymentMethod, orderStatus, deliveryType, effectiveDateRange, filterTerm]);
+  }, [paymentMethod, orderStatus, deliveryType, logistic, effectiveDateRange, filterTerm]);
 
   const festMaxDate = startOfDay(RANKINGS_END_DATE);
 
@@ -332,6 +377,8 @@ export default function FranchiseOrdersTable({
         setOrderStatus={setOrderStatus}
         deliveryType={deliveryType}
         setDeliveryType={setDeliveryType}
+        logistic={logistic}
+        setLogistic={setLogistic}
         dateRange={dateRange}
         setDateRange={handleDateRangeChange}
         onClearFilters={handleClearFilters}
@@ -373,6 +420,9 @@ export default function FranchiseOrdersTable({
           selectedOrderIds={selectedOrderIds}
           onSelectAll={handleSelectAll}
           onSelectRow={handleSelectRow}
+          handleLogisticsChange={handleLogisticsChange}
+          onLocationUpdate={handleLocationUpdate}
+          selectedLogisticFilter={logistic}
         />
       </div>
 

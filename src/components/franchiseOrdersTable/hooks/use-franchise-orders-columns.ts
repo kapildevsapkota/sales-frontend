@@ -10,6 +10,8 @@ export function useFranchiseOrdersColumns() {
     { id: "full_name", label: "Full Name", visible: true, width: 150 },
     { id: "delivery_location", label: "Delivery Location", visible: true, width: 120 },
     { id: "delivery_type", label: "Delivery Type", visible: true, width: 50 },
+    { id: "logistics_name", label: "Logistics", visible: true, width: 180 },
+    { id: "location_name", label: "Location / Branch", visible: true, width: 380 },
     { id: "order_status", label: "Order Status", visible: true, width: 50 },
     { id: "product_sold", label: "Product Sold", visible: true, width: 150 },
     { id: "total_amount", label: "Total", visible: true, width: 50 },

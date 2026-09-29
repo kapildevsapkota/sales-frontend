@@ -37,6 +37,8 @@ interface FranchiseOrdersTableHeaderProps {
   setOrderStatus: (value: string) => void;
   deliveryType: string;
   setDeliveryType: (value: string) => void;
+  logistic?: string;
+  setLogistic?: (value: string) => void;
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
   onClearFilters: () => void;
@@ -64,6 +66,8 @@ export function FranchiseOrdersTableHeader({
   setOrderStatus,
   deliveryType,
   setDeliveryType,
+  logistic = "all",
+  setLogistic,
   dateRange,
   setDateRange,
   onClearFilters,
@@ -193,6 +197,22 @@ export function FranchiseOrdersTableHeader({
               <SelectItem value="Outside valley">Outside valley</SelectItem>
             </SelectContent>
           </Select>
+
+          {setLogistic && (
+            <Select value={logistic} onValueChange={setLogistic}>
+              <SelectTrigger className="w-[150px] h-8">
+                <SelectValue placeholder="Logistics" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Logistics</SelectItem>
+                <SelectItem value="YDM">YDM</SelectItem>
+                <SelectItem value="DASH">DASH</SelectItem>
+                <SelectItem value="NCM">NCM</SelectItem>
+                <SelectItem value="PicknDrop">PicknDrop</SelectItem>
+                <SelectItem value="Daraz">Daraz</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
 
           <DateRangePicker
             value={dateRange}

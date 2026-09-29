@@ -4,8 +4,16 @@ import type React from "react";
 import { Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Column, SaleItem } from "@/types/sale";
 import { getOrderStatusColor } from "../utils/order-status";
+import { DashLocationCell } from "@/components/salesTable/components/DashLocationCell";
 import { JSX } from "react";
 
 interface FranchiseOrdersTableBodyProps {
@@ -17,14 +25,46 @@ interface FranchiseOrdersTableBodyProps {
   pageSize: number;
   getValueByColumnId: (
     sale: SaleItem,
-    columnId: string
+    columnId: string,
   ) => string | number | JSX.Element;
   onViewPaymentImage: (url: string) => void;
   selectableRows?: boolean;
   selectedOrderIds?: number[];
   onSelectAll?: (checked: boolean) => void;
   onSelectRow?: (id: number, checked: boolean) => void;
+  handleLogisticsChange?: (saleId: string, logisticsId: string) => void;
+  onLocationUpdate?: (
+    saleId: number,
+    location: { id: number; name: string },
+  ) => void;
+  selectedLogisticFilter?: string;
 }
+
+const normalizeLogisticsForSelect = (logistics?: string | null): string => {
+  if (!logistics) return "";
+
+  const normalized = logistics
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+
+  switch (normalized) {
+    case "ydm":
+      return "YDM";
+    case "dash":
+      return "DASH";
+    case "ncm":
+      return "NCM";
+    case "pickndrop":
+      return "PicknDrop";
+    case "daraz":
+      return "Daraz";
+    case "none":
+      return "none";
+    default:
+      return logistics;
+  }
+};
 
 export function FranchiseOrdersTableBody({
   tableRef,
@@ -39,6 +79,9 @@ export function FranchiseOrdersTableBody({
   selectedOrderIds = [],
   onSelectAll,
   onSelectRow,
+  handleLogisticsChange,
+  onLocationUpdate,
+  selectedLogisticFilter,
 }: FranchiseOrdersTableBodyProps) {
   const visibleColumns = columns.filter((col) => col.visible);
   const isAllSelected =
@@ -92,7 +135,10 @@ export function FranchiseOrdersTableBody({
           Array.from({ length: 10 }).map((_, index) => (
             <tr key={`skeleton-${index}`}>
               {selectableRows && (
-                <td key={`skeleton-cell-select-${index}`} className="border p-2">
+                <td
+                  key={`skeleton-cell-select-${index}`}
+                  className="border p-2"
+                >
                   <Skeleton className="h-4 w-4 mx-auto" />
                 </td>
               )}
@@ -141,11 +187,47 @@ export function FranchiseOrdersTableBody({
                     ) : column.id === "order_status" ? (
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getOrderStatusColor(
-                          sale.order_status
+                          sale.order_status,
                         )}`}
                       >
                         {sale.order_status}
                       </span>
+                    ) : column.id === "logistics_name" ? (
+                      <div className="flex items-center min-w-[110px]">
+                        {handleLogisticsChange ? (
+                          <Select
+                            value={normalizeLogisticsForSelect(sale.logistics)}
+                            onValueChange={(value) =>
+                              handleLogisticsChange(String(sale.id), value)
+                            }
+                          >
+                            <SelectTrigger className="w-full h-8 bg-white border border-gray-300 rounded-md shadow-xs">
+                              <SelectValue placeholder="Logistics" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
+                              <SelectItem value="YDM">YDM</SelectItem>
+                              <SelectItem value="DASH">DASH</SelectItem>
+                              <SelectItem value="NCM">NCM</SelectItem>
+                              <SelectItem value="PicknDrop">
+                                PicknDrop
+                              </SelectItem>
+                              <SelectItem value="Daraz">Daraz</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span>
+                            {sale.logistics || sale.logistics_name || "-"}
+                          </span>
+                        )}
+                      </div>
+                    ) : column.id === "location_name" ? (
+                      <DashLocationCell
+                        key={`${sale.id}-${sale.location_name || ""}`}
+                        sale={sale}
+                        onLocationUpdate={onLocationUpdate}
+                        fallbackLogistics={selectedLogisticFilter}
+                      />
                     ) : column.id === "payment_method" ? (
                       <div className="flex items-center gap-2">
                         <div className="flex flex-col">
