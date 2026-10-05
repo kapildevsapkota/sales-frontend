@@ -31,7 +31,7 @@ export function SalesFestFilters({
         {activeTab === "rankings" ? (
           <p className="text-sm text-muted-foreground">
             Date filters apply to Overall and Franchise tabs only. Rankings use
-            the fixed fest period (Aug 6 – Aug 11, 2026).
+            the fixed fest period (Oct 7 – Oct 14, 2026).
           </p>
         ) : (
           <div className="flex flex-col gap-4">
