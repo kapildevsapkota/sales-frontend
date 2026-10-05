@@ -38,7 +38,7 @@ export interface FranchiseSalesEntry {
 
 export interface RankedSalesperson extends Salesperson {
   franchiseName: string;
-  group: "A" | "B";
+  group: FestGroup;
 }
 
 export interface RevenueTrendPoint {
