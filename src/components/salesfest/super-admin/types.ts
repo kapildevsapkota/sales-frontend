@@ -53,4 +53,4 @@ export interface RevenueTrendResponse {
 
 export type SalesFilter = "all" | "daily" | "weekly" | "monthly";
 export type ViewTab = "overview" | "franchise" | "rankings";
-export type FestGroup = "A" | "B";
+export type FestGroup = "A" | "B" | "C";

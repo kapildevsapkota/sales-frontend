@@ -5,7 +5,7 @@ import { FestSalesTrendChart } from "./fest-sales-trend-chart";
 import { GroupRankingsPanel } from "./group-rankings-panel";
 import { RANKINGS_END_DATE, RANKINGS_START_DATE } from "./constants";
 import { FranchiseSalesEntry, RankedSalesperson } from "./types";
-import { isGroupAFranchise } from "./utils";
+import { isGroupAFranchise, getGroupForFranchise } from "./utils";
 
 interface FestRankingsSectionProps {
   entries: FranchiseSalesEntry[];
@@ -16,16 +16,19 @@ export function FestRankingsSection({
   entries,
   loading,
 }: FestRankingsSectionProps) {
-  const groupAEntries = entries.filter((entry) =>
-    isGroupAFranchise(entry.franchise),
+  const groupAEntries = entries.filter(
+    (entry) => getGroupForFranchise(entry.franchise) === "A",
   );
   const groupBEntries = entries.filter(
-    (entry) => !isGroupAFranchise(entry.franchise),
+    (entry) => getGroupForFranchise(entry.franchise) === "B",
+  );
+  const groupCEntries = entries.filter(
+    (entry) => getGroupForFranchise(entry.franchise) === "C",
   );
 
   const toRankedSalespersons = (
     groupEntries: FranchiseSalesEntry[],
-    group: "A" | "B",
+    group: "A" | "B" | "C",
   ): RankedSalesperson[] =>
     groupEntries.flatMap((entry) =>
       entry.salespersons.map((sp) => ({
@@ -59,21 +62,29 @@ export function FestRankingsSection({
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <GroupRankingsPanel
-          title="Group A"
-          description="Swyambhu, Gairidhara, Jorpati, Sitapaila, Kritipur, Soltimode, and Baneshwor"
+          title="Team A"
+          description="Shankhamul & Main Page"
           group="A"
           franchiseEntries={groupAEntries}
           salespersons={toRankedSalespersons(groupAEntries, "A")}
           loading={loading}
         />
         <GroupRankingsPanel
-          title="Group B"
-          description="Sankhamul, Main Page, Lagankhel, Bhaktapur, and Jhamsikhel"
+          title="Team B"
+          description="Swoyambhu, Baneshwor & Lagankhel"
           group="B"
           franchiseEntries={groupBEntries}
           salespersons={toRankedSalespersons(groupBEntries, "B")}
+          loading={loading}
+        />
+        <GroupRankingsPanel
+          title="Team C"
+          description="Jorpati, Bhaktapur, Kirtipur, Gairidhara, Sitapaila, Soalteemode & Jhamsikhel"
+          group="C"
+          franchiseEntries={groupCEntries}
+          salespersons={toRankedSalespersons(groupCEntries, "C")}
           loading={loading}
         />
       </div>

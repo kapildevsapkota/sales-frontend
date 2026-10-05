@@ -3,6 +3,8 @@ import { DateRange } from "react-day-picker";
 import { api } from "@/lib/api";
 import {
   GROUP_A_FRANCHISE_MATCHERS,
+  GROUP_B_FRANCHISE_MATCHERS,
+  GROUP_C_FRANCHISE_MATCHERS,
   HIDDEN_FRANCHISE_NAMES,
   RANKINGS_END_DATE,
   RANKINGS_START_DATE,
@@ -42,10 +44,19 @@ export const isHiddenFranchise = (name: string) =>
 export const getFranchiseLabel = (franchise: Franchise) =>
   `${franchise.name} ${franchise.short_form ?? ""}`.trim().toLowerCase();
 
+export const getGroupForFranchise = (
+  franchise: Franchise,
+): "A" | "B" | "C" | null => {
+  const label = getFranchiseLabel(franchise);
+  if (GROUP_A_FRANCHISE_MATCHERS.some((m) => label.includes(m))) return "A";
+  if (GROUP_B_FRANCHISE_MATCHERS.some((m) => label.includes(m))) return "B";
+  if (GROUP_C_FRANCHISE_MATCHERS.some((m) => label.includes(m))) return "C";
+  return null;
+};
+
+/** @deprecated Use getGroupForFranchise instead */
 export const isGroupAFranchise = (franchise: Franchise) =>
-  GROUP_A_FRANCHISE_MATCHERS.some((matcher) =>
-    getFranchiseLabel(franchise).includes(matcher),
-  );
+  getGroupForFranchise(franchise) === "A";
 
 export const getFranchiseSalesAmount = (entry: FranchiseSalesEntry) =>
   entry.salespersons.reduce((sum, sp) => sum + sp.total_sales, 0) ||

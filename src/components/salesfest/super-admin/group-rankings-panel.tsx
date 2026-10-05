@@ -200,10 +200,12 @@ export function GroupRankingsPanel({
                             className={
                               sp.group === "A"
                                 ? "border-amber-300 text-amber-800 bg-amber-50"
-                                : "border-blue-300 text-blue-800 bg-blue-50"
+                                : sp.group === "B"
+                                  ? "border-blue-300 text-blue-800 bg-blue-50"
+                                  : "border-green-300 text-green-800 bg-green-50"
                             }
                           >
-                            Group {sp.group}
+                            Team {sp.group}
                           </Badge>
                           <span className="text-muted-foreground">
                             {formatNumber(sp.sales_count)} orders
@@ -219,7 +221,7 @@ export function GroupRankingsPanel({
                         <TableRow className="bg-muted/40">
                           <TableHead className="w-12">#</TableHead>
                           <TableHead>Salesperson</TableHead>
-                          <TableHead>Group</TableHead>
+                          <TableHead>Team</TableHead>
                           <TableHead>Franchise</TableHead>
                           <TableHead className="text-right">Orders</TableHead>
                           <TableHead className="text-right">Revenue</TableHead>
@@ -242,10 +244,12 @@ export function GroupRankingsPanel({
                                 className={
                                   sp.group === "A"
                                     ? "border-amber-300 text-amber-800 bg-amber-50"
-                                    : "border-blue-300 text-blue-800 bg-blue-50"
+                                    : sp.group === "B"
+                                      ? "border-blue-300 text-blue-800 bg-blue-50"
+                                      : "border-green-300 text-green-800 bg-green-50"
                                 }
                               >
-                                Group {sp.group}
+                                Team {sp.group}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">

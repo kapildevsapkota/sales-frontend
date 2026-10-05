@@ -1,21 +1,39 @@
-export const RANKINGS_START_DATE = new Date(2026, 7, 6);
-export const RANKINGS_END_DATE = new Date(2026, 7, 11);
+export const RANKINGS_START_DATE = new Date(2026, 9, 7);
+export const RANKINGS_END_DATE = new Date(2026, 9, 14);
 
+// Team-A: Shankhamul, Main Page
 export const GROUP_A_FRANCHISE_MATCHERS = [
+  "shankhamul",
+  "sankhamul",
+  "main page",
+  "mainpage",
+];
+
+// Team-B: Swoyambhu, Baneshwor, Lagankhel
+export const GROUP_B_FRANCHISE_MATCHERS = [
   "swyambhu",
   "swayambhu",
   "swyamhu",
-  "gairidhara",
-  "gairidhdra",
-  "jorpati",
-  "sitapaila",
-  "kritipur",
-  "sambridhi cosmetic",
-  "sambridhi cosmetics",
-  "soltimode",
-  "soalteemode",
+  "swoyambhu",
   "baneshwor",
   "baneshor",
+  "lagankhel",
+];
+
+// Team-C: Jorpati, Bhaktapur, Kirtipur, Gairidhara, Sitapaila, Soalteemode & Jhamsikhel
+export const GROUP_C_FRANCHISE_MATCHERS = [
+  "jorpati",
+  "bhaktapur",
+  "kirtipur",
+  "kritipur",
+  "gairidhara",
+  "gairidhdra",
+  "sitapaila",
+  "soalteemode",
+  "soltimode",
+  "jhamsikhel",
+  "sambridhi cosmetic",
+  "sambridhi cosmetics",
 ];
 
 export const HIDDEN_FRANCHISE_NAMES = new Set([
