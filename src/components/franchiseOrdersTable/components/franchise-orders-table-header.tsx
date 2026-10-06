@@ -50,6 +50,7 @@ interface FranchiseOrdersTableHeaderProps {
   selectedCount?: number;
   onExportSelected?: () => void;
   isExporting?: boolean;
+  onOpenExportModal?: () => void;
 }
 
 export function FranchiseOrdersTableHeader({
@@ -79,6 +80,7 @@ export function FranchiseOrdersTableHeader({
   selectedCount = 0,
   onExportSelected,
   isExporting = false,
+  onOpenExportModal,
 }: FranchiseOrdersTableHeaderProps) {
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -132,20 +134,34 @@ export function FranchiseOrdersTableHeader({
           </span>
         </div>
 
-        {showExportPickAndDrop && (
-          <Button
-            variant="default"
-            size="sm"
-            className="h-8 gap-1.5 bg-green-600 hover:bg-green-700 text-white"
-            onClick={onExportSelected}
-            disabled={isExporting || selectedCount === 0}
-          >
-            <Download className="h-4 w-4" />
-            {isExporting
-              ? "Exporting..."
-              : `Export Pick & Drop (${selectedCount})`}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {onOpenExportModal && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 bg-yellow-400 hover:bg-yellow-500 text-black border-0 font-medium"
+              onClick={onOpenExportModal}
+            >
+              <Download className="h-4 w-4" />
+              Export Report
+            </Button>
+          )}
+
+          {showExportPickAndDrop && (
+            <Button
+              variant="default"
+              size="sm"
+              className="h-8 gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+              onClick={onExportSelected}
+              disabled={isExporting || selectedCount === 0}
+            >
+              <Download className="h-4 w-4" />
+              {isExporting
+                ? "Exporting..."
+                : `Export Pick & Drop (${selectedCount})`}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
@@ -176,14 +192,26 @@ export function FranchiseOrdersTableHeader({
             <SelectTrigger className="w-[150px] h-8">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="Processing">Processing</SelectItem>
               <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
               <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
+              <SelectItem value="Sent to PicknDrop">Sent to PicknDrop</SelectItem>
+              <SelectItem value="Sent to Daraz">Sent to Daraz</SelectItem>
+              <SelectItem value="Out For Delivery">Out For Delivery</SelectItem>
               <SelectItem value="Delivered">Delivered</SelectItem>
+              <SelectItem value="Verified">Verified</SelectItem>
+              <SelectItem value="Indrive">Indrive</SelectItem>
+              <SelectItem value="Rescheduled">Rescheduled</SelectItem>
               <SelectItem value="Cancelled">Cancelled</SelectItem>
+              <SelectItem value="Returned By Customer">Returned By Customer</SelectItem>
+              <SelectItem value="Returned By Dash">Returned By Dash</SelectItem>
+              <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
+              <SelectItem value="Returned By PicknDrop">Returned By PicknDrop</SelectItem>
+              <SelectItem value="Returned By Daraz">Returned By Daraz</SelectItem>
+              <SelectItem value="Return Pending">Return Pending</SelectItem>
             </SelectContent>
           </Select>
 

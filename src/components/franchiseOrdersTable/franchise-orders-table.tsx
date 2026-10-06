@@ -16,13 +16,17 @@ import { TablePagination } from "@/components/salesTable/components/table-pagina
 import { PaymentImageModal } from "@/components/salesTable/components/payment-image-modal";
 import { useTableData } from "@/components/salesTable/hooks/use-table-data";
 import { useFranchiseOrdersColumns } from "./hooks/use-franchise-orders-columns";
+import { ExportModal } from "@/components/salesTable/components/export-modal";
+import { toast } from "sonner";
 import { ErrorDialog } from "@/components/ErrorDialog";
+import { Role, useAuth } from "@/contexts/AuthContext";
 
 interface FranchiseOrdersTableProps {
   franchiseId: string;
   festMode?: boolean;
   selectableRows?: boolean;
   showExportPickAndDrop?: boolean;
+  canChangeStatus?: boolean;
 }
 
 const formatApiDate = (date: Date) => {
@@ -63,7 +67,13 @@ export default function FranchiseOrdersTable({
   festMode = false,
   selectableRows = false,
   showExportPickAndDrop = false,
+  canChangeStatus,
 }: FranchiseOrdersTableProps) {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === Role.SuperAdmin;
+  const allowStatusChange =
+    canChangeStatus !== undefined ? canChangeStatus : isSuperAdmin;
+
   const [sales, setSales] = useState<SalesResponse | null>(null);
   const [displayData, setDisplayData] = useState<SaleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,6 +96,27 @@ export default function FranchiseOrdersTable({
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Export Modal Filters & Advanced Filter States
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [franchiseExportDateRange, setFranchiseExportDateRange] = useState<
+    [Date | undefined, Date | undefined]
+  >([undefined, undefined]);
+  const [totalAmountMin, setTotalAmountMin] = useState<number | undefined>();
+  const [totalAmountMax, setTotalAmountMax] = useState<number | undefined>();
+  const [productsCountMin, setProductsCountMin] = useState<number | undefined>();
+  const [productsCountMax, setProductsCountMax] = useState<number | undefined>();
+  const [moreThan3Products, setMoreThan3Products] = useState<boolean | undefined>();
+  const [multipleOrdersCustomer, setMultipleOrdersCustomer] = useState<boolean | undefined>();
+  const [oilBottleTotalMin, setOilBottleTotalMin] = useState<number | undefined>();
+  const [oilBottleOnly, setOilBottleOnly] = useState<boolean | undefined>();
+
+  // Mirror table filter states inside export modal
+  const [exportSearchInput, setExportSearchInput] = useState("");
+  const [exportPaymentMethod, setExportPaymentMethod] = useState("all");
+  const [exportOrderStatus, setExportOrderStatus] = useState("all");
+  const [exportDeliveryType, setExportDeliveryType] = useState("all");
+  const [exportLogistic, setExportLogistic] = useState("all");
+
   const tableRef = useRef<HTMLTableElement>(null);
   const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -98,12 +129,51 @@ export default function FranchiseOrdersTable({
     setErrorDialogOpen(true);
   }, []);
 
+  const handleStatusChange = useCallback(
+    async (sale: SaleItem, newStatus: string) => {
+      const saleId = String(sale.id);
+      try {
+        const token = localStorage.getItem("accessToken");
+        await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`,
+          { order_status: newStatus },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setDisplayData((prev) =>
+          prev.map((item) =>
+            String(item.id) === saleId
+              ? { ...item, order_status: newStatus }
+              : item
+          )
+        );
+        setSales((prevSales) => {
+          if (!prevSales) return prevSales;
+          return {
+            ...prevSales,
+            results: prevSales.results.map((item) =>
+              String(item.id) === saleId
+                ? { ...item, order_status: newStatus }
+                : item
+            ),
+          };
+        });
+        toast.success("Order status updated successfully");
+      } catch (error) {
+        console.error("Error updating order status:", error);
+        showError("Failed to update order status");
+      }
+    },
+    [showError]
+  );
+
   const handleLogisticsChange = useCallback(
     async (saleId: string, logisticsValue: string) => {
       try {
         const token = localStorage.getItem("accessToken");
         await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/logistics/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/${saleId}/`,
           { logistics: logisticsValue === "none" ? null : logisticsValue },
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -218,6 +288,171 @@ export default function FranchiseOrdersTable({
     },
     [festMode],
   );
+
+  const handleOpenExportModal = useCallback(() => {
+    setExportSearchInput(searchInput);
+    setExportPaymentMethod(paymentMethod);
+    setExportOrderStatus(orderStatus);
+    setExportDeliveryType(deliveryType);
+    setExportLogistic(logistic);
+    if (effectiveDateRange?.from || effectiveDateRange?.to) {
+      setFranchiseExportDateRange([
+        effectiveDateRange.from,
+        effectiveDateRange.to,
+      ]);
+    } else {
+      setFranchiseExportDateRange([undefined, undefined]);
+    }
+    setShowExportModal(true);
+  }, [
+    searchInput,
+    paymentMethod,
+    orderStatus,
+    deliveryType,
+    logistic,
+    effectiveDateRange,
+  ]);
+
+  const handleExportCSV = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/export-summary/`;
+      const [from, to] = franchiseExportDateRange;
+      const params: string[] = [];
+
+      if (from) {
+        const year = from.getFullYear();
+        const month = String(from.getMonth() + 1).padStart(2, "0");
+        const day = String(from.getDate()).padStart(2, "0");
+        params.push(`date_from=${year}-${month}-${day}`);
+      }
+      if (to) {
+        const year = to.getFullYear();
+        const month = String(to.getMonth() + 1).padStart(2, "0");
+        const day = String(to.getDate()).padStart(2, "0");
+        params.push(`date_to=${year}-${month}-${day}`);
+      }
+      if (typeof totalAmountMin === "number")
+        params.push(`total_amount_min=${totalAmountMin}`);
+      if (typeof totalAmountMax === "number")
+        params.push(`total_amount_max=${totalAmountMax}`);
+      if (typeof productsCountMin === "number")
+        params.push(`products_count_min=${productsCountMin}`);
+      if (typeof productsCountMax === "number")
+        params.push(`products_count_max=${productsCountMax}`);
+      if (typeof moreThan3Products === "boolean")
+        params.push(`more_than_3_products=${moreThan3Products}`);
+      if (typeof multipleOrdersCustomer === "boolean")
+        params.push(`multiple_orders_customer=${multipleOrdersCustomer}`);
+      if (typeof oilBottleTotalMin === "number")
+        params.push(`oil_bottle_total_min=${oilBottleTotalMin}`);
+      if (typeof oilBottleOnly === "boolean")
+        params.push(`oil_bottle_only=${oilBottleOnly}`);
+
+      if (franchiseId) {
+        params.push(`franchise=${encodeURIComponent(franchiseId)}`);
+      }
+
+      if (exportSearchInput) {
+        params.push(`search=${encodeURIComponent(exportSearchInput)}`);
+      }
+      if (exportPaymentMethod && exportPaymentMethod !== "all") {
+        params.push(
+          `payment_method=${encodeURIComponent(exportPaymentMethod)}`,
+        );
+      }
+      if (exportOrderStatus && exportOrderStatus !== "all") {
+        params.push(`order_status=${encodeURIComponent(exportOrderStatus)}`);
+      }
+      if (exportDeliveryType && exportDeliveryType !== "all") {
+        params.push(
+          `delivery_type=${encodeURIComponent(exportDeliveryType)}`,
+        );
+      }
+      if (exportLogistic && exportLogistic !== "all") {
+        params.push(`logistics=${encodeURIComponent(exportLogistic)}`);
+      }
+
+      if (params.length > 0) {
+        url += `?${params.join("&")}`;
+      }
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob",
+      });
+
+      const blob = response.data as Blob;
+      const contentType = response.headers?.["content-type"] || blob.type || "";
+      if (contentType.includes("application/json") || blob.size < 1000) {
+        try {
+          const text = await blob.text();
+          const json = JSON.parse(text);
+          if (json.error || json.message || json.detail) {
+            const errMsg = json.error || json.message || json.detail;
+            showError(errMsg);
+            toast.error(errMsg);
+            return;
+          }
+        } catch {
+          // not json, proceed with file download
+        }
+      }
+
+      const urlObject = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = urlObject;
+      link.setAttribute(
+        "download",
+        `franchise_${franchiseId}_sales_summary.csv`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(urlObject);
+      setShowExportModal(false);
+      toast.success("Sales summary exported successfully");
+    } catch (error: any) {
+      console.error("Error exporting franchise summary:", error);
+      let errMsg = "Failed to export franchise sales summary. Please try again.";
+      if (error?.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const json = JSON.parse(text);
+          if (json.error || json.message || json.detail) {
+            errMsg = json.error || json.message || json.detail;
+          }
+        } catch {
+          // ignore
+        }
+      } else if (error?.response?.data?.error) {
+        errMsg = error.response.data.error;
+      } else if (typeof error?.message === "string") {
+        errMsg = error.message;
+      }
+      showError(errMsg);
+      toast.error(errMsg);
+    }
+  }, [
+    franchiseExportDateRange,
+    totalAmountMin,
+    totalAmountMax,
+    productsCountMin,
+    productsCountMax,
+    moreThan3Products,
+    multipleOrdersCustomer,
+    oilBottleTotalMin,
+    oilBottleOnly,
+    franchiseId,
+    exportSearchInput,
+    exportPaymentMethod,
+    exportOrderStatus,
+    exportDeliveryType,
+    exportLogistic,
+    showError,
+  ]);
 
   const fetchOrders = useCallback(
     async (page = 1) => {
@@ -394,7 +629,45 @@ export default function FranchiseOrdersTable({
         selectedCount={selectedOrderIds.length}
         onExportSelected={() => handleExportSelectedOrders("xlsx")}
         isExporting={isExporting}
+        onOpenExportModal={isSuperAdmin ? handleOpenExportModal : undefined}
       />
+
+      {showExportModal && (
+        <ExportModal
+          open={showExportModal}
+          exportDateRange={franchiseExportDateRange}
+          setExportDateRange={setFranchiseExportDateRange}
+          handleExportCSV={handleExportCSV}
+          setShowExportModal={setShowExportModal}
+          userRole="Franchise"
+          totalAmountMin={totalAmountMin}
+          setTotalAmountMin={setTotalAmountMin}
+          totalAmountMax={totalAmountMax}
+          setTotalAmountMax={setTotalAmountMax}
+          productsCountMin={productsCountMin}
+          setProductsCountMin={setProductsCountMin}
+          productsCountMax={productsCountMax}
+          setProductsCountMax={setProductsCountMax}
+          moreThan3Products={moreThan3Products}
+          setMoreThan3Products={setMoreThan3Products}
+          multipleOrdersCustomer={multipleOrdersCustomer}
+          setMultipleOrdersCustomer={setMultipleOrdersCustomer}
+          oilBottleTotalMin={oilBottleTotalMin}
+          setOilBottleTotalMin={setOilBottleTotalMin}
+          oilBottleOnly={oilBottleOnly}
+          setOilBottleOnly={setOilBottleOnly}
+          exportSearchInput={exportSearchInput}
+          setExportSearchInput={setExportSearchInput}
+          exportPaymentMethod={exportPaymentMethod}
+          setExportPaymentMethod={setExportPaymentMethod}
+          exportOrderStatus={exportOrderStatus}
+          setExportOrderStatus={setExportOrderStatus}
+          exportDeliveryType={exportDeliveryType}
+          setExportDeliveryType={setExportDeliveryType}
+          exportLogistic={exportLogistic}
+          setExportLogistic={setExportLogistic}
+        />
+      )}
 
       {showPaymentImageModal && (
         <PaymentImageModal
@@ -420,6 +693,9 @@ export default function FranchiseOrdersTable({
           selectedOrderIds={selectedOrderIds}
           onSelectAll={handleSelectAll}
           onSelectRow={handleSelectRow}
+          handleOrderStatusChange={
+            allowStatusChange ? handleStatusChange : undefined
+          }
           handleLogisticsChange={handleLogisticsChange}
           onLocationUpdate={handleLocationUpdate}
           selectedLogisticFilter={logistic}
