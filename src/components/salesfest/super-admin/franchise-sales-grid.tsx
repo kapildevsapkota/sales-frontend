@@ -115,11 +115,27 @@ export function FranchiseSalesGrid({
                           {formatCurrency(sp.total_sales)}
                         </span>
                       )}
-                      {showPoints && (
-                        <span className="font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[11px] shrink-0">
-                          {(sp.total_sales / 2250).toFixed(1)} pts
-                        </span>
-                      )}
+                      {showPoints && (() => {
+                        const calculatedPoints = sp.product_sales.reduce((total, ps) => {
+                          const name = ps.product_name.toLowerCase();
+                          const qty = ps.quantity_sold;
+
+                          if (name.includes("sachet")) {
+                            return total + qty * 0.1;
+                          } else if (name.includes("shampoo")) {
+                            return total + qty * 0.5;
+                          } else if (name.includes("hair oil") || name.includes("oil")) {
+                            return total + qty * 1.0;
+                          }
+                          return total;
+                        }, 0);
+
+                        return (
+                          <span className="font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[11px] shrink-0">
+                            {Number(calculatedPoints.toFixed(1))} pts
+                          </span>
+                        );
+                      })()}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
