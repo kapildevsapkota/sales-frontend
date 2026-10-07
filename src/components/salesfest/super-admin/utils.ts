@@ -6,6 +6,7 @@ import {
   GROUP_B_FRANCHISE_MATCHERS,
   GROUP_C_FRANCHISE_MATCHERS,
   HIDDEN_FRANCHISE_NAMES,
+  HIDDEN_SALESPERSON_MATCHERS,
   RANKINGS_END_DATE,
   RANKINGS_START_DATE,
 } from "./constants";
@@ -40,6 +41,24 @@ export const formatChartDate = (period: string) => {
 
 export const isHiddenFranchise = (name: string) =>
   HIDDEN_FRANCHISE_NAMES.has(name.trim().toLowerCase());
+
+export const isHiddenSalesperson = (sp: { first_name: string; last_name: string }) => {
+  const rawFullName = `${sp.first_name} ${sp.last_name}`.trim().toLowerCase();
+  const digitsOnly = rawFullName.replace(/\D/g, "");
+
+  return Array.from(HIDDEN_SALESPERSON_MATCHERS).some((matcher) => {
+    const cleanMatcher = matcher.trim().toLowerCase();
+    const matcherDigits = cleanMatcher.replace(/\D/g, "");
+
+    // Check raw name text match (e.g. "office sales")
+    if (rawFullName.includes(cleanMatcher)) return true;
+
+    // Check digit sequence match (e.g. phone numbers with spaces/dashes)
+    if (matcherDigits.length > 0 && digitsOnly.includes(matcherDigits)) return true;
+
+    return false;
+  });
+};
 
 export const getFranchiseLabel = (franchise: Franchise) =>
   `${franchise.name} ${franchise.short_form ?? ""}`.trim().toLowerCase();

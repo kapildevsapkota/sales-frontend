@@ -7,7 +7,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Franchise, FranchiseSalesEntry } from "./types";
-import { formatCurrency, formatNumber } from "./utils";
+import { formatCurrency, formatNumber, isHiddenSalesperson } from "./utils";
 
 interface FranchiseSalesGridProps {
   entries: FranchiseSalesEntry[];
@@ -82,7 +82,10 @@ export function FranchiseSalesGrid({
                   </span>
                 )}
                 {showPoints && (() => {
-                  const totalFranchisePoints = entry.salespersons.reduce((sum, sp) => {
+                  const visibleSalespersons = entry.salespersons.filter(
+                    (sp) => !isHiddenSalesperson(sp),
+                  );
+                  const totalFranchisePoints = visibleSalespersons.reduce((sum, sp) => {
                     const spPoints = sp.product_sales.reduce((total, ps) => {
                       const name = ps.product_name.toLowerCase();
                       const qty = ps.quantity_sold;
@@ -119,12 +122,20 @@ export function FranchiseSalesGrid({
           </p>
 
           <Accordion type="single" collapsible className="w-full">
-            {entry.salespersons.length === 0 ? (
-              <div className="text-center text-gray-500 py-4 text-sm">
-                No sales data found for this franchise.
-              </div>
-            ) : (
-              entry.salespersons.map((sp, idx) => (
+            {(() => {
+              const visibleSalespersons = entry.salespersons.filter(
+                (sp) => !isHiddenSalesperson(sp),
+              );
+
+              if (visibleSalespersons.length === 0) {
+                return (
+                  <div className="text-center text-gray-500 py-4 text-sm">
+                    No sales data found for this franchise.
+                  </div>
+                );
+              }
+
+              return visibleSalespersons.map((sp, idx) => (
                 <AccordionItem
                   key={idx}
                   value={`${entry.franchise.id}-${sp.first_name}-${sp.last_name}-${idx}`}
@@ -193,8 +204,8 @@ export function FranchiseSalesGrid({
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-              ))
-            )}
+              ));
+            })()}
           </Accordion>
         </div>
       ))}
