@@ -81,6 +81,30 @@ export function FranchiseSalesGrid({
                     {formatCurrency(entry.statistics.total_sales)}
                   </span>
                 )}
+                {showPoints && (() => {
+                  const totalFranchisePoints = entry.salespersons.reduce((sum, sp) => {
+                    const spPoints = sp.product_sales.reduce((total, ps) => {
+                      const name = ps.product_name.toLowerCase();
+                      const qty = ps.quantity_sold;
+
+                      if (name.includes("sachet")) {
+                        return total + qty * 0.1;
+                      } else if (name.includes("shampoo")) {
+                        return total + qty * 0.5;
+                      } else if (name.includes("hair oil") || name.includes("oil")) {
+                        return total + qty * 1.0;
+                      }
+                      return total;
+                    }, 0);
+                    return sum + spPoints;
+                  }, 0);
+
+                  return (
+                    <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">
+                      {Number(totalFranchisePoints.toFixed(1))} total pts
+                    </span>
+                  );
+                })()}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">Stats unavailable</p>
