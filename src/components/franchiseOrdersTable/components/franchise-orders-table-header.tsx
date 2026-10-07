@@ -158,7 +158,7 @@ export function FranchiseOrdersTableHeader({
               <Download className="h-4 w-4" />
               {isExporting
                 ? "Exporting..."
-                : `Export Pick & Drop (${selectedCount})`}
+                : `Export Pathao (${selectedCount})`}
             </Button>
           )}
         </div>
