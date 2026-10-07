@@ -72,6 +72,8 @@ const normalizeLogisticsForSelect = (logistics?: string | null): string => {
       return "NCM";
     case "pickndrop":
       return "PicknDrop";
+    case "pathao":
+      return "Pathao";
     case "daraz":
       return "Daraz";
     case "none":
@@ -470,6 +472,7 @@ export function TableBody({
                               <SelectItem value="PicknDrop">
                                 PicknDrop
                               </SelectItem>
+                              <SelectItem value="Pathao">Pathao</SelectItem>
                               <SelectItem value="Daraz">Daraz</SelectItem>
                               <SelectItem value="none">None</SelectItem>
                             </SelectContent>
