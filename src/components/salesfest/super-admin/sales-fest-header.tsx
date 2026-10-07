@@ -1,4 +1,4 @@
-import { Store, Trophy, Gamepad2 } from "lucide-react";
+import { Store, Trophy, Gamepad2, LayoutGrid } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -20,6 +20,12 @@ export function SalesFestHeader({ franchiseCount }: SalesFestHeaderProps) {
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/super-admin/salesfest/franchises-grid">
+            <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
+            Franchise Grid
+          </Link>
+        </Button>
         <Button variant="outline" size="sm" asChild>
           <Link href="/super-admin/salesfest/game">
             <Gamepad2 className="h-3.5 w-3.5 mr-1.5" />

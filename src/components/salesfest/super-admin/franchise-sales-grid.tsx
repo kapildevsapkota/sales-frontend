@@ -14,6 +14,8 @@ interface FranchiseSalesGridProps {
   loading: boolean;
   filterLabel: string;
   onFranchiseSelect: (franchise: Franchise) => void;
+  hidePrices?: boolean;
+  showPoints?: boolean;
 }
 
 export function FranchiseSalesGrid({
@@ -21,6 +23,8 @@ export function FranchiseSalesGrid({
   loading,
   filterLabel,
   onFranchiseSelect,
+  hidePrices = false,
+  showPoints = false,
 }: FranchiseSalesGridProps) {
   if (loading) {
     return (
@@ -72,9 +76,11 @@ export function FranchiseSalesGrid({
                 <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded font-semibold">
                   {formatNumber(entry.statistics.total_orders)} orders
                 </span>
-                <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-semibold">
-                  {formatCurrency(entry.statistics.total_sales)}
-                </span>
+                {!hidePrices && (
+                  <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-semibold">
+                    {formatCurrency(entry.statistics.total_sales)}
+                  </span>
+                )}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">Stats unavailable</p>
@@ -104,9 +110,16 @@ export function FranchiseSalesGrid({
                       <span className="font-medium text-left truncate">
                         {sp.first_name} {sp.last_name}
                       </span>
-                      <span className="font-semibold text-primary shrink-0">
-                        {formatCurrency(sp.total_sales)}
-                      </span>
+                      {!hidePrices && (
+                        <span className="font-semibold text-primary shrink-0">
+                          {formatCurrency(sp.total_sales)}
+                        </span>
+                      )}
+                      {showPoints && (
+                        <span className="font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[11px] shrink-0">
+                          {(sp.total_sales / 2250).toFixed(1)} pts
+                        </span>
+                      )}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
