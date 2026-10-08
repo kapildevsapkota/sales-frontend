@@ -3,9 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { FestSalesTrendChart } from "./fest-sales-trend-chart";
 import { GroupRankingsPanel } from "./group-rankings-panel";
+import { TopSalespersonsList } from "./top-salespersons-list";
 import { RANKINGS_END_DATE, RANKINGS_START_DATE } from "./constants";
 import { FranchiseSalesEntry, RankedSalesperson } from "./types";
-import { isGroupAFranchise, getGroupForFranchise } from "./utils";
+import { isGroupAFranchise, getGroupForFranchise, isHiddenSalesperson } from "./utils";
 
 interface FestRankingsSectionProps {
   entries: FranchiseSalesEntry[];
@@ -31,12 +32,20 @@ export function FestRankingsSection({
     group: "A" | "B" | "C",
   ): RankedSalesperson[] =>
     groupEntries.flatMap((entry) =>
-      entry.salespersons.map((sp) => ({
-        ...sp,
-        franchiseName: entry.franchise.name,
-        group,
-      })),
+      entry.salespersons
+        .filter((sp) => !isHiddenSalesperson(sp))
+        .map((sp) => ({
+          ...sp,
+          franchiseName: entry.franchise.name,
+          group,
+        })),
     );
+
+  const allRankedSalespersons = [
+    ...toRankedSalespersons(groupAEntries, "A"),
+    ...toRankedSalespersons(groupBEntries, "B"),
+    ...toRankedSalespersons(groupCEntries, "C"),
+  ];
 
   const trackingLabel = `${format(RANKINGS_START_DATE, "MMM d, yyyy")} – ${format(RANKINGS_END_DATE, "MMM d, yyyy")}`;
 
@@ -86,6 +95,14 @@ export function FestRankingsSection({
           franchiseEntries={groupCEntries}
           salespersons={toRankedSalespersons(groupCEntries, "C")}
           loading={loading}
+        />
+      </div>
+
+      <div className="pt-2 sm:pt-4">
+        <TopSalespersonsList
+          salespersons={allRankedSalespersons}
+          loading={loading}
+          subtitle={`Overall Standings across all groups (Team A, B & C)`}
         />
       </div>
     </div>
