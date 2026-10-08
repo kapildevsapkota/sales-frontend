@@ -60,6 +60,7 @@ export const HIDDEN_SALESPERSON_MATCHERS = new Set([
   "gairidharasales",
   "sales gairidhara",
   "gairidhara sales",
+  "yachu jorpati"
 ]);
 
 export const REFRESH_INTERVAL = 60_000;
