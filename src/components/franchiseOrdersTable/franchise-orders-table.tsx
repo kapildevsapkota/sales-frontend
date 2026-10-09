@@ -22,7 +22,8 @@ import { ErrorDialog } from "@/components/ErrorDialog";
 import { Role, useAuth } from "@/contexts/AuthContext";
 
 interface FranchiseOrdersTableProps {
-  franchiseId: string;
+  franchiseId?: string;
+  endpoint?: string;
   festMode?: boolean;
   selectableRows?: boolean;
   showExportPickAndDrop?: boolean;
@@ -64,6 +65,7 @@ const clampFestDateRange = (range: DateRange): DateRange => {
 
 export default function FranchiseOrdersTable({
   franchiseId,
+  endpoint,
   festMode = false,
   selectableRows = false,
   showExportPickAndDrop = false,
@@ -404,10 +406,10 @@ export default function FranchiseOrdersTable({
       const urlObject = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = urlObject;
-      link.setAttribute(
-        "download",
-        `franchise_${franchiseId}_sales_summary.csv`,
-      );
+      const downloadFilename = franchiseId
+        ? `franchise_${franchiseId}_sales_summary.csv`
+        : `orders_sales_summary.csv`;
+      link.setAttribute("download", downloadFilename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -455,14 +457,18 @@ export default function FranchiseOrdersTable({
   ]);
 
   const fetchOrders = useCallback(
-    async (page = 1) => {
+    async (page = 1, searchOverride?: string) => {
       try {
         setIsLoading(true);
         const token = localStorage.getItem("accessToken");
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/sales/orders/franchise/${franchiseId}/?page=${page}&page_size=${pageSize}`;
+        const term = searchOverride !== undefined ? searchOverride : filterTerm;
+        const baseEndpoint = franchiseId
+          ? `/api/sales/orders/franchise/${franchiseId}/`
+          : endpoint || "/api/sales/orders/";
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${baseEndpoint}?page=${page}&page_size=${pageSize}`;
 
-        if (filterTerm) {
-          url += `&search=${encodeURIComponent(filterTerm)}`;
+        if (term && term.trim()) {
+          url += `&search=${encodeURIComponent(term.trim())}`;
         }
         if (paymentMethod !== "all") {
           url += `&payment_method=${encodeURIComponent(paymentMethod)}`;
@@ -497,14 +503,15 @@ export default function FranchiseOrdersTable({
         setDisplayData(response.data.results || []);
         setCurrentPage(page);
       } catch (error) {
-        console.error("Error fetching franchise orders:", error);
-        showError("Failed to fetch franchise orders");
+        console.error("Error fetching orders:", error);
+        showError("Failed to fetch orders");
       } finally {
         setIsLoading(false);
       }
     },
     [
       franchiseId,
+      endpoint,
       pageSize,
       filterTerm,
       paymentMethod,
@@ -517,74 +524,51 @@ export default function FranchiseOrdersTable({
     ],
   );
 
-  const handleGlobalSearch = useCallback(
-    (searchTerm: string) => {
-      if (!sales?.results) return;
-
-      const filtered = sales.results.filter((sale) => {
-        const searchableFields = [
-          sale.full_name,
-          sale.delivery_address,
-          sale.city,
-          sale.phone_number,
-          sale.remarks,
-          sale.order_products[0]?.product.name,
-          sale.payment_method,
-          `${sale.sales_person.first_name} ${sale.sales_person.last_name}`,
-          sale.total_amount.toString(),
-          sale.order_code,
-        ];
-
-        return searchableFields.some((field) =>
-          field?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      });
-
-      setDisplayData(filtered);
-    },
-    [sales]
-  );
-
   const handleSearchInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setSearchInput(value);
       clearTimeout(searchTimeout.current);
       searchTimeout.current = setTimeout(() => {
-        if (value.length >= 3) {
-          setFilterTerm(value);
-          fetchOrders(1);
-        } else if (value.length === 0) {
-          setFilterTerm("");
-          fetchOrders(1);
-        } else {
-          handleGlobalSearch(value);
-        }
-      }, 300);
+        const trimmed = value.trim();
+        setFilterTerm(trimmed);
+        fetchOrders(1, trimmed);
+      }, 350);
     },
-    [fetchOrders, handleGlobalSearch]
+    [fetchOrders]
   );
 
+  const handleSearchSubmit = useCallback(() => {
+    clearTimeout(searchTimeout.current);
+    const trimmed = searchInput.trim();
+    setFilterTerm(trimmed);
+    fetchOrders(1, trimmed);
+  }, [searchInput, fetchOrders]);
+
+  const handleClearSearch = useCallback(() => {
+    clearTimeout(searchTimeout.current);
+    setSearchInput("");
+    setFilterTerm("");
+    fetchOrders(1, "");
+  }, [fetchOrders]);
+
   const handleClearFilters = useCallback(() => {
+    clearTimeout(searchTimeout.current);
     setSearchInput("");
     setFilterTerm("");
     setPaymentMethod("all");
     setOrderStatus("all");
     setDeliveryType("all");
     setLogistic("all");
-    setDateRange(undefined);
-    fetchOrders(1);
-  }, [fetchOrders]);
+    setDateRange(festMode ? getTodayRange() : undefined);
+    fetchOrders(1, "");
+  }, [fetchOrders, festMode]);
 
   useEffect(() => {
-    if (searchInput && searchInput.length < 3 && sales?.results) {
-      handleGlobalSearch(searchInput);
-      return;
-    }
     if (sales?.results) {
       setDisplayData(sales.results);
     }
-  }, [sales, searchInput, handleGlobalSearch]);
+  }, [sales]);
 
   useEffect(() => {
     fetchOrders(currentPage);
@@ -592,7 +576,7 @@ export default function FranchiseOrdersTable({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [paymentMethod, orderStatus, deliveryType, logistic, effectiveDateRange, filterTerm]);
+  }, [paymentMethod, orderStatus, deliveryType, logistic, effectiveDateRange]);
 
   const festMaxDate = startOfDay(RANKINGS_END_DATE);
 
@@ -606,6 +590,9 @@ export default function FranchiseOrdersTable({
         salesCount={sales?.count || 0}
         searchInput={searchInput}
         handleSearchInputChange={handleSearchInputChange}
+        handleSearchSubmit={handleSearchSubmit}
+        handleClearSearch={handleClearSearch}
+        isSearching={isLoading}
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}
         orderStatus={orderStatus}
@@ -722,3 +709,5 @@ export default function FranchiseOrdersTable({
     </div>
   );
 }
+
+export { FranchiseOrdersTable, FranchiseOrdersTable as OrdersTable };

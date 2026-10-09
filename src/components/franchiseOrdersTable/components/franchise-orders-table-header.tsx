@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { ChevronDown, Download, Eye, EyeOff, Search } from "lucide-react";
+import { ChevronDown, Download, Eye, EyeOff, Search, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +31,9 @@ interface FranchiseOrdersTableHeaderProps {
   salesCount: number;
   searchInput: string;
   handleSearchInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSearchSubmit?: () => void;
+  handleClearSearch?: () => void;
+  isSearching?: boolean;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
   orderStatus: string;
@@ -61,6 +64,9 @@ export function FranchiseOrdersTableHeader({
   salesCount,
   searchInput,
   handleSearchInputChange,
+  handleSearchSubmit,
+  handleClearSearch,
+  isSearching = false,
   paymentMethod,
   setPaymentMethod,
   orderStatus,
@@ -129,7 +135,7 @@ export function FranchiseOrdersTableHeader({
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm font-medium text-muted-foreground">
             {salesCount.toLocaleString()} orders
           </span>
         </div>
@@ -166,13 +172,33 @@ export function FranchiseOrdersTableHeader({
 
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative w-full lg:max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          {isSearching ? (
+            <Loader2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          )}
           <Input
-            placeholder="Search orders..."
+            placeholder="Search orders (name, phone, code...)"
             value={searchInput}
             onChange={handleSearchInputChange}
-            className="pl-9"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearchSubmit?.();
+              }
+            }}
+            className="pl-9 pr-8"
           />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              title="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

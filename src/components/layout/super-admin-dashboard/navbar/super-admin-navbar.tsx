@@ -10,6 +10,7 @@ import {
   Crown,
   NotepadText,
   Calendar,
+  Package,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -58,7 +59,11 @@ const superAdminItems: MenuItem[] = [
     icon: LayoutDashboard,
     href: "/super-admin",
   },
-  // sales only
+  {
+    label: "Orders",
+    icon: Package,
+    href: "/super-admin/orders",
+  },
   {
     label: "Inventory",
     icon: Users,
