@@ -450,6 +450,17 @@ export function FranchiseOrdersTableBody({
                               />
                             )}
                         </div>
+                      ) : column.id === "franchise" ? (
+                        <div className="flex flex-col gap-0.5 min-w-[130px]">
+                          <span className="font-semibold text-xs text-slate-800 dark:text-slate-100">
+                            {sale.sales_person?.franchise || (sale as any).franchise || "—"}
+                          </span>
+                          {sale.sales_person?.distributor && (
+                            <span className="text-[10px] text-muted-foreground truncate">
+                              {sale.sales_person.distributor}
+                            </span>
+                          )}
+                        </div>
                       ) : column.id === "delivery_location" ||
                         column.id === "product_sold" ? (
                         <div className="whitespace-normal break-words">

@@ -8,6 +8,7 @@ export function useFranchiseOrdersColumns() {
     { id: "index", label: "#", visible: true, width: 50 },
     { id: "timestamp", label: "Time", visible: true, width: 10 },
     { id: "full_name", label: "Full Name", visible: true, width: 150 },
+    { id: "franchise", label: "Franchise", visible: true, width: 140 },
     { id: "delivery_location", label: "Delivery Location", visible: true, width: 120 },
     { id: "delivery_type", label: "Delivery Type", visible: true, width: 50 },
     { id: "logistics_name", label: "Logistics", visible: true, width: 180 },

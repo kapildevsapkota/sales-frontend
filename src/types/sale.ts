@@ -50,6 +50,7 @@ export interface SaleItem {
   alternate_phone_number: string | null;
   delivery_type: string;
   country_code: string;
+  franchise?: string | null;
 }
 
 interface OrderProduct {
@@ -67,6 +68,10 @@ interface SalesPerson {
   id: number;
   first_name: string;
   last_name: string;
+  phone_number?: string;
+  franchise?: string | null;
+  distributor?: string | null;
+  factory?: string | null;
 }
 
 export interface SalesResponse {

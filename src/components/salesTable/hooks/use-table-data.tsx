@@ -92,6 +92,19 @@ export function useTableData() {
           );
         case "location_name":
           return sale.location_name || "N/A";
+        case "franchise": {
+          const franchise =
+            sale.sales_person?.franchise ||
+            (sale as any).franchise ||
+            (sale as any).franchise_name;
+          return franchise ? (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
+              {franchise}
+            </span>
+          ) : (
+            <span className="text-gray-400 text-xs">—</span>
+          );
+        }
         case "delivery_location":
           return `${sale.delivery_address}, ${sale.city}`;
         case "phone_number":
