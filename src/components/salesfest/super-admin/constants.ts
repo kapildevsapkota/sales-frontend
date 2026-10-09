@@ -42,25 +42,26 @@ export const HIDDEN_FRANCHISE_NAMES = new Set([
 ]);
 
 export const HIDDEN_SALESPERSON_MATCHERS = new Set([
-  "9768422161",
-  "222222222",
-  "9768422167",
-  "940062801",
-  "9851037188",
-  "941412832",
-  "9808731770",
-  "9865588084",
-  "9768422184",
-  "office sales",
-  "office sale",
-  "office visit",
-  "visit sales",
-  "soexya",
-  "soexya pandey",
-  "gairidharasales",
-  "sales gairidhara",
-  "gairidhara sales",
-  "yachu jorpati"
+  // "9768422161",
+  // "222222222",
+  // "9768422167",
+  // "940062801",
+  // "9851037188",
+  // "941412832",
+  // "9808731770",
+  // "9865588084",
+  // "9768422184",
+  // "office sales",
+  // "office sale",
+  // "office visit",
+  // "visit sales",
+  // "soexya",
+  // "soexya pandey",
+  // "gairidharasales",
+  // "sales gairidhara",
+  // "gairidhara sales",
+  // "yachu jorpati"
+  "000000000",
 ]);
 
 export const REFRESH_INTERVAL = 60_000;

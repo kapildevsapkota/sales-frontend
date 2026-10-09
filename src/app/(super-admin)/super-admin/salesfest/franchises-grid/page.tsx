@@ -334,8 +334,8 @@ export default function FranchisesGridPage() {
                 loading={false}
                 filterLabel={filterLabel}
                 onFranchiseSelect={handleFranchiseSelect}
-                hidePrices={true}
-                showPoints={true}
+                hidePrices={false}
+                showPoints={false}
               />
             )}
           </section>

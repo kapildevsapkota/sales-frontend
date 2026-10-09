@@ -42,7 +42,10 @@ export const formatChartDate = (period: string) => {
 export const isHiddenFranchise = (name: string) =>
   HIDDEN_FRANCHISE_NAMES.has(name.trim().toLowerCase());
 
-export const isHiddenSalesperson = (sp: { first_name: string; last_name: string }) => {
+export const isHiddenSalesperson = (sp: {
+  first_name: string;
+  last_name: string;
+}) => {
   const rawFullName = `${sp.first_name} ${sp.last_name}`.trim().toLowerCase();
   const digitsOnly = rawFullName.replace(/\D/g, "");
 
@@ -54,7 +57,8 @@ export const isHiddenSalesperson = (sp: { first_name: string; last_name: string 
     if (rawFullName.includes(cleanMatcher)) return true;
 
     // Check digit sequence match (e.g. phone numbers with spaces/dashes)
-    if (matcherDigits.length > 0 && digitsOnly.includes(matcherDigits)) return true;
+    if (matcherDigits.length > 0 && digitsOnly.includes(matcherDigits))
+      return true;
 
     return false;
   });
@@ -81,8 +85,9 @@ export const getFranchiseSalesAmount = (entry: FranchiseSalesEntry) =>
   entry.salespersons.reduce((sum, sp) => sum + sp.total_sales, 0) ||
   (entry.statistics?.total_sales ?? 0);
 
-export const sortSalespersonsByAmount = <T extends Salesperson>(salespersons: T[]) =>
-  [...salespersons].sort((a, b) => b.total_sales - a.total_sales);
+export const sortSalespersonsByAmount = <T extends Salesperson>(
+  salespersons: T[],
+) => [...salespersons].sort((a, b) => b.total_sales - a.total_sales);
 
 export const calcTrend = (current: number, previous: number) => {
   if (!previous) return 0;
@@ -141,15 +146,12 @@ export function filterFestTrendPoints(points: RevenueTrendPoint[]) {
     .filter((point) => {
       try {
         const pointDate = startOfDay(parseISO(point.period));
-        return (
-          !isBefore(pointDate, festStart) && !isAfter(pointDate, festEnd)
-        );
+        return !isBefore(pointDate, festStart) && !isAfter(pointDate, festEnd);
       } catch {
         return false;
       }
     })
     .sort(
-      (a, b) =>
-        parseISO(a.period).getTime() - parseISO(b.period).getTime(),
+      (a, b) => parseISO(a.period).getTime() - parseISO(b.period).getTime(),
     );
 }
