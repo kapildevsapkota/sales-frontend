@@ -60,10 +60,12 @@ const ORDER_STATUS_OPTIONS = [
   "Sent to YDM",
   "Sent to Dash",
   "Sent to PicknDrop",
+  "Sent to Pathao",
   "Sent to Daraz",
   "Out For Delivery",
   "Returned By YDM",
   "Returned By PicknDrop",
+  "Returned By Pathao",
   "Verified",
   "Indrive",
   "Delivered",
@@ -81,6 +83,7 @@ const getOrderStatusDotColor = (status: string) => {
       return "bg-green-500";
     case "Processing":
     case "Sent to PicknDrop":
+    case "Sent to Pathao":
       return "bg-blue-500";
     case "Pending":
     case "Sent to Dash":
@@ -99,6 +102,8 @@ const getOrderStatusDotColor = (status: string) => {
       return "bg-red-500";
     case "Returned By YDM":
       return "bg-rose-500";
+    case "Returned By Pathao":
+      return "bg-pink-500";
     case "Returned By Customer":
       return "bg-sky-500";
     case "Returned By Daraz":

@@ -355,19 +355,23 @@ export function ExportModal({
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="Pending">Pending</SelectItem>
                     <SelectItem value="Processing">Processing</SelectItem>
+                    <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
                     <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
+                    <SelectItem value="Sent to PicknDrop">Sent to PicknDrop</SelectItem>
+                    <SelectItem value="Sent to Pathao">Sent to Pathao</SelectItem>
                     <SelectItem value="Sent to Daraz">Sent to Daraz</SelectItem>
                     <SelectItem value="Indrive">Indrive</SelectItem>
-                    <SelectItem value="Delivered">Delivered</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                    <SelectItem value="Returned By Customer">Returned By Customer</SelectItem>
-                    <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
-                    <SelectItem value="Sent to Dash">InDrive</SelectItem>
                     <SelectItem value="Out For Delivery">Out For Delivery</SelectItem>
-                    <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
                     <SelectItem value="Verified">Verified</SelectItem>
+                    <SelectItem value="Delivered">Delivered</SelectItem>
+                    <SelectItem value="Rescheduled">Rescheduled</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
+                    <SelectItem value="Returned By PicknDrop">Returned By PicknDrop</SelectItem>
+                    <SelectItem value="Returned By Pathao">Returned By Pathao</SelectItem>
                     <SelectItem value="Returned By Dash">Returned By Dash</SelectItem>
                     <SelectItem value="Returned By Daraz">Returned By Daraz</SelectItem>
+                    <SelectItem value="Returned By Customer">Returned By Customer</SelectItem>
                     <SelectItem value="Return Pending">Return Pending</SelectItem>
                   </SelectContent>
                 </Select>

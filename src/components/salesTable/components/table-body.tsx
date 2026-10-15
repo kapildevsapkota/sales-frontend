@@ -172,6 +172,8 @@ export function TableBody({
         return "bg-red-500"; // Red for returned by customer
       case "Sent to PicknDrop":
         return "bg-blue-500"; // Pink for sent to PicknDrop
+      case "Sent to Pathao":
+        return "bg-blue-500"; // Blue for sent to Pathao
       case "Sent to Daraz":
         return "bg-amber-500"; // Amber for sent to Daraz
       case "Delivered":
@@ -206,6 +208,8 @@ export function TableBody({
         return "bg-fuchsia-500"; // Fuchsia for returned by daraz
       case "Return Pending":
         return "bg-orange-500"; // Orange for return pending
+      case "Returned By Pathao":
+        return "bg-pink-500"; // Pink for returned by pathao
       default:
         return "bg-gray-500"; // Default color
     }
@@ -329,6 +333,15 @@ export function TableBody({
                                 ></span>
                                 Sent to PicknDrop
                               </SelectItem>
+                              <SelectItem value="Sent to Pathao">
+                                <span
+                                  className={
+                                    getOrderStatusColor("Sent to Pathao") +
+                                    " rounded-full w-4 h-4 inline-block mr-2"
+                                  }
+                                ></span>
+                                Sent to Pathao
+                              </SelectItem>
                               <SelectItem value="Sent to Daraz">
                                 <span
                                   className={
@@ -450,6 +463,17 @@ export function TableBody({
                                   }
                                 ></span>
                                 Return Pending
+                              </SelectItem>
+                              <SelectItem value="Returned By Pathao">
+                                <span
+                                  className={
+                                    getOrderStatusColor(
+                                      "Returned By Pathao",
+                                    ) +
+                                    " rounded-full w-4 h-4 inline-block mr-2"
+                                  }
+                                ></span>
+                                Returned By Pathao
                               </SelectItem>
                             </SelectContent>
                           </Select>

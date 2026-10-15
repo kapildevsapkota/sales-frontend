@@ -4,6 +4,7 @@ export function getOrderStatusColor(status: string) {
     case "Cancelled":
       return "bg-red-100 text-red-800";
     case "Sent to PicknDrop":
+    case "Sent to Pathao":
     case "Processing":
       return "bg-blue-100 text-blue-800";
     case "Delivered":
@@ -24,6 +25,8 @@ export function getOrderStatusColor(status: string) {
       return "bg-rose-100 text-rose-800";
     case "Returned By Customer":
       return "bg-sky-100 text-sky-800";
+    case "Returned By Pathao":
+      return "bg-pink-100 text-pink-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
