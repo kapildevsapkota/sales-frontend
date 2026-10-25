@@ -8,9 +8,16 @@ import { InventoryLog } from "@/types/inventoryTypes";
 interface ActivityLogProps {
   isOpen: boolean;
   onClose: () => void;
+  inventoryId?: number | null;
+  title?: string;
 }
 
-const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
+const ActivityLog = ({
+  isOpen,
+  onClose,
+  inventoryId,
+  title = "Activity Log",
+}: ActivityLogProps) => {
   const [activityLogs, setActivityLogs] = useState<InventoryLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +35,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
   >([]);
   const [isDateInventoryLoading, setIsDateInventoryLoading] = useState(false);
   const [dateInventoryError, setDateInventoryError] = useState<string | null>(
-    null
+    null,
   );
 
   const fetchActivityLogs = async (url: string): Promise<void> => {
@@ -44,13 +51,16 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
         }
       }
 
-      // Add date and action filters to URL if selected
+      // Add date, action, and inventory_id filters to URL if selected
       const urlObj = new URL(url);
       if (selectedDate && !urlObj.searchParams.has("changed_at")) {
         urlObj.searchParams.set("changed_at", selectedDate);
       }
       if (selectedAction && !urlObj.searchParams.has("action")) {
         urlObj.searchParams.set("action", selectedAction);
+      }
+      if (inventoryId && !urlObj.searchParams.has("inventory_id")) {
+        urlObj.searchParams.set("inventory_id", inventoryId.toString());
       }
       const apiUrl = urlObj.toString();
 
@@ -73,7 +83,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
       setPreviousPage(data.previous);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
+        err instanceof Error ? err.message : "An unknown error occurred",
       );
       console.error("Error fetching activity logs:", err);
     } finally {
@@ -81,15 +91,23 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
     }
   };
 
+  const getInitialUrl = () => {
+    const urlObj = new URL(
+      "https://sales.baliyoventures.com/api/sales/user-inventory-logs/",
+    );
+    if (inventoryId) {
+      urlObj.searchParams.set("inventory_id", inventoryId.toString());
+    }
+    return urlObj.toString();
+  };
+
   // Fetch data when open state or filters change
   useEffect(() => {
     if (isOpen) {
-      fetchActivityLogs(
-        "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
-      );
+      fetchActivityLogs(getInitialUrl());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, selectedDate, selectedAction]);
+  }, [isOpen, selectedDate, selectedAction, inventoryId]);
 
   // Fetch inventory-by-date snapshot when a date is selected
   useEffect(() => {
@@ -111,7 +129,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
         }
 
         const url = `https://sales.baliyoventures.com/api/sales/inventory-date-product/?date=${encodeURIComponent(
-          date
+          date,
         )}`;
         const response = await fetch(url, {
           method: "GET",
@@ -126,7 +144,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
         }
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch inventory snapshot: ${response.status}`
+            `Failed to fetch inventory snapshot: ${response.status}`,
           );
         }
 
@@ -134,7 +152,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
         setDateInventory(Array.isArray(data.results) ? data.results : []);
       } catch (err) {
         setDateInventoryError(
-          err instanceof Error ? err.message : "An unknown error occurred"
+          err instanceof Error ? err.message : "An unknown error occurred",
         );
         console.error("Error fetching inventory by date:", err);
       } finally {
@@ -212,12 +230,12 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
     <div
       className={cn(
         "fixed inset-y-0 right-0 w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto",
-        isOpen ? "translate-x-0" : "translate-x-full"
+        isOpen ? "translate-x-0" : "translate-x-full",
       )}
     >
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Activity Log</h2>
+          <h2 className="text-2xl font-semibold">{title}</h2>
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-gray-100"
@@ -281,11 +299,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
         </div>
 
         <button
-          onClick={() =>
-            fetchActivityLogs(
-              "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
-            )
-          }
+          onClick={() => fetchActivityLogs(getInitialUrl())}
           className="mb-4 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md flex items-center"
         >
           <svg
@@ -348,11 +362,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
               </button>
             ) : (
               <button
-                onClick={() =>
-                  fetchActivityLogs(
-                    "https://sales.baliyoventures.com/api/sales/user-inventory-logs/"
-                  )
-                }
+                onClick={() => fetchActivityLogs(getInitialUrl())}
                 className="mt-2 text-sm underline"
               >
                 Try again
@@ -376,10 +386,7 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
                   </div>
                   <div className="mt-1">
                     <span
-                      className={cn(
-                        "font-medium",
-                        getActionColor(log.action)
-                      )}
+                      className={cn("font-medium", getActionColor(log.action))}
                     >
                       {formatActionLabel(log.action)}
                     </span>
@@ -391,20 +398,31 @@ const ActivityLog = ({ isOpen, onClose }: ActivityLogProps) => {
                           {" "}
                           changed from {log.old_quantity} to {log.new_quantity}
                         </>
-                      ) : log.action === "deleted" || log.action === "delete" ? (
+                      ) : log.action === "deleted" ||
+                        log.action === "delete" ? (
                         <> removed {log.old_quantity}</>
                       ) : log.action === "order_created" ? (
                         <>
-                          {log.old_quantity !== undefined && log.new_quantity !== undefined ? (
-                            <> (changed from {log.old_quantity} to {log.new_quantity})</>
+                          {log.old_quantity !== undefined &&
+                          log.new_quantity !== undefined ? (
+                            <>
+                              {" "}
+                              (changed from {log.old_quantity} to{" "}
+                              {log.new_quantity})
+                            </>
                           ) : (
                             <> ({log.new_quantity})</>
                           )}
                         </>
                       ) : log.action === "order_cancelled" ? (
                         <>
-                          {log.old_quantity !== undefined && log.new_quantity !== undefined ? (
-                            <> (changed from {log.old_quantity} to {log.new_quantity})</>
+                          {log.old_quantity !== undefined &&
+                          log.new_quantity !== undefined ? (
+                            <>
+                              {" "}
+                              (changed from {log.old_quantity} to{" "}
+                              {log.new_quantity})
+                            </>
                           ) : (
                             <> ({log.new_quantity || log.old_quantity})</>
                           )}

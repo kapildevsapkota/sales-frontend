@@ -19,6 +19,7 @@ import {
   Bell,
 } from "lucide-react";
 import AddProduct from "@/components/inventory/franchise/addproduct";
+import ActivityLog from "@/components/inventory/ActivityLog";
 import Link from "next/link";
 
 // Define the types for inventory items
@@ -50,9 +51,11 @@ const StockManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<InventoryItem | null>(
-    null
+    null,
   );
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [selectedProductLog, setSelectedProductLog] =
+    useState<InventoryItem | null>(null);
   const handleProductAdded = () => {
     mutate("https://sales.baliyoventures.com/api/sales/franchise-inventory/");
   };
@@ -60,13 +63,13 @@ const StockManagement = () => {
   // Use SWR to fetch data
   const { data, error } = useSWR<InventoryData>(
     "https://sales.baliyoventures.com/api/sales/franchise-inventory/",
-    fetcher
+    fetcher,
   );
 
   // Filter products based on search term
   const filterProducts = (products: InventoryItem[]) => {
     return products.filter((product) =>
-      product.product.toLowerCase().includes(searchTerm.toLowerCase())
+      product.product.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   };
 
@@ -84,7 +87,7 @@ const StockManagement = () => {
         body: JSON.stringify({
           new_quantity: product.quantity,
         }),
-      }
+      },
     );
 
     if (response.ok) {
@@ -197,7 +200,6 @@ const StockManagement = () => {
                       <span>Product Name</span>
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </div>
-                    <div className="col-span-2">Product ID</div>
                     <div className="col-span-2 text-center">Quantity</div>
                     <div className="col-span-2 text-center">Status</div>
                     <div className="col-span-2 text-right">Actions</div>
@@ -212,15 +214,14 @@ const StockManagement = () => {
                       >
                         {/* Mobile layout */}
                         <div className="block sm:hidden space-y-2">
-                          <div className="flex items-center">
-                            <Package className="mr-2 h-4 w-4 text-purple-600" />
-                            <span className="font-medium">{item.product}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">
-                              Product ID:{" "}
+                          <div
+                            className="flex items-center cursor-pointer group"
+                            onClick={() => setSelectedProductLog(item)}
+                          >
+                            <Package className="mr-2 h-4 w-4 text-purple-600 transition-transform group-hover:scale-110" />
+                            <span className="font-medium group-hover:text-purple-600 transition-colors">
+                              {item.product}
                             </span>
-                            {item.product_id}
                           </div>
                           <div>
                             <span className="text-muted-foreground">
@@ -233,12 +234,13 @@ const StockManagement = () => {
                               Status:{" "}
                             </span>
                             <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.quantity > 50
-                                ? "bg-green-100 text-green-800"
-                                : item.quantity > 20
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                                }`}
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                item.quantity > 50
+                                  ? "bg-green-100 text-green-800"
+                                  : item.quantity > 20
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                              }`}
                             >
                               {item.quantity > 50
                                 ? "Optimal"
@@ -274,22 +276,27 @@ const StockManagement = () => {
 
                         {/* Desktop layout */}
                         <div className="hidden sm:contents">
-                          <div className="col-span-4 flex items-center">
-                            <Package className="mr-2 h-4 w-4 text-purple-600" />
-                            <span>{item.product}</span>
+                          <div
+                            className="col-span-4 flex items-center cursor-pointer group"
+                            onClick={() => setSelectedProductLog(item)}
+                          >
+                            <Package className="mr-2 h-4 w-4 text-purple-600 transition-transform group-hover:scale-110" />
+                            <span className="group-hover:text-purple-600 transition-colors font-medium">
+                              {item.product}
+                            </span>
                           </div>
-                          <div className="col-span-2">{item.product_id}</div>
                           <div className="col-span-2 text-center">
                             {item.quantity}
                           </div>
                           <div className="col-span-2 text-center">
                             <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.quantity > 50
-                                ? "bg-green-100 text-green-800"
-                                : item.quantity > 20
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                                }`}
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                item.quantity > 50
+                                  ? "bg-green-100 text-green-800"
+                                  : item.quantity > 20
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                              }`}
                             >
                               {item.quantity > 50
                                 ? "Optimal"
@@ -327,7 +334,7 @@ const StockManagement = () => {
                   </div>
                 </div>
               </div>
-            )
+            ),
           )}
         </CardContent>
       </Card>
@@ -397,6 +404,26 @@ const StockManagement = () => {
         <AddProduct
           onClose={() => setIsAddProductOpen(false)}
           onSuccess={handleProductAdded}
+        />
+      )}
+
+      {/* Activity Log Side Sheet for Selected Product */}
+      <ActivityLog
+        isOpen={Boolean(selectedProductLog)}
+        onClose={() => setSelectedProductLog(null)}
+        inventoryId={selectedProductLog?.id}
+        title={
+          selectedProductLog
+            ? `${selectedProductLog.product} Logs`
+            : "Activity Log"
+        }
+      />
+
+      {/* Overlay when sheet is open */}
+      {selectedProductLog && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-20 z-40"
+          onClick={() => setSelectedProductLog(null)}
         />
       )}
     </div>
