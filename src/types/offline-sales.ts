@@ -97,6 +97,15 @@ export interface OfflineAttendanceResponse {
   results: OfflineAttendance[];
 }
 
+export interface OfflineAttendanceConfig {
+  id: number;
+  cutoff_time: string;
+  updated_by: number;
+  updated_by_name: string;
+  updated_at: string;
+  created_at: string;
+}
+
 export interface OfflineSalesConfig {
   orders_enabled: boolean;
   order_code_prefix: string;
