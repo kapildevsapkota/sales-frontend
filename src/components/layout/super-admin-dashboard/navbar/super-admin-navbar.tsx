@@ -11,6 +11,7 @@ import {
   NotepadText,
   Calendar,
   Package,
+  Store,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -63,6 +64,28 @@ const superAdminItems: MenuItem[] = [
     label: "Orders",
     icon: Package,
     href: "/super-admin/orders",
+  },
+  {
+    label: "Offline Sales",
+    icon: Store,
+    items: [
+      {
+        label: "Orders",
+        href: "/super-admin/offline-sales/orders",
+      },
+      {
+        label: "Customers",
+        href: "/super-admin/offline-sales/customers",
+      },
+      {
+        label: "Attendance",
+        href: "/super-admin/offline-sales/attendance",
+      },
+      {
+        label: "Config",
+        href: "/super-admin/offline-sales/config",
+      },
+    ],
   },
   {
     label: "Inventory",
@@ -146,7 +169,14 @@ export function SuperAdminHeader() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="flex h-10 items-center gap-1.5 rounded-lg px-3 text-white hover:bg-white/10 hover:text-white transition-colors data-[state=open]:bg-white/20"
+                          className={cn(
+                            "flex h-10 items-center gap-1.5 rounded-lg px-3 text-white hover:bg-white/10 hover:text-white transition-colors data-[state=open]:bg-white/20",
+                            item.items.some(
+                              (subItem) =>
+                                pathname === subItem.href ||
+                                pathname.startsWith(subItem.href + "/")
+                            ) && "bg-white/20 font-medium"
+                          )}
                         >
                           <item.icon className="h-4 w-4" />
                           <span className="text-sm font-medium">
