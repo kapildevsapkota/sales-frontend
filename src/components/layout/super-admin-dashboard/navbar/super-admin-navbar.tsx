@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserProfileDropdown } from "@/components/ui/user-profile-dropdown";
+import { useOfflineSalesAccess } from "@/hooks/use-offline-sales-access";
 
 interface MenuItem {
   label: string;
@@ -51,6 +52,7 @@ interface MenuItem {
     label: string;
     href: string;
   }[];
+  visible?: (hasOfflineAccess: boolean) => boolean;
 }
 
 // Super Admin menu items with comprehensive system management
@@ -71,21 +73,22 @@ const superAdminItems: MenuItem[] = [
     items: [
       {
         label: "Orders",
-        href: "/super-admin/offline-sales/orders",
+        href: "/offline-sales/orders",
       },
       {
         label: "Customers",
-        href: "/super-admin/offline-sales/customers",
+        href: "/offline-sales/customers",
       },
       {
         label: "Attendance",
-        href: "/super-admin/offline-sales/attendance",
+        href: "/offline-sales/attendance",
       },
       {
         label: "Config",
-        href: "/super-admin/offline-sales/config",
+        href: "/offline-sales/config",
       },
     ],
+    visible: (hasOfflineAccess) => hasOfflineAccess,
   },
   {
     label: "Inventory",
@@ -126,7 +129,16 @@ const superAdminItems: MenuItem[] = [
 export function SuperAdminHeader() {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { hasAccess: hasOfflineAccess } = useOfflineSalesAccess();
   const [open, setOpen] = React.useState(false);
+
+  const visibleItems = React.useMemo(
+    () =>
+      superAdminItems.filter((item) =>
+        item.visible ? item.visible(hasOfflineAccess) : true
+      ),
+    [hasOfflineAccess]
+  );
 
   // Close Sheet on nav change
   React.useEffect(() => {
@@ -162,7 +174,7 @@ export function SuperAdminHeader() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex md:space-x-1 ml-8">
-              {superAdminItems.map((item) => (
+              {visibleItems.map((item) => (
                 <div key={item.label} className="relative">
                   {item.items ? (
                     <DropdownMenu>
@@ -276,7 +288,7 @@ export function SuperAdminHeader() {
                   </SheetHeader>
 
                   <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
-                    {superAdminItems.map((item) => (
+                    {visibleItems.map((item) => (
                       <React.Fragment key={item.label}>
                         {item.items ? (
                           <Collapsible className="w-full">

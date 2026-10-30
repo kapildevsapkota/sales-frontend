@@ -161,7 +161,7 @@ export function OfflineCustomersView() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/super-admin/offline-sales/orders">
+            <Link href="/offline-sales/orders">
               <Button variant="outline" className="h-10 rounded-xl text-xs sm:text-sm gap-2">
                 <ShoppingBag className="h-4 w-4" />
                 <span>View Orders</span>

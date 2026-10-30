@@ -1,3 +1,17 @@
+export interface OfflineSalesAccessRecord {
+  id: number;
+  user: number;
+  user_id: number;
+  user_name: string;
+  user_username: string;
+  user_email: string;
+  user_phone: string;
+  user_role: string;
+  granted_by: number;
+  granted_by_name: string;
+  granted_at: string;
+}
+
 export interface OfflineOrderItem {
   id: number;
   inventory: number;

@@ -6,13 +6,12 @@ import {
   UserPlus,
   ChevronDown,
   type LucideIcon,
-  LogOut,
   Menu,
   Users,
-  Key,
-  Calendar,
   NotepadText,
+  Store,
 } from "lucide-react";
+import { useOfflineSalesAccess } from "@/hooks/use-offline-sales-access";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import * as React from "react";
@@ -57,6 +56,7 @@ interface MenuItem {
 export function AppHeader() {
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const { hasAccess: hasOfflineAccess } = useOfflineSalesAccess();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const [hasSalesFest, setHasSalesFest] = React.useState<boolean | null>(null);
@@ -192,12 +192,35 @@ export function AppHeader() {
         visible: (_u, fest) => fest === true,
       },
       {
+        label: "Offline Sales",
+        icon: Store,
+        items: [
+          {
+            label: "Orders",
+            href: "/offline-sales/orders",
+          },
+          {
+            label: "Customers",
+            href: "/offline-sales/customers",
+          },
+          {
+            label: "Attendance",
+            href: "/offline-sales/attendance",
+          },
+          {
+            label: "Config",
+            href: "/offline-sales/config",
+          },
+        ],
+        visible: () => Boolean(hasOfflineAccess),
+      },
+      {
         label: "Reports",
         icon: NotepadText,
         href: "/admin/reports",
       },
     ],
-    [hasSalesFest, hasLuckyDraw],
+    [hasSalesFest, hasLuckyDraw, hasOfflineAccess],
   );
 
   const visibleItems = React.useMemo(
@@ -221,12 +244,6 @@ export function AppHeader() {
   React.useEffect(() => {
     setOpen(false);
   }, [pathname]);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    logout();
-    window.location.href = "/login";
-  };
 
   return (
     <header className="sticky top-0 z-20  w-full border-b bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800">

@@ -8,25 +8,25 @@ import { cn } from "@/lib/utils";
 const offlineSalesTabs = [
   {
     name: "Orders",
-    href: "/super-admin/offline-sales/orders",
+    href: "/offline-sales/orders",
     icon: ShoppingBag,
     description: "Manage and track all offline sales orders",
   },
   {
     name: "Customers",
-    href: "/super-admin/offline-sales/customers",
+    href: "/offline-sales/customers",
     icon: Users,
     description: "Field clients and customer directory",
   },
   {
     name: "Attendance",
-    href: "/super-admin/offline-sales/attendance",
+    href: "/offline-sales/attendance",
     icon: CalendarCheck,
     description: "Daily field agent attendance tracking",
   },
   {
     name: "Config",
-    href: "/super-admin/offline-sales/config",
+    href: "/offline-sales/config",
     icon: Sliders,
     description: "Offline sales rules, targets and parameters",
   },
@@ -49,7 +49,7 @@ export function OfflineSalesNav() {
                 Offline Sales
               </h1>
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                Super Admin
+                Operations
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -61,7 +61,7 @@ export function OfflineSalesNav() {
         {/* Quick Tabs on larger screens / mobile wrap */}
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-neutral-800 rounded-xl overflow-x-auto">
           {offlineSalesTabs.map((tab) => {
-            const isActive = pathname === tab.href || (pathname.startsWith(tab.href) && tab.href !== "/super-admin/offline-sales");
+            const isActive = pathname === tab.href || (pathname.startsWith(tab.href) && tab.href !== "/offline-sales");
             const Icon = tab.icon;
             return (
               <Link
