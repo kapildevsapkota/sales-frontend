@@ -21,6 +21,26 @@ export interface OfflineOrderItem {
   quantity: number;
 }
 
+export interface OfflinePaymentHistoryItem {
+  id: number;
+  customer: number;
+  customer_id: number;
+  order: number;
+  order_code: string;
+  customer_store_name: string;
+  customer_phone: string;
+  amount: string;
+  payment_method: string;
+  payment_method_display: string;
+  payment_date: string;
+  payment_screenshot: string | null;
+  remarks: string | null;
+  recorded_by: number;
+  recorded_by_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface OfflineOrder {
   id: number;
   order_code: string;
@@ -41,6 +61,7 @@ export interface OfflineOrder {
   items_count: number;
   remarks: string | null;
   items: OfflineOrderItem[];
+  payment_history?: OfflinePaymentHistoryItem[];
   created_at: string;
   updated_at: string;
 }

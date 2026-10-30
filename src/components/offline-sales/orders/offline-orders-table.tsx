@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import { api } from "@/lib/api";
 import { OfflineOrder, OfflineOrdersResponse } from "@/types/offline-sales";
 import { useDebounce } from "@/hooks/use-debounce";
-import { OrderDetailsModal } from "./order-details-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
 export function OfflineOrdersTable() {
+  const router = useRouter();
   const [orders, setOrders] = useState<OfflineOrder[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -49,9 +51,6 @@ export function OfflineOrdersTable() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [selectedOrder, setSelectedOrder] = useState<OfflineOrder | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const fetchOrders = useCallback(
     async (pageToFetch = 1) => {
@@ -145,11 +144,6 @@ export function OfflineOrdersTable() {
   );
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-
-  const handleOpenDetails = (order: OfflineOrder) => {
-    setSelectedOrder(order);
-    setIsModalOpen(true);
-  };
 
   const getOrderStatusBadge = (status: string) => {
     const s = status?.toLowerCase() || "";
@@ -481,12 +475,18 @@ export function OfflineOrdersTable() {
                     <tr
                       key={order.id}
                       className="hover:bg-slate-50/70 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer"
-                      onClick={() => handleOpenDetails(order)}
+                      onClick={() =>
+                        router.push(`/offline-sales/orders/${order.order_code}`)
+                      }
                     >
                       <td className="py-3.5 px-4">
-                        <span className="font-semibold text-purple-700 dark:text-purple-400 hover:underline">
+                        <Link
+                          href={`/offline-sales/orders/${order.order_code}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-semibold text-purple-700 dark:text-purple-400 hover:underline"
+                        >
                           {order.order_code}
-                        </span>
+                        </Link>
                       </td>
 
                       <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
@@ -550,15 +550,19 @@ export function OfflineOrdersTable() {
                         className="py-3.5 px-4 text-center"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg"
-                          onClick={() => handleOpenDetails(order)}
-                          title="View order details"
+                        <Link
+                          href={`/offline-sales/orders/${order.order_code}`}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg"
+                            title="View order details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </td>
                     </tr>
                   ))
@@ -641,16 +645,6 @@ export function OfflineOrdersTable() {
           </div>
         </div>
       </div>
-
-      {/* Details Modal */}
-      <OrderDetailsModal
-        order={selectedOrder}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedOrder(null);
-        }}
-      />
     </div>
   );
 }
