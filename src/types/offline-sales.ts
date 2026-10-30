@@ -80,17 +80,21 @@ export interface OfflineCustomersResponse {
 
 export interface OfflineAttendance {
   id: number;
-  sales_person_id: number;
+  sales_person: number;
   sales_person_name: string;
-  franchise_name: string;
-  phone: string;
-  date: string;
-  check_in_time: string | null;
-  check_out_time: string | null;
-  status: "Present" | "On Field" | "Late" | "Absent" | "Half Day";
-  working_hours?: string;
-  location?: string;
-  remarks?: string;
+  image: string | null;
+  attendance_date: string;
+  attendance_time: string;
+  attendance_location: string;
+  attendance_lat: string;
+  attendance_long: string;
+}
+
+export interface OfflineAttendanceResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: OfflineAttendance[];
 }
 
 export interface OfflineSalesConfig {

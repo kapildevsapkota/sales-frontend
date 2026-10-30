@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
         hostname: "sales.baliyoventures.com",
       },
       {
+        protocol: "https",
+        hostname: "*.digitaloceanspaces.com",
+      },
+      {
+        protocol: "https",
+        hostname: "sgp1.digitaloceanspaces.com",
+      },
+      {
         protocol: "http",
         hostname: "not-violations-senators-theoretical.trycloudflare.com",
       },
