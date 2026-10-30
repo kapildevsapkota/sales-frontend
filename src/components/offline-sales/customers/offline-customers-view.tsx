@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { OfflineCustomer, OfflineCustomersResponse } from "@/types/offline-sales";
 import { useDebounce } from "@/hooks/use-debounce";
-import { CustomerDetailsModal } from "./customer-details-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ import { toast } from "sonner";
 import { isAxiosError } from "axios";
 
 export function OfflineCustomersView() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<OfflineCustomer[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -50,13 +52,6 @@ export function OfflineCustomersView() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(
-    null
-  );
-  const [selectedCustomer, setSelectedCustomer] =
-    useState<OfflineCustomer | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const fetchCustomers = useCallback(
     async (pageToFetch = 1) => {
@@ -151,9 +146,7 @@ export function OfflineCustomersView() {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const handleOpenDetails = (cust: OfflineCustomer) => {
-    setSelectedCustomerId(cust.id);
-    setSelectedCustomer(cust);
-    setIsModalOpen(true);
+    router.push(`/offline-sales/customers/${cust.id}`);
   };
 
   return (
@@ -488,15 +481,16 @@ export function OfflineCustomersView() {
                         className="py-3.5 px-4 text-center"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg"
-                          onClick={() => handleOpenDetails(cust)}
-                          title="View customer details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/offline-sales/customers/${cust.id}`} onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg"
+                            title="View customer details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </td>
                     </tr>
                   ))
@@ -580,17 +574,6 @@ export function OfflineCustomersView() {
         </div>
       </div>
 
-      {/* Customer Details Modal (Calls /api/offline-sales/customers/{id}) */}
-      <CustomerDetailsModal
-        customerId={selectedCustomerId}
-        initialCustomer={selectedCustomer}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedCustomerId(null);
-          setSelectedCustomer(null);
-        }}
-      />
     </div>
   );
 }

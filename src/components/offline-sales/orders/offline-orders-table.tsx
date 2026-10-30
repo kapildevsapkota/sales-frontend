@@ -9,7 +9,6 @@ import { OfflineOrder, OfflineOrdersResponse } from "@/types/offline-sales";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -29,7 +28,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Phone,
-  Package,
   Clock,
   CheckCircle2,
 } from "lucide-react";
@@ -45,9 +43,6 @@ export function OfflineOrdersTable() {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearch = useDebounce(searchTerm, 400);
-
-  const [orderStatus, setOrderStatus] = useState<string>("all");
-  const [paymentStatus, setPaymentStatus] = useState<string>("all");
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,12 +61,6 @@ export function OfflineOrdersTable() {
 
         if (debouncedSearch.trim()) {
           params.search = debouncedSearch.trim();
-        }
-        if (orderStatus !== "all") {
-          params.order_status = orderStatus;
-        }
-        if (paymentStatus !== "all") {
-          params.payment_status = paymentStatus;
         }
 
         // Call the endpoint requested by user: /api/offline-sales/orders
@@ -122,7 +111,7 @@ export function OfflineOrdersTable() {
         setIsLoading(false);
       }
     },
-    [pageSize, debouncedSearch, orderStatus, paymentStatus]
+    [pageSize, debouncedSearch]
   );
 
   useEffect(() => {
@@ -144,58 +133,6 @@ export function OfflineOrdersTable() {
   );
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-
-  const getOrderStatusBadge = (status: string) => {
-    const s = status?.toLowerCase() || "";
-    if (s.includes("delivered")) {
-      return (
-        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-medium">
-          Delivered
-        </Badge>
-      );
-    }
-    if (s.includes("pending") || s.includes("process")) {
-      return (
-        <Badge className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 font-medium">
-          {status}
-        </Badge>
-      );
-    }
-    if (s.includes("cancel")) {
-      return (
-        <Badge className="bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 font-medium">
-          Cancelled
-        </Badge>
-      );
-    }
-    return <Badge variant="secondary">{status}</Badge>;
-  };
-
-  const getPaymentStatusBadge = (status: string) => {
-    const s = status?.toLowerCase() || "";
-    if (s === "paid") {
-      return (
-        <Badge className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 font-medium">
-          Paid
-        </Badge>
-      );
-    }
-    if (s === "partial") {
-      return (
-        <Badge className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 font-medium">
-          Partial
-        </Badge>
-      );
-    }
-    if (s === "unpaid" || s === "due") {
-      return (
-        <Badge className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 font-medium">
-          Unpaid
-        </Badge>
-      );
-    }
-    return <Badge variant="outline">{status}</Badge>;
-  };
 
   return (
     <div className="space-y-6">
@@ -294,45 +231,6 @@ export function OfflineOrdersTable() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Order Status Select */}
-            <Select
-              value={orderStatus}
-              onValueChange={(val) => {
-                setOrderStatus(val);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[145px] h-10 rounded-xl bg-slate-50 dark:bg-neutral-800/60 border-slate-200 dark:border-neutral-700 text-xs sm:text-sm">
-                <SelectValue placeholder="Order Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Orders</SelectItem>
-                <SelectItem value="Delivered">Delivered</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Processing">Processing</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Payment Status Select */}
-            <Select
-              value={paymentStatus}
-              onValueChange={(val) => {
-                setPaymentStatus(val);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[145px] h-10 rounded-xl bg-slate-50 dark:bg-neutral-800/60 border-slate-200 dark:border-neutral-700 text-xs sm:text-sm">
-                <SelectValue placeholder="Payment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Payments</SelectItem>
-                <SelectItem value="Paid">Paid</SelectItem>
-                <SelectItem value="Partial">Partial</SelectItem>
-                <SelectItem value="Unpaid">Unpaid</SelectItem>
-              </SelectContent>
-            </Select>
-
             {/* Page Size Select */}
             <Select
               value={String(pageSize)}
@@ -399,12 +297,10 @@ export function OfflineOrdersTable() {
                   <th className="py-3.5 px-4">Customer</th>
                   <th className="py-3.5 px-4">Franchise</th>
                   <th className="py-3.5 px-4">Salesperson</th>
-                  <th className="py-3.5 px-4 text-center">Items</th>
-                  <th className="py-3.5 px-4 text-right">Total</th>
+                  <th className="py-3.5 px-4">Items</th>
                   <th className="py-3.5 px-4 text-right">Paid</th>
                   <th className="py-3.5 px-4 text-right">Remaining</th>
-                  <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-4 text-center">Payment</th>
+                  <th className="py-3.5 px-4 text-right">Total</th>
                   <th className="py-3.5 px-4 text-center">Actions</th>
                 </tr>
               </thead>
@@ -428,7 +324,7 @@ export function OfflineOrdersTable() {
                         <div className="h-4 w-20 bg-slate-200 dark:bg-neutral-800 rounded"></div>
                       </td>
                       <td className="py-4 px-4">
-                        <div className="h-4 w-12 bg-slate-200 dark:bg-neutral-800 rounded mx-auto"></div>
+                        <div className="h-4 w-32 bg-slate-200 dark:bg-neutral-800 rounded"></div>
                       </td>
                       <td className="py-4 px-4">
                         <div className="h-4 w-16 bg-slate-200 dark:bg-neutral-800 rounded ml-auto"></div>
@@ -438,12 +334,6 @@ export function OfflineOrdersTable() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="h-4 w-16 bg-slate-200 dark:bg-neutral-800 rounded ml-auto"></div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="h-5 w-16 bg-slate-200 dark:bg-neutral-800 rounded-full mx-auto"></div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="h-5 w-16 bg-slate-200 dark:bg-neutral-800 rounded-full mx-auto"></div>
                       </td>
                       <td className="py-4 px-4">
                         <div className="h-7 w-7 bg-slate-200 dark:bg-neutral-800 rounded mx-auto"></div>
@@ -452,7 +342,7 @@ export function OfflineOrdersTable() {
                   ))
                 ) : orders.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="py-12 text-center">
+                    <td colSpan={10} className="py-12 text-center">
                       <div className="flex flex-col items-center justify-center space-y-2">
                         <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
                           <ShoppingBag className="h-6 w-6" />
@@ -461,10 +351,8 @@ export function OfflineOrdersTable() {
                           No offline orders found
                         </p>
                         <p className="text-xs text-slate-400 max-w-sm">
-                          {searchTerm ||
-                          orderStatus !== "all" ||
-                          paymentStatus !== "all"
-                            ? "Try adjusting your search query or status filters."
+                          {searchTerm
+                            ? "Try adjusting your search query."
                             : "New offline sales orders submitted by agents will appear here."}
                         </p>
                       </div>
@@ -518,15 +406,28 @@ export function OfflineOrdersTable() {
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300">
-                          <Package className="h-3 w-3 text-slate-400" />
-                          {order.items_count || order.items?.length || 0}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                        Rs. {parseFloat(order.total_amount || "0").toLocaleString()}
+                      <td className="py-3.5 px-4">
+                        {order.items && order.items.length > 0 ? (
+                          <div className="flex flex-col gap-1 min-w-[160px] max-w-xs">
+                            {order.items.map((item) => (
+                              <div
+                                key={item.id || `${item.product_id}-${item.quantity}`}
+                                className="inline-flex items-center gap-1.5 text-xs"
+                              >
+                                <span className="text-slate-800 dark:text-slate-200 font-medium">
+                                  {item.product_name}
+                                </span>
+                                <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-semibold bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/50 shrink-0">
+                                  ×{item.quantity}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">
+                            {order.items_count ? `${order.items_count} items` : "No items"}
+                          </span>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4 text-right font-medium text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
@@ -538,12 +439,8 @@ export function OfflineOrdersTable() {
                         {parseFloat(order.remaining_amount || "0").toLocaleString()}
                       </td>
 
-                      <td className="py-3.5 px-4 text-center">
-                        {getOrderStatusBadge(order.order_status)}
-                      </td>
-
-                      <td className="py-3.5 px-4 text-center">
-                        {getPaymentStatusBadge(order.payment_status)}
+                      <td className="py-3.5 px-4 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                        Rs. {parseFloat(order.total_amount || "0").toLocaleString()}
                       </td>
 
                       <td

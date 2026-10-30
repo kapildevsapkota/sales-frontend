@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
-import { OfflineAttendance, OfflineAttendanceResponse } from "@/types/offline-sales";
+import {
+  OfflineAttendance,
+  OfflineAttendanceResponse,
+} from "@/types/offline-sales";
 import { useDebounce } from "@/hooks/use-debounce";
 import { AttendanceDetailsModal } from "./attendance-details-modal";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,9 +56,8 @@ export function OfflineAttendanceView() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedRecord, setSelectedRecord] = useState<OfflineAttendance | null>(
-    null
-  );
+  const [selectedRecord, setSelectedRecord] =
+    useState<OfflineAttendance | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const fetchAttendance = useCallback(
@@ -83,7 +85,7 @@ export function OfflineAttendanceView() {
         try {
           response = await api.get<OfflineAttendanceResponse>(
             "/api/offline-sales/attendance/",
-            { params }
+            { params },
           );
         } catch (err: unknown) {
           if (
@@ -92,7 +94,7 @@ export function OfflineAttendanceView() {
           ) {
             response = await api.get<OfflineAttendanceResponse>(
               "/api/offline-sales/attendance",
-              { params }
+              { params },
             );
           } else {
             throw err;
@@ -125,7 +127,7 @@ export function OfflineAttendanceView() {
         setIsLoading(false);
       }
     },
-    [pageSize, debouncedSearch, selectedDate]
+    [pageSize, debouncedSearch, selectedDate],
   );
 
   useEffect(() => {
@@ -135,14 +137,14 @@ export function OfflineAttendanceView() {
   // Derived KPI Stats
   const todayStr = new Date().toISOString().split("T")[0];
   const todayCheckins = attendanceList.filter(
-    (a) => a.attendance_date === todayStr
+    (a) => a.attendance_date === todayStr,
   ).length;
 
   const uniqueStaff = new Set(attendanceList.map((a) => a.sales_person)).size;
   const uniqueLocations = new Set(
     attendanceList
       .map((a) => a.attendance_location)
-      .filter((l) => Boolean(l) && l !== "—")
+      .filter((l) => Boolean(l) && l !== "—"),
   ).size;
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -162,85 +164,6 @@ export function OfflineAttendanceView() {
 
   return (
     <div className="space-y-6">
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-slate-200/80 dark:border-neutral-800 shadow-sm rounded-2xl">
-          <CardContent className="p-4 sm:p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Total Check-Ins
-              </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                {totalCount}
-              </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Total logged field attendances
-              </p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <CalendarCheck className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-slate-200/80 dark:border-neutral-800 shadow-sm rounded-2xl">
-          <CardContent className="p-4 sm:p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Today&apos;s Check-Ins
-              </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                {todayCheckins}
-              </h3>
-              <p className="text-[11px] text-emerald-600/70 mt-0.5 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Logged on {todayStr}
-              </p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-              <CheckCircle className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-slate-200/80 dark:border-neutral-800 shadow-sm rounded-2xl">
-          <CardContent className="p-4 sm:p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Active Staff
-              </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">
-                {uniqueStaff}
-              </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Unique salespersons logged
-              </p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-              <Users className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-slate-200/80 dark:border-neutral-800 shadow-sm rounded-2xl">
-          <CardContent className="p-4 sm:p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Locations Covered
-              </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
-                {uniqueLocations}
-              </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Territory checkpoints reached
-              </p>
-            </div>
-            <div className="h-11 w-11 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <MapPin className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Main Attendance Table Card */}
       <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200/80 dark:border-neutral-800 shadow-sm p-4 sm:p-6 space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
@@ -474,14 +397,15 @@ export function OfflineAttendanceView() {
                           {hasCoords ? (
                             <a
                               href={`https://www.google.com/maps?q=${encodeURIComponent(
-                                record.attendance_lat
+                                record.attendance_lat,
                               )},${encodeURIComponent(record.attendance_long)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-purple-600 hover:underline"
                             >
                               <span>
-                                {record.attendance_lat}, {record.attendance_long}
+                                {record.attendance_lat},{" "}
+                                {record.attendance_long}
                               </span>
                               <ExternalLink className="h-3 w-3" />
                             </a>
