@@ -54,17 +54,28 @@ export interface OfflineOrdersResponse {
 
 export interface OfflineCustomer {
   id: number;
-  name: string;
+  store_name: string;
   contact_person: string;
-  phone: string;
-  address?: string;
-  franchise_id?: number;
-  franchise_name?: string;
-  total_orders?: number;
-  total_spent?: number;
-  remaining_balance?: number;
-  last_order_date?: string;
-  is_active?: boolean;
+  phone_number: string;
+  address: string;
+  franchise: number;
+  franchise_name: string;
+  sales_person: number;
+  sales_person_name: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  total_orders_count: number;
+  total_purchased_amount: number;
+  total_paid_amount: number;
+  total_remaining_amount: number;
+}
+
+export interface OfflineCustomersResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: OfflineCustomer[];
 }
 
 export interface OfflineAttendance {
