@@ -141,3 +141,23 @@ export interface OfflineSalesConfig {
   allow_offline_sync: boolean;
 }
 
+export interface SalesPersonTracking {
+  id: number;
+  salesperson_id: number;
+  username: string;
+  full_name: string;
+  phone_number: string;
+  role: string;
+  franchise_id?: number | null;
+  franchise_name?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  accuracy?: number | null;
+  is_online: boolean;
+  is_active_now: boolean;
+  tracking_status: string;
+  seconds_since_last_ping?: number | null;
+  last_updated_at: string;
+}
+
+

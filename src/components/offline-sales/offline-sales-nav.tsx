@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, Users, CalendarCheck, Sliders, Store } from "lucide-react";
+import { ShoppingBag, Users, CalendarCheck, Sliders, Store, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const offlineSalesTabs = [
@@ -23,6 +23,12 @@ const offlineSalesTabs = [
     href: "/offline-sales/attendance",
     icon: CalendarCheck,
     description: "Daily field agent attendance tracking",
+  },
+  {
+    name: "Live Tracking",
+    href: "/offline-sales/tracking",
+    icon: MapPin,
+    description: "Live GPS location of field salespersons",
   },
   {
     name: "Config",

@@ -84,6 +84,10 @@ const superAdminItems: MenuItem[] = [
         href: "/offline-sales/attendance",
       },
       {
+        label: "Live Tracking",
+        href: "/offline-sales/tracking",
+      },
+      {
         label: "Config",
         href: "/offline-sales/config",
       },
