@@ -39,9 +39,6 @@ export function SalespersonTrackingView() {
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(30); // 30s default
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
 
-  // Geoapify Key support (reads from env)
-  const activeGeoapifyKey = (process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY || "").trim();
-
   // Fetch salespersons tracking
   const fetchTracking = useCallback(async (isSilent = false) => {
     try {
@@ -377,7 +374,6 @@ export function SalespersonTrackingView() {
               salespersons={filteredSalespersons}
               selectedSalesperson={selectedSalesperson}
               onSelectSalesperson={(sp) => setSelectedSalesperson(sp)}
-              geoapifyApiKey={activeGeoapifyKey}
             />
           </div>
         </div>

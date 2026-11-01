@@ -1,21 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SalesPersonTracking } from "@/types/offline-sales";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Layers,
   ExternalLink,
   Phone,
   Clock,
 } from "lucide-react";
 
-// Declare Leaflet global type
+// Declare global MapLibre type
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    L: any;
+    maplibregl: any;
   }
 }
 
@@ -23,130 +21,92 @@ interface SalespersonTrackingMapProps {
   salespersons: SalesPersonTracking[];
   selectedSalesperson: SalesPersonTracking | null;
   onSelectSalesperson: (sp: SalesPersonTracking) => void;
-  geoapifyApiKey?: string;
-  autoCenterOnSelect?: boolean;
 }
+
+const OPENFREEMAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 
 export function SalespersonTrackingMap({
   salespersons,
   selectedSalesperson,
   onSelectSalesperson,
-  geoapifyApiKey,
 }: SalespersonTrackingMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tileLayerRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const markersGroupRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markerMapRef = useRef<Map<number, any>>(new Map());
 
-  const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
-  const [mapStyle, setMapStyle] = useState<"osm-bright" | "osm-carto" | "klokantech-basic" | "dark-matter">("osm-bright");
-  const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  // Load Leaflet dynamically
+  // Load MapLibre GL JS & CSS dynamically from CDN
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    if (window.L) {
-      setIsLeafletLoaded(true);
+    if (window.maplibregl) {
+      setIsMapLoaded(true);
       return;
     }
 
     // Inject CSS
-    const existingLink = document.getElementById("leaflet-css");
+    const existingLink = document.getElementById("maplibre-css");
     if (!existingLink) {
       const link = document.createElement("link");
-      link.id = "leaflet-css";
+      link.id = "maplibre-css";
       link.rel = "stylesheet";
-      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-      link.crossOrigin = "";
+      link.href = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";
       document.head.appendChild(link);
     }
 
     // Inject JS
-    const existingScript = document.getElementById("leaflet-js");
+    const existingScript = document.getElementById("maplibre-js");
     if (existingScript) {
-      existingScript.addEventListener("load", () => setIsLeafletLoaded(true));
+      existingScript.addEventListener("load", () => setIsMapLoaded(true));
     } else {
       const script = document.createElement("script");
-      script.id = "leaflet-js";
-      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.crossOrigin = "";
+      script.id = "maplibre-js";
+      script.src = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";
       script.async = true;
       script.onload = () => {
-        setIsLeafletLoaded(true);
+        setIsMapLoaded(true);
       };
       document.body.appendChild(script);
     }
   }, []);
 
-  // Compute tile URL based on key presence and chosen style
-  const getTileConfig = useCallback(() => {
-    const key = geoapifyApiKey?.trim();
-    if (key) {
-      return {
-        url: `https://maps.geoapify.com/v1/tile/${mapStyle}/{z}/{x}/{y}.png?apiKey=${encodeURIComponent(key)}`,
-        attribution:
-          'Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
-        maxZoom: 20,
-      };
-    }
-    // Fallback to standard OpenStreetMap
-    return {
-      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    };
-  }, [geoapifyApiKey, mapStyle]);
-
-  // Initialize Map
+  // Initialize MapLibre Map with OpenFreeMap
   useEffect(() => {
-    if (!isLeafletLoaded || !mapContainerRef.current) return;
-    const L = window.L;
-    if (!L) return;
+    if (!isMapLoaded || !mapContainerRef.current) return;
+    const maplibregl = window.maplibregl;
+    if (!maplibregl) return;
 
-    // Destroy existing instance if any
     if (mapInstanceRef.current) {
       mapInstanceRef.current.remove();
       mapInstanceRef.current = null;
     }
 
-    // Default center Kathmandu / Nepal center: [27.7172, 85.3240]
-    const defaultCenter: [number, number] = [27.7172, 85.324];
+    // Default center Kathmandu: [lng, lat] = [85.3240, 27.7172]
+    const defaultCenter: [number, number] = [85.324, 27.7172];
     const defaultZoom = 13;
 
-    const map = L.map(mapContainerRef.current, {
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: OPENFREEMAP_STYLE,
       center: defaultCenter,
       zoom: defaultZoom,
-      zoomControl: false,
+      attributionControl: {
+        compact: true,
+      },
     });
 
-    // Add zoom control at bottom right
-    L.control.zoom({ position: "bottomright" }).addTo(map);
+    // Add navigation control (zoom in/out) at bottom-right
+    map.addControl(
+      new maplibregl.NavigationControl({
+        showCompass: false,
+      }),
+      "bottom-right"
+    );
 
-    // Add tile layer
-    const tileConfig = getTileConfig();
-    const tileLayer = L.tileLayer(tileConfig.url, {
-      attribution: tileConfig.attribution,
-      maxZoom: tileConfig.maxZoom,
-    }).addTo(map);
-
-    tileLayerRef.current = tileLayer;
-
-    // Feature group for markers
-    const markersGroup = L.featureGroup().addTo(map);
-    markersGroupRef.current = markersGroup;
     mapInstanceRef.current = map;
-
-    // Invalidate size once rendered
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
 
     return () => {
       if (mapInstanceRef.current) {
@@ -154,44 +114,32 @@ export function SalespersonTrackingMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [isLeafletLoaded, getTileConfig]);
-
-  // Update Tile Layer when style or key changes
-  useEffect(() => {
-    if (!mapInstanceRef.current || !isLeafletLoaded) return;
-    const L = window.L;
-    if (!L) return;
-
-    const tileConfig = getTileConfig();
-
-    if (tileLayerRef.current) {
-      mapInstanceRef.current.removeLayer(tileLayerRef.current);
-    }
-
-    const newTileLayer = L.tileLayer(tileConfig.url, {
-      attribution: tileConfig.attribution,
-      maxZoom: tileConfig.maxZoom,
-    }).addTo(mapInstanceRef.current);
-
-    tileLayerRef.current = newTileLayer;
-  }, [mapStyle, geoapifyApiKey, isLeafletLoaded, getTileConfig]);
+  }, [isMapLoaded]);
 
   // Update Markers
   useEffect(() => {
-    if (!mapInstanceRef.current || !markersGroupRef.current || !isLeafletLoaded) return;
-    const L = window.L;
-    if (!L) return;
+    if (!mapInstanceRef.current || !isMapLoaded) return;
+    const maplibregl = window.maplibregl;
+    const map = mapInstanceRef.current;
+    if (!maplibregl || !map) return;
 
-    const markersGroup = markersGroupRef.current;
-    markersGroup.clearLayers();
+    // Clear previous markers
+    markerMapRef.current.forEach((marker) => marker.remove());
     markerMapRef.current.clear();
 
     const validSalespersons = salespersons.filter(
-      (sp) => sp.latitude != null && sp.longitude != null && !isNaN(sp.latitude) && !isNaN(sp.longitude)
+      (sp) =>
+        sp.latitude != null &&
+        sp.longitude != null &&
+        !isNaN(sp.latitude) &&
+        !isNaN(sp.longitude)
     );
 
     validSalespersons.forEach((sp) => {
-      const isOnline = sp.is_online || sp.is_active_now || sp.tracking_status?.toUpperCase() === "ONLINE";
+      const isOnline =
+        sp.is_online ||
+        sp.is_active_now ||
+        sp.tracking_status?.toUpperCase() === "ONLINE";
       const isSelected = selectedSalesperson?.id === sp.id;
 
       // Extract initials
@@ -204,9 +152,13 @@ export function SalespersonTrackingMap({
             .join("")
         : "SP";
 
-      // Muted, high-contrast professional marker
-      const markerHtml = `
-        <div class="relative cursor-pointer transition-transform transform ${isSelected ? "scale-110 z-50" : "hover:scale-105 z-30"}" style="width: 40px; height: 40px;">
+      // Create custom DOM element for marker
+      const el = document.createElement("div");
+      el.className = "custom-salesperson-marker cursor-pointer";
+      el.innerHTML = `
+        <div class="relative cursor-pointer transition-transform transform ${
+          isSelected ? "scale-110 z-50" : "hover:scale-105 z-30"
+        }" style="width: 40px; height: 40px;">
           <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 ${
             isSelected
               ? "bg-slate-900 text-white border-white ring-2 ring-slate-800"
@@ -223,29 +175,29 @@ export function SalespersonTrackingMap({
         </div>
       `;
 
-      const customIcon = L.divIcon({
-        html: markerHtml,
-        className: "custom-salesperson-marker",
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-        popupAnchor: [0, -20],
+      el.addEventListener("click", () => {
+        onSelectSalesperson(sp);
       });
 
-      const marker = L.marker([sp.latitude!, sp.longitude!], {
-        icon: customIcon,
-        zIndexOffset: isSelected ? 1000 : isOnline ? 500 : 100,
-      });
-
-      // Build Popup content (franchise removed, muted professional styling)
+      // Build Popup content
       const googleMapsUrl = `https://www.google.com/maps?q=${sp.latitude},${sp.longitude}`;
-      const lastSeenText = sp.last_updated_at ? new Date(sp.last_updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently";
+      const lastSeenText = sp.last_updated_at
+        ? new Date(sp.last_updated_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "Recently";
 
       const popupHtml = `
         <div class="p-3 max-w-[230px] text-slate-800 font-sans">
           <div class="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 mb-2.5">
-            <h4 class="font-bold text-sm text-slate-900 truncate">${sp.full_name || sp.username}</h4>
+            <h4 class="font-bold text-sm text-slate-900 truncate">${
+              sp.full_name || sp.username
+            }</h4>
             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-              isOnline ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-slate-100 text-slate-600 border border-slate-200"
+              isOnline
+                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                : "bg-slate-100 text-slate-600 border border-slate-200"
             }">${isOnline ? "Online" : "Offline"}</span>
           </div>
           <div class="space-y-1.5 text-xs text-slate-600">
@@ -279,51 +231,61 @@ export function SalespersonTrackingMap({
         </div>
       `;
 
-      marker.bindPopup(popupHtml, {
-        className: "custom-leaflet-popup shadow-xl rounded-xl",
-      });
+      const popup = new maplibregl.Popup({
+        offset: 20,
+        closeButton: false,
+        className: "custom-maplibre-popup shadow-xl rounded-xl",
+      }).setHTML(popupHtml);
 
-      marker.on("click", () => {
-        onSelectSalesperson(sp);
-      });
+      // Create and add MapLibre marker: [lng, lat]
+      const marker = new maplibregl.Marker({
+        element: el,
+        anchor: "center",
+      })
+        .setLngLat([sp.longitude!, sp.latitude!])
+        .setPopup(popup)
+        .addTo(map);
 
-      markersGroup.addLayer(marker);
       markerMapRef.current.set(sp.id, marker);
     });
 
-    // If a salesperson is selected, fly to it
-    if (selectedSalesperson && selectedSalesperson.latitude && selectedSalesperson.longitude) {
-      mapInstanceRef.current.flyTo(
-        [selectedSalesperson.latitude, selectedSalesperson.longitude],
-        16,
-        { duration: 1.2 }
-      );
+    // If selected, center map on it
+    if (
+      selectedSalesperson &&
+      selectedSalesperson.latitude &&
+      selectedSalesperson.longitude
+    ) {
+      map.flyTo({
+        center: [selectedSalesperson.longitude, selectedSalesperson.latitude],
+        zoom: 16,
+        essential: true,
+        duration: 1200,
+      });
+
       const marker = markerMapRef.current.get(selectedSalesperson.id);
-      if (marker) {
-        marker.openPopup();
+      if (marker && !marker.getPopup()?.isOpen()) {
+        marker.togglePopup();
       }
     }
-  }, [salespersons, selectedSalesperson, isLeafletLoaded, onSelectSalesperson]);
+  }, [salespersons, selectedSalesperson, isMapLoaded, onSelectSalesperson]);
 
   // Fly to selected salesperson when changed externally
   useEffect(() => {
     if (!mapInstanceRef.current || !selectedSalesperson) return;
     if (selectedSalesperson.latitude && selectedSalesperson.longitude) {
-      mapInstanceRef.current.flyTo(
-        [selectedSalesperson.latitude, selectedSalesperson.longitude],
-        16,
-        { duration: 1.2 }
-      );
+      mapInstanceRef.current.flyTo({
+        center: [selectedSalesperson.longitude, selectedSalesperson.latitude],
+        zoom: 16,
+        essential: true,
+        duration: 1200,
+      });
+
       const marker = markerMapRef.current.get(selectedSalesperson.id);
-      if (marker) {
-        marker.openPopup();
+      if (marker && !marker.getPopup()?.isOpen()) {
+        marker.togglePopup();
       }
     }
   }, [selectedSalesperson]);
-
-  const onlineCount = salespersons.filter(
-    (s) => s.is_online || s.is_active_now || s.tracking_status?.toUpperCase() === "ONLINE"
-  ).length;
 
   return (
     <div className="relative w-full h-[540px] sm:h-[620px] rounded-2xl overflow-hidden border border-slate-200/80 dark:border-neutral-800 shadow-sm bg-slate-100 dark:bg-neutral-900">
@@ -331,78 +293,14 @@ export function SalespersonTrackingMap({
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
       {/* Loading Overlay */}
-      {!isLeafletLoaded && (
+      {!isMapLoaded && (
         <div className="absolute inset-0 bg-slate-50/80 dark:bg-neutral-950/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center space-y-3">
           <div className="h-8 w-8 rounded-full border-2 border-slate-400 border-t-transparent animate-spin"></div>
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-            Initializing Map Engine...
+            Loading OpenFreeMap...
           </p>
         </div>
       )}
-
-      {/* Layer Style Switcher (only when Geoapify API key is configured) */}
-      {geoapifyApiKey && (
-        <div className="absolute top-4 right-4 z-20">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowStyleMenu((prev) => !prev)}
-            className="h-8 px-2.5 text-xs gap-1.5 rounded-xl bg-white/95 dark:bg-neutral-900/95 shadow-md border border-slate-200/80 dark:border-neutral-800 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-neutral-800"
-            title="Change Map Style"
-          >
-            <Layers className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
-            <span className="hidden sm:inline capitalize">{mapStyle.replace("-", " ")}</span>
-          </Button>
-
-          {showStyleMenu && (
-            <div className="absolute right-0 top-10 w-44 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-slate-200 dark:border-neutral-800 p-1.5 space-y-1 z-30">
-              <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Map Layers
-              </div>
-              {(["osm-bright", "osm-carto", "klokantech-basic", "dark-matter"] as const).map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => {
-                    setMapStyle(st);
-                    setShowStyleMenu(false);
-                  }}
-                  className={`w-full text-left px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors ${
-                    mapStyle === st
-                      ? "bg-slate-100 dark:bg-neutral-800 text-slate-900 dark:text-white font-semibold"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-800"
-                  }`}
-                >
-                  {st === "osm-bright"
-                    ? "Bright Streets"
-                    : st === "osm-carto"
-                    ? "Standard Carto"
-                    : st === "klokantech-basic"
-                    ? "Clean Minimal"
-                    : "Dark Mode"}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Floating Status Pill Top-Left */}
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-        <div className="flex items-center gap-2 bg-white/95 dark:bg-neutral-900/95 px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 dark:border-neutral-800 backdrop-blur-sm">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <span className="text-xs font-bold text-slate-900 dark:text-white">
-            {onlineCount} Online
-          </span>
-          <span className="text-xs text-slate-400">•</span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {salespersons.length} Agents
-          </span>
-        </div>
-      </div>
 
       {/* Selected Salesperson Quick Card (Floating Bottom-Left) */}
       {selectedSalesperson && (
