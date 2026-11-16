@@ -150,60 +150,64 @@ export function SuperAdminHeader() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-20 w-full border-b bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-30 w-full border-b border-purple-500/20 bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-600 shadow-md">
+      <div className="px-3 sm:px-5 lg:px-6">
+        <div className="flex h-16 items-center justify-between gap-2 lg:gap-4">
           {/* Logo and Desktop Navigation */}
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 flex items-center gap-3">
+          <div className="flex items-center gap-3 lg:gap-6 min-w-0">
+            <Link
+              href="/super-admin"
+              className="flex-shrink-0 flex items-center gap-2.5 group"
+            >
               <div className="relative">
                 <Image
                   src="/image.png"
                   alt="Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 rounded-xl shadow-lg"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-xl shadow-md ring-1 ring-white/20 transition-transform group-hover:scale-105"
                 />
-                <div className="absolute -top-1 -right-1 h-4 w-4 bg-yellow-400 rounded-full flex items-center justify-center">
-                  <Crown className="h-2.5 w-2.5 text-yellow-800" />
+                <div className="absolute -top-1 -right-1 h-4 w-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
+                  <Crown className="h-2.5 w-2.5 text-yellow-900" />
                 </div>
               </div>
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-white">
-                  Super Admin Panel
+              <div className="hidden sm:block leading-tight">
+                <h1 className="text-sm font-semibold tracking-wide text-white drop-shadow-sm">
+                  Super Admin
                 </h1>
-                <p className="text-xs text-purple-100">System Administration</p>
+                <p className="text-[11px] font-medium text-purple-200">
+                  Control Center
+                </p>
               </div>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex md:space-x-1 ml-8">
+            <nav className="hidden md:flex items-center gap-1 overflow-x-auto py-1 scrollbar-none">
               {visibleItems.map((item) => (
-                <div key={item.label} className="relative">
+                <div key={item.label} className="relative flex-shrink-0">
                   {item.items ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
+                          size="sm"
                           className={cn(
-                            "flex h-10 items-center gap-1.5 rounded-lg px-3 text-white hover:bg-white/10 hover:text-white transition-colors data-[state=open]:bg-white/20",
+                            "h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-purple-100 hover:bg-white/15 hover:text-white transition-all data-[state=open]:bg-white/20 data-[state=open]:text-white",
                             item.items.some(
                               (subItem) =>
                                 pathname === subItem.href ||
                                 pathname.startsWith(subItem.href + "/")
-                            ) && "bg-white/20 font-medium"
+                            ) && "bg-white/20 text-white font-semibold shadow-sm"
                           )}
                         >
-                          <item.icon className="h-4 w-4" />
-                          <span className="text-sm font-medium">
-                            {item.label}
-                          </span>
-                          <ChevronDown className="ml-0.5 h-4 w-4 transition-transform duration-200" />
+                          <item.icon className="h-3.5 w-3.5 opacity-90" />
+                          <span>{item.label}</span>
+                          <ChevronDown className="h-3.5 w-3.5 opacity-70 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="start"
-                        className="min-w-[220px] bg-white shadow-xl border-0"
+                        className="min-w-[200px] p-1.5 bg-white rounded-xl shadow-xl border border-gray-100"
                         sideOffset={8}
                       >
                         {item.items.map((subItem) => (
@@ -211,9 +215,10 @@ export function SuperAdminHeader() {
                             <Link
                               href={subItem.href}
                               className={cn(
-                                "flex w-full items-center rounded-lg px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer",
-                                pathname === subItem.href &&
-                                  "bg-purple-100 font-medium text-purple-700",
+                                "flex w-full items-center rounded-lg px-3 py-2 text-xs font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer",
+                                (pathname === subItem.href ||
+                                  pathname.startsWith(subItem.href + "/")) &&
+                                  "bg-purple-50 text-purple-700 font-semibold"
                               )}
                             >
                               <span className="truncate">{subItem.label}</span>
@@ -225,20 +230,17 @@ export function SuperAdminHeader() {
                   ) : (
                     <Button
                       variant="ghost"
-                      className="flex h-10 items-center gap-1.5 rounded-lg px-3 text-white hover:bg-white/10 hover:text-white transition-colors"
+                      size="sm"
+                      className={cn(
+                        "h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-purple-100 hover:bg-white/15 hover:text-white transition-all",
+                        pathname === item.href &&
+                          "bg-white/20 text-white font-semibold shadow-sm"
+                      )}
                       asChild
                     >
-                      <Link
-                        href={item.href!}
-                        className={cn(
-                          "flex items-center",
-                          pathname === item.href
-                            ? "bg-white/20 font-medium"
-                            : "",
-                        )}
-                      >
-                        <item.icon className="h-4 w-4 mr-1.5" />
-                        <span className="text-sm">{item.label}</span>
+                      <Link href={item.href!}>
+                        <item.icon className="h-3.5 w-3.5 opacity-90" />
+                        <span>{item.label}</span>
                       </Link>
                     </Button>
                   )}
@@ -248,8 +250,8 @@ export function SuperAdminHeader() {
           </div>
 
           {/* User Info and Desktop Logout */}
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="hidden md:flex items-center rounded-lg hover:bg-white/10 transition-colors p-0.5">
               <UserProfileDropdown />
             </div>
 
