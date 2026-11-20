@@ -70,6 +70,7 @@ const superAdminItems: MenuItem[] = [
   {
     label: "Offline Sales",
     icon: Store,
+    href: "/offline-sales/orders",
     items: [
       {
         label: "Orders",
@@ -135,6 +136,20 @@ export function SuperAdminHeader() {
   const { user } = useAuth();
   const { hasAccess: hasOfflineAccess } = useOfflineSalesAccess();
   const [open, setOpen] = React.useState(false);
+  const [openMenu, setOpenMenu] = React.useState<string | null>(null);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = (label: string) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setOpenMenu(label);
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setOpenMenu(null);
+    }, 150);
+  };
 
   const visibleItems = React.useMemo(
     () =>
@@ -144,9 +159,10 @@ export function SuperAdminHeader() {
     [hasOfflineAccess]
   );
 
-  // Close Sheet on nav change
+  // Close Sheet and Menu on nav change
   React.useEffect(() => {
     setOpen(false);
+    setOpenMenu(null);
   }, [pathname]);
 
   return (
@@ -183,69 +199,113 @@ export function SuperAdminHeader() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1 overflow-x-auto py-1 scrollbar-none">
-              {visibleItems.map((item) => (
-                <div key={item.label} className="relative flex-shrink-0">
-                  {item.items ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
+              {visibleItems.map((item) => {
+                const isItemActive =
+                  (item.href && (pathname === item.href || pathname.startsWith(item.href + "/"))) ||
+                  item.items?.some(
+                    (subItem) =>
+                      pathname === subItem.href ||
+                      pathname.startsWith(subItem.href + "/")
+                  );
+
+                return (
+                  <div
+                    key={item.label}
+                    className="relative flex-shrink-0"
+                    onMouseEnter={() => item.items && handleMouseEnter(item.label)}
+                    onMouseLeave={() => item.items && handleMouseLeave()}
+                  >
+                    {item.items ? (
+                      <DropdownMenu
+                        open={openMenu === item.label}
+                        onOpenChange={(isOpen) => setOpenMenu(isOpen ? item.label : null)}
+                      >
+                        <div
                           className={cn(
-                            "h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-purple-100 hover:bg-white/15 hover:text-white transition-all data-[state=open]:bg-white/20 data-[state=open]:text-white",
-                            item.items.some(
-                              (subItem) =>
-                                pathname === subItem.href ||
-                                pathname.startsWith(subItem.href + "/")
-                            ) && "bg-white/20 text-white font-semibold shadow-sm"
+                            "flex h-9 items-center rounded-lg transition-all",
+                            isItemActive
+                              ? "bg-white/20 text-white font-semibold shadow-sm"
+                              : "text-purple-100 hover:bg-white/15 hover:text-white"
                           )}
                         >
+                          {item.href ? (
+                            <Link
+                              href={item.href}
+                              className="flex h-full items-center gap-1.5 pl-2.5 pr-1 text-[13px] font-medium"
+                            >
+                              <item.icon className="h-3.5 w-3.5 opacity-90" />
+                              <span>{item.label}</span>
+                            </Link>
+                          ) : (
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="flex h-full items-center gap-1.5 pl-2.5 pr-1 text-[13px] font-medium focus:outline-none"
+                              >
+                                <item.icon className="h-3.5 w-3.5 opacity-90" />
+                                <span>{item.label}</span>
+                              </button>
+                            </DropdownMenuTrigger>
+                          )}
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex h-full items-center px-1.5 hover:bg-white/20 rounded-r-lg transition-colors focus:outline-none"
+                              aria-label={`Open ${item.label} dropdown`}
+                            >
+                              <ChevronDown
+                                className={cn(
+                                  "h-3.5 w-3.5 opacity-70 transition-transform duration-200",
+                                  openMenu === item.label && "rotate-180"
+                                )}
+                              />
+                            </button>
+                          </DropdownMenuTrigger>
+                        </div>
+                        <DropdownMenuContent
+                          align="start"
+                          className="min-w-[200px] p-1.5 bg-white rounded-xl shadow-xl border border-gray-100"
+                          sideOffset={8}
+                          onMouseEnter={() => handleMouseEnter(item.label)}
+                          onMouseLeave={handleMouseLeave}
+                        >
+                          {item.items.map((subItem) => (
+                            <DropdownMenuItem key={subItem.href} asChild>
+                              <Link
+                                href={subItem.href}
+                                className={cn(
+                                  "flex w-full items-center rounded-lg px-3 py-2 text-xs font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer",
+                                  (pathname === subItem.href ||
+                                    pathname.startsWith(subItem.href + "/")) &&
+                                    "bg-purple-50 text-purple-700 font-semibold"
+                                )}
+                              >
+                                <span className="truncate">{subItem.label}</span>
+                              </Link>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-purple-100 hover:bg-white/15 hover:text-white transition-all",
+                          pathname === item.href &&
+                            "bg-white/20 text-white font-semibold shadow-sm"
+                        )}
+                        asChild
+                      >
+                        <Link href={item.href!}>
                           <item.icon className="h-3.5 w-3.5 opacity-90" />
                           <span>{item.label}</span>
-                          <ChevronDown className="h-3.5 w-3.5 opacity-70 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="start"
-                        className="min-w-[200px] p-1.5 bg-white rounded-xl shadow-xl border border-gray-100"
-                        sideOffset={8}
-                      >
-                        {item.items.map((subItem) => (
-                          <DropdownMenuItem key={subItem.href} asChild>
-                            <Link
-                              href={subItem.href}
-                              className={cn(
-                                "flex w-full items-center rounded-lg px-3 py-2 text-xs font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer",
-                                (pathname === subItem.href ||
-                                  pathname.startsWith(subItem.href + "/")) &&
-                                  "bg-purple-50 text-purple-700 font-semibold"
-                              )}
-                            >
-                              <span className="truncate">{subItem.label}</span>
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-purple-100 hover:bg-white/15 hover:text-white transition-all",
-                        pathname === item.href &&
-                          "bg-white/20 text-white font-semibold shadow-sm"
-                      )}
-                      asChild
-                    >
-                      <Link href={item.href!}>
-                        <item.icon className="h-3.5 w-3.5 opacity-90" />
-                        <span>{item.label}</span>
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              ))}
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
             </nav>
           </div>
 
@@ -298,18 +358,41 @@ export function SuperAdminHeader() {
                       <React.Fragment key={item.label}>
                         {item.items ? (
                           <Collapsible className="w-full">
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                className="flex w-full items-center justify-between px-3 py-3 text-left text-base font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg"
-                              >
-                                <div className="flex items-center">
+                            <div className="flex w-full items-center justify-between rounded-lg hover:bg-purple-50 hover:text-purple-700 transition-colors">
+                              {item.href ? (
+                                <Link
+                                  href={item.href}
+                                  className={cn(
+                                    "flex flex-1 items-center px-3 py-3 text-base font-medium",
+                                    (pathname === item.href || pathname.startsWith(item.href + "/"))
+                                      ? "text-purple-700 bg-purple-100 font-semibold rounded-lg"
+                                      : "text-gray-700"
+                                  )}
+                                >
                                   <item.icon className="mr-3 h-5 w-5 text-gray-500" />
                                   {item.label}
-                                </div>
-                                <ChevronDown className="h-5 w-5 text-gray-500" />
-                              </Button>
-                            </CollapsibleTrigger>
+                                </Link>
+                              ) : (
+                                <CollapsibleTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="flex flex-1 items-center px-3 py-3 text-left text-base font-medium text-gray-700"
+                                  >
+                                    <item.icon className="mr-3 h-5 w-5 text-gray-500" />
+                                    {item.label}
+                                  </button>
+                                </CollapsibleTrigger>
+                              )}
+                              <CollapsibleTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="p-3 text-gray-500 hover:text-purple-700 focus:outline-none"
+                                  aria-label={`Toggle ${item.label} menu`}
+                                >
+                                  <ChevronDown className="h-5 w-5" />
+                                </button>
+                              </CollapsibleTrigger>
+                            </div>
                             <CollapsibleContent>
                               <div className="space-y-1 pl-11 pt-2">
                                 {item.items.map((subItem) => (
@@ -318,7 +401,8 @@ export function SuperAdminHeader() {
                                     href={subItem.href}
                                     className={cn(
                                       "block px-3 py-2 text-sm font-medium rounded-lg hover:bg-purple-50 hover:text-purple-700 transition-colors",
-                                      pathname === subItem.href &&
+                                      (pathname === subItem.href ||
+                                        pathname.startsWith(subItem.href + "/")) &&
                                         "bg-purple-100 text-purple-700 font-semibold",
                                     )}
                                   >
